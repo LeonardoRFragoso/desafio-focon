@@ -1,4 +1,4 @@
-import { ReactNode, useState } from 'react';
+import { type ReactNode, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthContext } from '@/features/auth/useAuthContext';
 
@@ -71,7 +71,7 @@ export function Layout({ children }: LayoutProps) {
 
         <div className="absolute bottom-0 left-0 right-0 p-6 border-t border-slate-800">
           <p className="text-sm text-slate-400 mb-4">
-            {user?.full_name || user?.email}
+            {user?.email}
           </p>
           <button
             onClick={handleLogout}

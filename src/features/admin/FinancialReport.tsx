@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { supabase } from '@/lib/supabase/client';
 
 interface FilterValues {
@@ -35,11 +35,7 @@ export function FinancialReport({ filters }: FinancialReportProps) {
   const [data, setData] = useState<ReportData | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetchReportData();
-  }, [filters]);
-
-  const fetchReportData = async () => {
+  const fetchReportData = useCallback(async () => {
     try {
       setLoading(true);
 
@@ -82,15 +78,27 @@ export function FinancialReport({ filters }: FinancialReportProps) {
       let totalTax = 0;
       let totalIndirectCost = 0;
 
-      const profMap = new Map<string, any>();
-      const projectMap = new Map<string, any>();
+      interface ProfessionalEntry {
+        name: string;
+        hours: number;
+        hourlyRate: number;
+        cost: number;
+      }
+
+      interface ProjectEntry {
+        name: string;
+        revenue: number;
+      }
+
+      const profMap = new Map<string, ProfessionalEntry>();
+      const projectMap = new Map<string, ProjectEntry>();
 
       entries?.forEach((entry: any) => {
         const cost = (entry.duration_minutes / 60) * entry.applied_hourly_rate;
         totalLaborCost += cost;
 
         const profId = entry.professional_id;
-        const profName = entry.profiles?.full_name || 'Desconhecido';
+        const profName = entry.profiles?.[0]?.full_name || 'Desconhecido';
 
         if (!profMap.has(profId)) {
           profMap.set(profId, {
@@ -102,8 +110,10 @@ export function FinancialReport({ filters }: FinancialReportProps) {
         }
 
         const prof = profMap.get(profId);
-        prof.hours += entry.duration_minutes;
-        prof.cost += cost;
+        if (prof) {
+          prof.hours += entry.duration_minutes;
+          prof.cost += cost;
+        }
       });
 
       financials?.forEach((f: any) => {
@@ -111,7 +121,7 @@ export function FinancialReport({ filters }: FinancialReportProps) {
         totalTax += f.contracted_revenue * f.tax_rate;
         totalIndirectCost += f.indirect_cost;
         projectMap.set(f.project_id, {
-          name: f.projects?.name || 'Desconhecido',
+          name: f.projects?.[0]?.name || 'Desconhecido',
           revenue: f.contracted_revenue,
         });
       });
@@ -134,7 +144,11 @@ export function FinancialReport({ filters }: FinancialReportProps) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [filters.projectId, filters.professionalId, filters.startDate, filters.endDate]);
+
+  useEffect(() => {
+    fetchReportData();
+  }, [fetchReportData]);
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat('pt-BR', {

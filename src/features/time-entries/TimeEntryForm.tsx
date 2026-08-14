@@ -59,10 +59,10 @@ export function TimeEntryForm({ onSuccess }: TimeEntryFormProps) {
 
       const { error } = await supabase.from('time_entries').insert([
         {
-          project_id: data.project_id,
+          project_id: data.projectId,
           professional_id: user.id,
-          entry_date: data.entry_date,
-          duration_minutes: data.duration_minutes,
+          entry_date: data.entryDate,
+          duration_minutes: data.durationMinutes,
           description: data.description,
           approval_status: 'pending',
         },
@@ -102,12 +102,12 @@ export function TimeEntryForm({ onSuccess }: TimeEntryFormProps) {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
-          <label htmlFor="project_id" className="block text-sm font-medium text-slate-700 mb-1">
+          <label htmlFor="projectId" className="block text-sm font-medium text-slate-700 mb-1">
             Projeto *
           </label>
           <select
-            {...register('project_id')}
-            id="project_id"
+            {...register('projectId')}
+            id="projectId"
             className="w-full px-4 py-2 border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition"
           >
             <option value="">Selecione um projeto</option>
@@ -117,41 +117,41 @@ export function TimeEntryForm({ onSuccess }: TimeEntryFormProps) {
               </option>
             ))}
           </select>
-          {errors.project_id && (
-            <p className="mt-1 text-sm text-red-600">{errors.project_id.message}</p>
+          {errors.projectId && (
+            <p className="mt-1 text-sm text-red-600">{errors.projectId.message}</p>
           )}
         </div>
 
         <div>
-          <label htmlFor="entry_date" className="block text-sm font-medium text-slate-700 mb-1">
+          <label htmlFor="entryDate" className="block text-sm font-medium text-slate-700 mb-1">
             Data *
           </label>
           <input
-            {...register('entry_date')}
-            id="entry_date"
+            {...register('entryDate')}
+            id="entryDate"
             type="date"
             className="w-full px-4 py-2 border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition"
           />
-          {errors.entry_date && (
-            <p className="mt-1 text-sm text-red-600">{errors.entry_date.message}</p>
+          {errors.entryDate && (
+            <p className="mt-1 text-sm text-red-600">{errors.entryDate.message}</p>
           )}
         </div>
 
         <div>
-          <label htmlFor="duration_minutes" className="block text-sm font-medium text-slate-700 mb-1">
+          <label htmlFor="durationMinutes" className="block text-sm font-medium text-slate-700 mb-1">
             Duração (minutos) *
           </label>
           <input
-            {...register('duration_minutes', { valueAsNumber: true })}
-            id="duration_minutes"
+            {...register('durationMinutes', { valueAsNumber: true })}
+            id="durationMinutes"
             type="number"
             min="1"
             step="15"
             className="w-full px-4 py-2 border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition"
             placeholder="60"
           />
-          {errors.duration_minutes && (
-            <p className="mt-1 text-sm text-red-600">{errors.duration_minutes.message}</p>
+          {errors.durationMinutes && (
+            <p className="mt-1 text-sm text-red-600">{errors.durationMinutes.message}</p>
           )}
         </div>
       </div>

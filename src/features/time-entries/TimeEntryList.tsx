@@ -46,7 +46,18 @@ export function TimeEntryList() {
 
         if (err) throw err;
 
-        const formattedData = (data || []).map((entry: any) => ({
+        interface RawTimeEntry {
+          id: string;
+          project_id: string;
+          projects: { name: string } | null;
+          entry_date: string;
+          duration_minutes: number;
+          description: string;
+          approval_status: string;
+          created_at: string;
+        }
+
+        const formattedData = ((data as unknown as RawTimeEntry[]) || []).map((entry) => ({
           id: entry.id,
           project_id: entry.project_id,
           project_name: entry.projects?.name || 'Projeto desconhecido',
@@ -95,9 +106,12 @@ export function TimeEntryList() {
       rejected: 'Rejeitado',
     };
 
+    const statusStyle = styles[status] || styles['pending'];
+    const statusLabel = labels[status] || status;
+
     return (
-      <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${styles[status] || styles.pending}`}>
-        {labels[status] || status}
+      <span className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${statusStyle}`}>
+        {statusLabel}
       </span>
     );
   };

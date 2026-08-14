@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Layout } from '@/components/Layout';
 import { FinancialIndicators } from '@/features/admin/FinancialIndicators';
 import { AdminFilters } from '@/features/admin/AdminFilters';
@@ -34,11 +34,7 @@ export function DashboardPage() {
     endDate: '',
   });
 
-  useEffect(() => {
-    fetchFinancialData();
-  }, [filters]);
-
-  const fetchFinancialData = async () => {
+  const fetchFinancialData = useCallback(async () => {
     try {
       setLoading(true);
 
@@ -106,7 +102,7 @@ export function DashboardPage() {
         totalLaborCost += cost;
 
         const profId = entry.professional_id;
-        const profName = entry.profiles?.full_name || 'Desconhecido';
+        const profName = entry.profiles?.[0]?.full_name || 'Desconhecido';
 
         if (!profMap.has(profId)) {
           profMap.set(profId, {
@@ -143,7 +139,11 @@ export function DashboardPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [filters.projectId, filters.professionalId, filters.startDate, filters.endDate]);
+
+  useEffect(() => {
+    fetchFinancialData();
+  }, [fetchFinancialData]);
 
   const handleFilterChange = (newFilters: FilterValues) => {
     setFilters(newFilters);
