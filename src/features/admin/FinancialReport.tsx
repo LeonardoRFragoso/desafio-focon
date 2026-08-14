@@ -48,8 +48,8 @@ export function FinancialReport({ filters }: FinancialReportProps) {
           duration_minutes,
           applied_hourly_rate,
           entry_date,
-          projects(id, name),
-          profiles(id, full_name)
+          project:projects!time_entries_project_id_fkey(name),
+          professional:profiles!time_entries_professional_id_fkey(full_name)
         `
         )
         .eq('approval_status', 'approved');
@@ -64,7 +64,7 @@ export function FinancialReport({ filters }: FinancialReportProps) {
       // Fetch project financials
       let projectQuery = supabase
         .from('project_financials')
-        .select('project_id, contracted_revenue, tax_rate, indirect_cost, projects(name)');
+        .select('project_id, contracted_revenue, tax_rate, indirect_cost, project:projects!project_financials_project_id_fkey(name)');
 
       if (filters.projectId) projectQuery = projectQuery.eq('project_id', filters.projectId);
 
@@ -92,7 +92,7 @@ export function FinancialReport({ filters }: FinancialReportProps) {
         professional_id: string;
         duration_minutes: number;
         applied_hourly_rate: number;
-        profiles?: Array<{ full_name: string }>;
+        professional: { full_name: string };
       }
 
       interface FinancialData {
@@ -100,7 +100,7 @@ export function FinancialReport({ filters }: FinancialReportProps) {
         contracted_revenue: number;
         tax_rate: number;
         indirect_cost: number;
-        projects?: Array<{ name: string }>;
+        project: { name: string };
       }
 
       const profMap = new Map<string, ProfessionalEntry>();
@@ -111,7 +111,7 @@ export function FinancialReport({ filters }: FinancialReportProps) {
         totalLaborCost += cost;
 
         const profId = entry.professional_id;
-        const profName = entry.profiles?.[0]?.full_name || 'Desconhecido';
+        const profName = entry.professional?.full_name || 'Desconhecido';
 
         if (!profMap.has(profId)) {
           profMap.set(profId, {
@@ -134,7 +134,7 @@ export function FinancialReport({ filters }: FinancialReportProps) {
         totalTax += f.contracted_revenue * f.tax_rate;
         totalIndirectCost += f.indirect_cost;
         projectMap.set(f.project_id, {
-          name: f.projects?.[0]?.name || 'Desconhecido',
+          name: f.project?.name || 'Desconhecido',
           revenue: f.contracted_revenue,
         });
       });

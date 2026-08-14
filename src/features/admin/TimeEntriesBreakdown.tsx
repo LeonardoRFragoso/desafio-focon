@@ -27,8 +27,8 @@ interface RawEntry {
   entry_date: string;
   duration_minutes: number;
   applied_hourly_rate: number;
-  profiles?: Array<{ full_name: string }>;
-  projects?: Array<{ name: string }>;
+  professional: { full_name: string };
+  project: { name: string };
 }
 
 export function TimeEntriesBreakdown({ filters }: TimeEntriesBreakdownProps) {
@@ -48,8 +48,8 @@ export function TimeEntriesBreakdown({ filters }: TimeEntriesBreakdownProps) {
           entry_date,
           duration_minutes,
           applied_hourly_rate,
-          profiles(full_name),
-          projects(name)
+          professional:profiles!time_entries_professional_id_fkey(full_name),
+          project:projects!time_entries_project_id_fkey(name)
         `
         )
         .eq('approval_status', 'approved');
@@ -76,8 +76,8 @@ export function TimeEntriesBreakdown({ filters }: TimeEntriesBreakdownProps) {
 
       const formatted = ((data as RawEntry[]) || []).map((entry) => ({
         id: entry.id,
-        professional_name: entry.profiles?.[0]?.full_name || 'Desconhecido',
-        project_name: entry.projects?.[0]?.name || 'Desconhecido',
+        professional_name: entry.professional?.full_name || 'Desconhecido',
+        project_name: entry.project?.name || 'Desconhecido',
         entry_date: entry.entry_date,
         duration_minutes: entry.duration_minutes,
         applied_hourly_rate: entry.applied_hourly_rate,

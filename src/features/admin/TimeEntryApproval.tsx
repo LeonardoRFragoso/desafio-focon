@@ -11,8 +11,8 @@ interface TimeEntryForApproval {
   description: string;
   approval_status: string;
   applied_hourly_rate: number;
-  profiles?: Array<{ full_name: string }>;
-  projects?: Array<{ name: string }>;
+  professional: { full_name: string };
+  project: { name: string };
 }
 
 export function TimeEntryApproval() {
@@ -39,8 +39,8 @@ export function TimeEntryApproval() {
           description,
           approval_status,
           applied_hourly_rate,
-          profiles(full_name),
-          projects(name)
+          professional:profiles!time_entries_professional_id_fkey(full_name),
+          project:projects!time_entries_project_id_fkey(name)
         `
         )
         .eq('approval_status', 'pending')
@@ -175,10 +175,10 @@ export function TimeEntryApproval() {
               {entries.map((entry) => (
                 <tr key={entry.id} className="hover:bg-slate-50 transition">
                   <td className="px-6 py-4 text-sm text-slate-900">
-                    {entry.profiles?.[0]?.full_name || 'Desconhecido'}
+                    {entry.professional?.full_name || 'Desconhecido'}
                   </td>
                   <td className="px-6 py-4 text-sm text-slate-900">
-                    {entry.projects?.[0]?.name || 'Desconhecido'}
+                    {entry.project?.name || 'Desconhecido'}
                   </td>
                   <td className="px-6 py-4 text-sm text-slate-900">
                     {formatDate(entry.entry_date)}

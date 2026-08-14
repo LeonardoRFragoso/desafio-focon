@@ -52,8 +52,8 @@ export function DashboardPage() {
           applied_hourly_rate,
           approval_status,
           entry_date,
-          projects(id, name),
-          profiles(id, full_name)
+          project:projects!time_entries_project_id_fkey(name),
+          professional:profiles!time_entries_professional_id_fkey(full_name)
         `
         )
         .eq('approval_status', 'approved');
@@ -77,7 +77,7 @@ export function DashboardPage() {
       // Get projects for revenue calculation
       let projectQuery = supabase
         .from('project_financials')
-        .select('project_id, contracted_revenue, tax_rate, indirect_cost, projects(id, name)');
+        .select('project_id, contracted_revenue, tax_rate, indirect_cost, project:projects!project_financials_project_id_fkey(name)');
 
       if (filters.projectId) {
         projectQuery = projectQuery.eq('project_id', filters.projectId);
@@ -99,12 +99,19 @@ export function DashboardPage() {
       // Calculate labor cost and group by professional
       const profMap = new Map<string, ProfessionalData>();
 
-      entries?.forEach((entry: any) => {
+      interface TimeEntry {
+        professional_id: string;
+        duration_minutes: number;
+        applied_hourly_rate: number;
+        professional?: { full_name: string };
+      }
+
+      (entries as TimeEntry[] | undefined)?.forEach((entry) => {
         const cost = (entry.duration_minutes / 60) * entry.applied_hourly_rate;
         totalLaborCost += cost;
 
         const profId = entry.professional_id;
-        const profName = entry.profiles?.[0]?.full_name || 'Desconhecido';
+        const profName = entry.professional?.full_name || 'Desconhecido';
 
         if (!profMap.has(profId)) {
           profMap.set(profId, {
