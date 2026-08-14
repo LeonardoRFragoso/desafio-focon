@@ -51,19 +51,8 @@ export function TimeEntryApproval({ onStatusChanged }: TimeEntryApprovalProps) {
   }, []);
 
   useEffect(() => {
-    let isMounted = true;
-    
-    const load = async () => {
-      await fetchPendingEntries();
-    };
-    
-    if (isMounted) {
-      load();
-    }
-    
-    return () => {
-      isMounted = false;
-    };
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    fetchPendingEntries();
   }, [fetchPendingEntries]);
 
   const handleApprove = useCallback(async (entryId: string) => {
@@ -78,16 +67,20 @@ export function TimeEntryApproval({ onStatusChanged }: TimeEntryApprovalProps) {
         .from('time_entries')
         .update({ approval_status: 'approved' })
         .eq('id', entryId)
-        .select();
+        .eq('approval_status', 'pending')
+        .select('id, approval_status')
+        .maybeSingle();
 
       if (err) throw err;
-      if (!data || data.length === 0) {
-        throw new Error('Nenhuma linha foi alterada. O apontamento pode ter sido modificado.');
+      if (!data) {
+        setError('Este apontamento já foi processado ou não está mais disponível.');
+        setActionLoading(null);
+        return;
       }
 
       setSuccessMessage('Apontamento aprovado com sucesso!');
       await fetchPendingEntries();
-      onStatusChanged?.();
+      await onStatusChanged?.();
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Erro ao aprovar';
       setError(message);
@@ -108,16 +101,20 @@ export function TimeEntryApproval({ onStatusChanged }: TimeEntryApprovalProps) {
         .from('time_entries')
         .update({ approval_status: 'rejected' })
         .eq('id', entryId)
-        .select();
+        .eq('approval_status', 'pending')
+        .select('id, approval_status')
+        .maybeSingle();
 
       if (err) throw err;
-      if (!data || data.length === 0) {
-        throw new Error('Nenhuma linha foi alterada. O apontamento pode ter sido modificado.');
+      if (!data) {
+        setError('Este apontamento já foi processado ou não está mais disponível.');
+        setActionLoading(null);
+        return;
       }
 
       setSuccessMessage('Apontamento rejeitado com sucesso!');
       await fetchPendingEntries();
-      onStatusChanged?.();
+      await onStatusChanged?.();
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Erro ao rejeitar';
       setError(message);
@@ -192,10 +189,10 @@ export function TimeEntryApproval({ onStatusChanged }: TimeEntryApprovalProps) {
               {entries.map((entry) => (
                 <tr key={entry.id} className="hover:bg-slate-50 transition">
                   <td className="px-6 py-4 text-sm text-slate-900">
-                    {entry.professional?.[0]?.full_name || 'Desconhecido'}
+                    {entry.professional?.full_name || 'Desconhecido'}
                   </td>
                   <td className="px-6 py-4 text-sm text-slate-900">
-                    {entry.project?.[0]?.name || 'Desconhecido'}
+                    {entry.project?.name || 'Desconhecido'}
                   </td>
                   <td className="px-6 py-4 text-sm text-slate-900">
                     {formatDate(entry.entry_date)}

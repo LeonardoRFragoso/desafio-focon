@@ -6,14 +6,8 @@ import { ProfessionalSummary } from '@/features/admin/ProfessionalSummary';
 import { TimeEntryApproval } from '@/features/admin/TimeEntryApproval';
 import { TimeEntriesBreakdown } from '@/features/admin/TimeEntriesBreakdown';
 import { supabase } from '@/lib/supabase/client';
+import type { AdminFilterValues } from '@/types/admin';
 import type { TimeEntryWithRelations } from '@/types/database';
-
-interface FilterValues {
-  projectId: string;
-  professionalId: string;
-  startDate: string;
-  endDate: string;
-}
 
 interface ProfessionalData {
   professional_id: string;
@@ -30,9 +24,12 @@ export function DashboardPage() {
   const [margin, setMargin] = useState(0);
   const [professionalData, setProfessionalData] = useState<ProfessionalData[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filters, setFilters] = useState<FilterValues>({
+  const [dataRevision, setDataRevision] = useState(0);
+  const [filters, setFilters] = useState<AdminFilterValues>({
     projectId: '',
+    projectName: '',
     professionalId: '',
+    professionalName: '',
     startDate: '',
     endDate: '',
   });
@@ -104,7 +101,7 @@ export function DashboardPage() {
         totalLaborCost += cost;
 
         const profId = entry.professional_id;
-        const profName = entry.professional?.[0]?.full_name || 'Desconhecido';
+        const profName = entry.professional?.full_name || 'Desconhecido';
 
         if (!profMap.has(profId)) {
           profMap.set(profId, {
@@ -149,27 +146,17 @@ export function DashboardPage() {
   }, [filters.projectId, filters.professionalId, filters.startDate, filters.endDate]);
 
   useEffect(() => {
-    let isMounted = true;
-    
-    const load = async () => {
-      await fetchFinancialData();
-    };
-    
-    if (isMounted) {
-      load();
-    }
-    
-    return () => {
-      isMounted = false;
-    };
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    fetchFinancialData();
   }, [fetchFinancialData]);
 
-  const handleFilterChange = (newFilters: FilterValues) => {
+  const handleFilterChange = (newFilters: AdminFilterValues) => {
     setFilters(newFilters);
   };
 
   const handleStatusChanged = useCallback(async () => {
     await fetchFinancialData();
+    setDataRevision(prev => prev + 1);
   }, [fetchFinancialData]);
 
   return (
@@ -207,7 +194,7 @@ export function DashboardPage() {
           <h2 className="text-xl font-semibold text-slate-900 mb-6">
             Detalhamento de Apontamentos
           </h2>
-          <TimeEntriesBreakdown filters={filters} />
+          <TimeEntriesBreakdown filters={filters} dataRevision={dataRevision} />
         </div>
       </div>
     </Layout>

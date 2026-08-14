@@ -1,13 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabase/client';
+import type { AdminFilterValues } from '@/types/admin';
 import type { TimeEntryWithRelations } from '@/types/database';
-
-interface FilterValues {
-  projectId: string;
-  professionalId: string;
-  startDate: string;
-  endDate: string;
-}
 
 interface TimeEntryRow {
   id: string;
@@ -20,10 +14,11 @@ interface TimeEntryRow {
 }
 
 interface TimeEntriesBreakdownProps {
-  filters: FilterValues;
+  filters: AdminFilterValues;
+  dataRevision?: number;
 }
 
-export function TimeEntriesBreakdown({ filters }: TimeEntriesBreakdownProps) {
+export function TimeEntriesBreakdown({ filters, dataRevision }: TimeEntriesBreakdownProps) {
   const [entries, setEntries] = useState<TimeEntryRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -69,8 +64,8 @@ export function TimeEntriesBreakdown({ filters }: TimeEntriesBreakdownProps) {
 
       const formatted = ((data as TimeEntryWithRelations[]) || []).map((entry) => ({
         id: entry.id,
-        professional_name: entry.professional?.[0]?.full_name || 'Desconhecido',
-        project_name: entry.project?.[0]?.name || 'Desconhecido',
+        professional_name: entry.professional?.full_name || 'Desconhecido',
+        project_name: entry.project?.name || 'Desconhecido',
         entry_date: entry.entry_date,
         duration_minutes: entry.duration_minutes,
         applied_hourly_rate: entry.applied_hourly_rate,
@@ -87,20 +82,17 @@ export function TimeEntriesBreakdown({ filters }: TimeEntriesBreakdownProps) {
   }, [filters.projectId, filters.professionalId, filters.startDate, filters.endDate]);
 
   useEffect(() => {
-    let isMounted = true;
-    
-    const load = async () => {
-      await fetchEntries();
-    };
-    
-    if (isMounted) {
-      load();
-    }
-    
-    return () => {
-      isMounted = false;
-    };
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    fetchEntries();
   }, [fetchEntries]);
+
+  useEffect(() => {
+    if (dataRevision !== undefined && dataRevision > 0) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      fetchEntries();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dataRevision]);
 
   const formatDuration = (minutes: number) => {
     const hours = Math.floor(minutes / 60);
