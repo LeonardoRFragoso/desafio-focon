@@ -8,8 +8,9 @@
     "build": "tsc -b && vite build",
     "lint": "eslint . --fix",
     "typecheck": "tsc -b --noEmit",
-    "test": "vitest",
-    "test:coverage": "vitest --coverage",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
     "preview": "vite preview"
   },
   "dependencies": {

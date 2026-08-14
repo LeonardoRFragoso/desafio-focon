@@ -36,3 +36,7 @@ supabase/.temp
 # Test coverage
 coverage
 .nyc_output
+
+# Confidential documents
+*.pdf
+Desafio_Tecnico_*.pdf
