@@ -18,7 +18,7 @@ interface ProfessionalData {
   professional_id: string;
   professional_name: string;
   total_hours: number;
-  hourly_rate: number;
+  hourly_rates: number[];
   total_cost: number;
 }
 
@@ -123,7 +123,7 @@ export function DashboardPage() {
             professional_id: profId,
             professional_name: profName,
             total_hours: 0,
-            hourly_rate: entry.applied_hourly_rate,
+            hourly_rates: [],
             total_cost: 0,
           });
         }
@@ -131,6 +131,11 @@ export function DashboardPage() {
         const prof = profMap.get(profId)!;
         prof.total_hours += entry.duration_minutes;
         prof.total_cost += cost;
+        
+        // Add hourly rate if not already present
+        if (!prof.hourly_rates.includes(entry.applied_hourly_rate)) {
+          prof.hourly_rates.push(entry.applied_hourly_rate);
+        }
       });
 
       // Calculate revenue and taxes
