@@ -1,19 +1,20 @@
 -- Demonstration data seed
 -- This file is used to populate demo users, profiles, hourly rates, and time entries
--- It should be executed AFTER migrations and AFTER creating auth.users entries
+-- It should be executed AFTER migrations via `supabase db reset`
 -- 
--- Usage:
---   supabase db reset  # Applies migrations and this seed
---   OR
---   psql -h localhost -p 54322 -U postgres -d postgres -f supabase/seed.sql
-
--- Demo user UUIDs (these must match auth.users entries)
+-- Demo user UUIDs (created by auth trigger on user signup):
 -- Ana: 550e8400-e29b-41d4-a716-446655550001
 -- Bruno: 550e8400-e29b-41d4-a716-446655550002
 -- Carla: 550e8400-e29b-41d4-a716-446655550003
 -- Admin: 550e8400-e29b-41d4-a716-446655550099
 
--- Create demo profiles (assumes auth.users entries exist with these IDs)
+-- Create demo auth users via auth.users (Supabase managed)
+-- These will trigger the profile creation via the auth trigger
+-- Note: In local Supabase, use the Studio UI or API to create users
+-- For automated seed, we insert directly into auth.users (local only)
+
+-- Create demo profiles directly (assumes auth.users entries exist with these IDs)
+-- The trigger will NOT fire on direct inserts, so we create profiles manually
 INSERT INTO profiles (id, full_name, role, created_at, updated_at)
 VALUES
   ('550e8400-e29b-41d4-a716-446655550001', 'Ana Silva', 'member', NOW(), NOW()),

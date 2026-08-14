@@ -1,9 +1,4 @@
 project_id = "desafio-focon"
-db_url = "postgresql://postgres:postgres@127.0.0.1:54322/postgres"
-api_url = "http://127.0.0.1:54321"
-s3_host = "127.0.0.1"
-s3_protocol = "http"
-s3_port = 54321
 
 [api]
 enabled = true
@@ -15,16 +10,16 @@ max_rows = 1000
 [db]
 port = 54322
 major_version = 15
+seed_sql_paths = ["./supabase/seed-auth.sql", "./supabase/seed.sql"]
 
 [studio]
 enabled = true
 port = 54323
 
-[inbucket]
+[local_smtp]
 enabled = true
-port = 54324
+port = 54325
 smtp_port = 54325
-pop3_port = 54326
 
 [auth]
 enabled = true
@@ -32,4 +27,3 @@ site_url = "http://localhost:5173"
 additional_redirect_urls = ["http://localhost:5173"]
 jwt_expiry = 3600
 enable_signup = true
-enable_anonymous_signups = false
