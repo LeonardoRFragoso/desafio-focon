@@ -61,7 +61,7 @@ export function LoginPage() {
               FoconFlow
             </h1>
             <p className="text-slate-600 text-sm font-medium">
-              Controle de Producao e Rentabilidade
+              Controle de Produção e Rentabilidade
             </p>
           </div>
 
@@ -126,7 +126,7 @@ export function LoginPage() {
 
         {/* Footer */}
         <div className="text-center text-slate-400 text-xs">
-          <p>2026 FoconFlow. Desenvolvido para Focon Engenharia.</p>
+          <p>© 2026 FoconFlow. Desenvolvido para a Fócon Engenharia.</p>
         </div>
       </div>
     </div>
