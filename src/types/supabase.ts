@@ -150,6 +150,9 @@ export type Database = {
           id: string
           professional_id: string
           project_id: string
+          rejection_reason: string | null
+          rejected_at: string | null
+          rejected_by: string | null
           updated_at: string
         }
         Insert: {
@@ -162,6 +165,9 @@ export type Database = {
           id?: string
           professional_id: string
           project_id: string
+          rejection_reason?: string | null
+          rejected_at?: string | null
+          rejected_by?: string | null
           updated_at?: string
         }
         Update: {
@@ -174,6 +180,9 @@ export type Database = {
           id?: string
           professional_id?: string
           project_id?: string
+          rejection_reason?: string | null
+          rejected_at?: string | null
+          rejected_by?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -189,6 +198,140 @@ export type Database = {
             columns: ["project_id"]
             isOneToOne: false
             referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "time_entries_rejected_by_fkey"
+            columns: ["rejected_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      time_entry_approval_history: {
+        Row: {
+          id: string
+          time_entry_id: string
+          previous_status: string
+          new_status: string
+          reason: string | null
+          changed_by: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          time_entry_id: string
+          previous_status: string
+          new_status: string
+          reason?: string | null
+          changed_by: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          time_entry_id?: string
+          previous_status?: string
+          new_status?: string
+          reason?: string | null
+          changed_by?: string
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "time_entry_approval_history_time_entry_id_fkey"
+            columns: ["time_entry_id"]
+            isOneToOne: false
+            referencedRelation: "time_entries"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "time_entry_approval_history_changed_by_fkey"
+            columns: ["changed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      audit_logs: {
+        Row: {
+          id: string
+          actor_id: string | null
+          action: string
+          entity_type: string
+          entity_id: string | null
+          before_data: Json | null
+          after_data: Json | null
+          metadata: Json | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          actor_id?: string | null
+          action: string
+          entity_type: string
+          entity_id?: string | null
+          before_data?: Json | null
+          after_data?: Json | null
+          metadata?: Json | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          actor_id?: string | null
+          action?: string
+          entity_type?: string
+          entity_id?: string | null
+          before_data?: Json | null
+          after_data?: Json | null
+          metadata?: Json | null
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "audit_logs_actor_id_fkey"
+            columns: ["actor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      accounting_periods: {
+        Row: {
+          id: string
+          period_key: string
+          status: string
+          closed_at: string | null
+          closed_by: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          period_key: string
+          status?: string
+          closed_at?: string | null
+          closed_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          period_key?: string
+          status?: string
+          closed_at?: string | null
+          closed_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "accounting_periods_closed_by_fkey"
+            columns: ["closed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -252,6 +395,42 @@ export type Database = {
         }[]
       }
       is_admin: { Args: { user_id: string }; Returns: boolean }
+      approve_time_entry: {
+        Args: { p_entry_id: string }
+        Returns: { id: string; approval_status: string }[]
+      }
+      reject_time_entry: {
+        Args: { p_entry_id: string; p_reason: string }
+        Returns: { id: string; approval_status: string }[]
+      }
+      batch_approve_time_entries: {
+        Args: { p_entry_ids: string[] }
+        Returns: { entry_id: string; status: string; error: string | null }[]
+      }
+      batch_reject_time_entries: {
+        Args: { p_entry_ids: string[]; p_reason: string }
+        Returns: { entry_id: string; status: string; error: string | null }[]
+      }
+      close_accounting_period: {
+        Args: { p_period_key: string }
+        Returns: { period_key: string; status: string }[]
+      }
+      reopen_accounting_period: {
+        Args: { p_period_key: string }
+        Returns: { period_key: string; status: string }[]
+      }
+      is_period_closed: { Args: { p_date: string }; Returns: boolean }
+      write_audit_log: {
+        Args: {
+          p_action: string
+          p_entity_type: string
+          p_entity_id?: string | null
+          p_before_data?: Json | null
+          p_after_data?: Json | null
+          p_metadata?: Json | null
+        }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never
