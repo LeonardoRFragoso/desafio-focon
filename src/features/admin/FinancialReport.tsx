@@ -34,6 +34,7 @@ interface FinancialReportProps {
 export function FinancialReport({ filters }: FinancialReportProps) {
   const [data, setData] = useState<ReportData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const fetchReportData = useCallback(async () => {
     try {
@@ -59,7 +60,8 @@ export function FinancialReport({ filters }: FinancialReportProps) {
       if (filters.startDate) query = query.gte('entry_date', filters.startDate);
       if (filters.endDate) query = query.lte('entry_date', filters.endDate);
 
-      const { data: entries } = await query;
+      const { data: entries, error: entriesError } = await query;
+      if (entriesError) throw entriesError;
 
       // Fetch project financials
       let projectQuery = supabase
@@ -68,7 +70,8 @@ export function FinancialReport({ filters }: FinancialReportProps) {
 
       if (filters.projectId) projectQuery = projectQuery.eq('project_id', filters.projectId);
 
-      const { data: financials } = await projectQuery;
+      const { data: financials, error: financialsError } = await projectQuery;
+      if (financialsError) throw financialsError;
 
       // Calculate report data
       let totalRevenue = 0;
@@ -153,6 +156,8 @@ export function FinancialReport({ filters }: FinancialReportProps) {
         projects: Array.from(projectMap.values()),
       });
     } catch (err) {
+      const message = err instanceof Error ? err.message : 'Erro ao gerar relatório';
+      setError(message);
       console.error('Erro ao gerar relatório:', err);
     } finally {
       setLoading(false);
@@ -179,6 +184,15 @@ export function FinancialReport({ filters }: FinancialReportProps) {
     return (
       <div className="flex justify-center items-center py-12">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-teal-600"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="rounded-lg bg-red-50 border border-red-200 p-4">
+        <p className="text-sm font-medium text-red-800">Erro ao gerar relatório:</p>
+        <p className="text-sm text-red-700 mt-1">{error}</p>
       </div>
     );
   }

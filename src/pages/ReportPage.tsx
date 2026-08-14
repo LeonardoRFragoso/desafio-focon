@@ -44,7 +44,7 @@ export function ReportPage() {
           </button>
         </div>
 
-        <div className="hidden print:hidden">
+        <div className="print:hidden">
           <AdminFilters onFilterChange={handleFilterChange} />
         </div>
 
