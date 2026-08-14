@@ -1,5 +1,5 @@
 -- Seed authentication users for local Supabase development
--- This file creates demo users in auth.users table
+-- This file creates demo users in auth.users and auth.identities
 -- Execute this BEFORE seed.sql to ensure profiles can be created
 -- 
 -- Usage (local Supabase):
@@ -25,27 +25,11 @@ INSERT INTO auth.users (
   email,
   encrypted_password,
   email_confirmed_at,
-  invited_at,
-  confirmation_token,
-  confirmation_sent_at,
-  recovery_token,
-  recovery_sent_at,
-  email_change_token_new,
-  email_change,
-  email_change_sent_at,
   raw_app_meta_data,
   raw_user_meta_data,
   is_super_admin,
   created_at,
-  updated_at,
-  phone,
-  phone_confirmed_at,
-  phone_change_token,
-  phone_change,
-  phone_change_sent_at,
-  confirmed_at,
-  email_change_token_current,
-  banned_until
+  updated_at
 )
 VALUES
   (
@@ -56,26 +40,11 @@ VALUES
     'ana@example.com',
     '$2a$10$PQr8/Ym5VxWK1.vfVfVLKOYvB8/LewKgsRQP3CqJsf.XNzg/W2JCm',
     NOW(),
-    NULL,
-    '',
-    NULL,
-    '',
-    NULL,
-    '',
-    '',
-    NULL,
     '{"provider":"email","providers":["email"]}'::jsonb,
     '{"full_name":"Ana Silva"}'::jsonb,
     false,
     NOW(),
-    NOW(),
-    NULL,
-    NULL,
-    '',
-    '',
-    NULL,
-    NOW(),
-    NULL
+    NOW()
   ),
   (
     '550e8400-e29b-41d4-a716-446655550002'::uuid,
@@ -85,26 +54,11 @@ VALUES
     'bruno@example.com',
     '$2a$10$PQr8/Ym5VxWK1.vfVfVLKOYvB8/LewKgsRQP3CqJsf.XNzg/W2JCm',
     NOW(),
-    NULL,
-    '',
-    NULL,
-    '',
-    NULL,
-    '',
-    '',
-    NULL,
     '{"provider":"email","providers":["email"]}'::jsonb,
     '{"full_name":"Bruno Santos"}'::jsonb,
     false,
     NOW(),
-    NOW(),
-    NULL,
-    NULL,
-    '',
-    '',
-    NULL,
-    NOW(),
-    NULL
+    NOW()
   ),
   (
     '550e8400-e29b-41d4-a716-446655550003'::uuid,
@@ -114,26 +68,11 @@ VALUES
     'carla@example.com',
     '$2a$10$PQr8/Ym5VxWK1.vfVfVLKOYvB8/LewKgsRQP3CqJsf.XNzg/W2JCm',
     NOW(),
-    NULL,
-    '',
-    NULL,
-    '',
-    NULL,
-    '',
-    '',
-    NULL,
     '{"provider":"email","providers":["email"]}'::jsonb,
     '{"full_name":"Carla Oliveira"}'::jsonb,
     false,
     NOW(),
-    NOW(),
-    NULL,
-    NULL,
-    '',
-    '',
-    NULL,
-    NOW(),
-    NULL
+    NOW()
   ),
   (
     '550e8400-e29b-41d4-a716-446655550099'::uuid,
@@ -143,26 +82,11 @@ VALUES
     'admin@example.com',
     '$2a$10$PQr8/Ym5VxWK1.vfVfVLKOYvB8/LewKgsRQP3CqJsf.XNzg/W2JCm',
     NOW(),
-    NULL,
-    '',
-    NULL,
-    '',
-    NULL,
-    '',
-    '',
-    NULL,
     '{"provider":"email","providers":["email"]}'::jsonb,
     '{"full_name":"Admin User"}'::jsonb,
     false,
     NOW(),
-    NOW(),
-    NULL,
-    NULL,
-    '',
-    '',
-    NULL,
-    NOW(),
-    NULL
+    NOW()
   )
 ON CONFLICT (id) DO NOTHING;
 
