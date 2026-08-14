@@ -14,6 +14,7 @@ export function TimeEntryApproval({ onStatusChanged }: TimeEntryApprovalProps) {
   const [error, setError] = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [selectedEntry, setSelectedEntry] = useState<TimeEntryWithRelations | null>(null);
 
   const fetchPendingEntries = useCallback(async () => {
     try {
@@ -187,7 +188,18 @@ export function TimeEntryApproval({ onStatusChanged }: TimeEntryApprovalProps) {
             </thead>
             <tbody className="divide-y divide-slate-200">
               {entries.map((entry) => (
-                <tr key={entry.id} className="hover:bg-slate-50 transition">
+                <tr
+                  key={entry.id}
+                  onClick={() => setSelectedEntry(entry)}
+                  className="hover:bg-slate-50 transition cursor-pointer"
+                  role="button"
+                  tabIndex={0}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      setSelectedEntry(entry);
+                    }
+                  }}
+                >
                   <td className="px-6 py-4 text-sm text-slate-900">
                     {entry.professional?.full_name || 'Desconhecido'}
                   </td>
@@ -206,7 +218,7 @@ export function TimeEntryApproval({ onStatusChanged }: TimeEntryApprovalProps) {
                   <td className="px-6 py-4 text-sm font-medium text-slate-900">
                     {formatCurrency((entry.duration_minutes / 60) * entry.applied_hourly_rate)}
                   </td>
-                  <td className="px-6 py-4 text-sm space-x-2 flex">
+                  <td className="px-6 py-4 text-sm space-x-2 flex" onClick={(e) => e.stopPropagation()}>
                     <button
                       onClick={() => handleApprove(entry.id)}
                       disabled={actionLoading === entry.id}
@@ -226,6 +238,119 @@ export function TimeEntryApproval({ onStatusChanged }: TimeEntryApprovalProps) {
               ))}
             </tbody>
           </table>
+
+          {/* Modal de Detalhes */}
+          {selectedEntry && (
+            <div
+              className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
+              onClick={() => setSelectedEntry(null)}
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="modal-title"
+            >
+              <div
+                className="bg-white rounded-xl shadow-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="sticky top-0 bg-white border-b border-slate-200 p-6 flex justify-between items-center">
+                  <h2 id="modal-title" className="text-2xl font-bold text-slate-900">
+                    Detalhes do Apontamento
+                  </h2>
+                  <button
+                    onClick={() => setSelectedEntry(null)}
+                    className="text-slate-500 hover:text-slate-700 text-2xl leading-none"
+                    aria-label="Fechar modal"
+                  >
+                    ×
+                  </button>
+                </div>
+
+                <div className="p-6 space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-sm font-medium text-slate-600 mb-2">
+                        Profissional
+                      </label>
+                      <p className="text-lg font-semibold text-slate-900">
+                        {selectedEntry.professional?.full_name || 'Desconhecido'}
+                      </p>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-slate-600 mb-2">
+                        Projeto
+                      </label>
+                      <p className="text-lg font-semibold text-slate-900">
+                        {selectedEntry.project?.name || 'Desconhecido'}
+                      </p>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-slate-600 mb-2">
+                        Data
+                      </label>
+                      <p className="text-lg font-semibold text-slate-900">
+                        {formatDate(selectedEntry.entry_date)}
+                      </p>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-slate-600 mb-2">
+                        Duração
+                      </label>
+                      <p className="text-lg font-semibold text-slate-900">
+                        {formatDuration(selectedEntry.duration_minutes)}
+                      </p>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-slate-600 mb-2">
+                        Custo/Hora
+                      </label>
+                      <p className="text-lg font-semibold text-slate-900">
+                        {formatCurrency(selectedEntry.applied_hourly_rate)}
+                      </p>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-slate-600 mb-2">
+                        Custo Total
+                      </label>
+                      <p className="text-lg font-semibold text-green-700">
+                        {formatCurrency(
+                          (selectedEntry.duration_minutes / 60) * selectedEntry.applied_hourly_rate
+                        )}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-slate-600 mb-2">
+                      Descrição
+                    </label>
+                    <div className="bg-slate-50 rounded-lg p-4 border border-slate-200">
+                      <p className="text-slate-900 whitespace-pre-wrap">
+                        {selectedEntry.description}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="text-xs text-slate-500">
+                    <p>Registrado em: {new Date(selectedEntry.created_at).toLocaleString('pt-BR')}</p>
+                  </div>
+                </div>
+
+                <div className="border-t border-slate-200 p-6 flex justify-end gap-3">
+                  <button
+                    onClick={() => setSelectedEntry(null)}
+                    className="px-6 py-2 border border-slate-300 rounded-lg text-slate-900 font-medium hover:bg-slate-50 transition"
+                  >
+                    Fechar
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>
