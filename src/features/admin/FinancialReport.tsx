@@ -174,6 +174,8 @@ export function FinancialReport({ filters }: FinancialReportProps) {
     return <div className="text-center py-12 text-slate-600">Nenhum dado para exibir</div>;
   }
 
+  const hasFilters = filters.projectId || filters.professionalId || filters.startDate || filters.endDate;
+
   return (
     <div className="bg-white p-8 space-y-8 print:p-0">
       {/* Header */}
@@ -192,6 +194,24 @@ export function FinancialReport({ filters }: FinancialReportProps) {
           <p>Hora: {new Date().toLocaleTimeString('pt-BR')}</p>
         </div>
       </div>
+
+      {/* Applied Filters */}
+      {hasFilters && (
+        <div className="bg-slate-50 border border-slate-200 p-4 text-sm">
+          <p className="font-semibold text-slate-900 mb-2">Filtros Aplicados:</p>
+          <div className="space-y-1 text-slate-700">
+            {filters.projectId && <p>• Projeto: {filters.projectId}</p>}
+            {filters.professionalId && <p>• Profissional: {filters.professionalId}</p>}
+            {filters.startDate && <p>• Data Inicial: {new Date(filters.startDate).toLocaleDateString('pt-BR')}</p>}
+            {filters.endDate && <p>• Data Final: {new Date(filters.endDate).toLocaleDateString('pt-BR')}</p>}
+          </div>
+        </div>
+      )}
+      {!hasFilters && (
+        <div className="bg-blue-50 border border-blue-200 p-4 text-sm text-blue-800">
+          <p className="font-semibold">Nenhum filtro aplicado - Exibindo todos os dados</p>
+        </div>
+      )}
 
       {/* Indicators */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 print:gap-2">

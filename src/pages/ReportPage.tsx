@@ -38,7 +38,7 @@ export function ReportPage() {
           </div>
           <button
             onClick={handlePrint}
-            className="hidden print:hidden px-6 py-2.5 bg-teal-600 hover:bg-teal-700 text-white font-semibold rounded-lg transition"
+            className="px-6 py-2.5 bg-teal-600 hover:bg-teal-700 text-white font-semibold rounded-lg transition print:hidden"
           >
             Imprimir / Salvar em PDF
           </button>
