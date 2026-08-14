@@ -55,12 +55,12 @@ export interface TimeEntry {
   updated_at: string;
 }
 
-// Embedded relationship types (Supabase returns arrays for relationships)
+// Embedded relationship types (Supabase returns objects for one-to-one relationships)
 export interface TimeEntryWithRelations extends TimeEntry {
-  professional?: Array<{ full_name: string }> | null;
-  project?: Array<{ name: string }> | null;
+  professional?: { full_name: string } | null;
+  project?: { name: string } | null;
 }
 
 export interface ProjectFinancialsWithRelations extends ProjectFinancials {
-  project?: Array<{ name: string }> | null;
+  project?: { name: string } | null;
 }
