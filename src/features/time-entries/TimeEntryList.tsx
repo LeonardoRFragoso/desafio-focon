@@ -119,14 +119,14 @@ export function TimeEntryList() {
   if (loading) {
     return (
       <div className="flex justify-center items-center py-12">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-teal-600"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-focon-600"></div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="rounded-lg bg-red-50 border border-red-200 p-4">
+      <div className="rounded-xl bg-red-50 border border-red-200 p-4">
         <p className="text-sm font-medium text-red-800">{error}</p>
       </div>
     );
@@ -134,7 +134,7 @@ export function TimeEntryList() {
 
   if (entries.length === 0) {
     return (
-      <div className="rounded-lg border-2 border-dashed border-slate-300 p-12 text-center">
+      <div className="rounded-xl border border-slate-200 p-12 text-center bg-slate-50">
         <p className="text-slate-600 mb-2">Nenhum apontamento registrado</p>
         <p className="text-sm text-slate-500">
           Registre suas horas usando o formulário acima
@@ -144,20 +144,20 @@ export function TimeEntryList() {
   }
 
   return (
-    <div className="overflow-x-auto">
+    <div className="overflow-x-auto rounded-xl border border-slate-200 shadow-sm">
       <table className="w-full">
         <thead>
-          <tr className="border-b border-slate-200 bg-slate-50">
-            <th className="px-6 py-3 text-left text-xs font-semibold text-slate-700">Projeto</th>
-            <th className="px-6 py-3 text-left text-xs font-semibold text-slate-700">Data</th>
-            <th className="px-6 py-3 text-left text-xs font-semibold text-slate-700">Duração</th>
-            <th className="px-6 py-3 text-left text-xs font-semibold text-slate-700">Descrição</th>
-            <th className="px-6 py-3 text-left text-xs font-semibold text-slate-700">Status</th>
+          <tr className="border-b border-slate-200 bg-slate-100">
+            <th className="px-6 py-4 text-left text-sm font-semibold text-slate-900">Projeto</th>
+            <th className="px-6 py-4 text-left text-sm font-semibold text-slate-900">Data</th>
+            <th className="px-6 py-4 text-left text-sm font-semibold text-slate-900">Duração</th>
+            <th className="px-6 py-4 text-left text-sm font-semibold text-slate-900">Descrição</th>
+            <th className="px-6 py-4 text-left text-sm font-semibold text-slate-900">Status</th>
           </tr>
         </thead>
-        <tbody>
+        <tbody className="divide-y divide-slate-200">
           {entries.map((entry) => (
-            <tr key={entry.id} className="border-b border-slate-200 hover:bg-slate-50 transition">
+            <tr key={entry.id} className="hover:bg-slate-50 transition">
               <td className="px-6 py-4 text-sm text-slate-900">{entry.project_name}</td>
               <td className="px-6 py-4 text-sm text-slate-900">{formatDate(entry.entry_date)}</td>
               <td className="px-6 py-4 text-sm text-slate-900">{formatDuration(entry.duration_minutes)}</td>

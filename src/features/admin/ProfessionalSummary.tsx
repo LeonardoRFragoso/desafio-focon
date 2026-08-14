@@ -39,36 +39,36 @@ export function ProfessionalSummary({
 
   if (data.length === 0) {
     return (
-      <div className="rounded-lg border-2 border-dashed border-slate-300 p-8 text-center">
+      <div className="rounded-xl border border-slate-200 p-8 text-center bg-slate-50">
         <p className="text-slate-600">Nenhum dado para exibir</p>
       </div>
     );
   }
 
   return (
-    <div className="overflow-x-auto">
+    <div className="overflow-x-auto rounded-xl border border-slate-200 shadow-sm">
       <table className="w-full">
         <thead>
-          <tr className="border-b border-slate-200 bg-slate-50">
-            <th className="px-6 py-3 text-left text-xs font-semibold text-slate-700">
+          <tr className="border-b border-slate-200 bg-slate-100">
+            <th className="px-6 py-4 text-left text-sm font-semibold text-slate-900">
               Profissional
             </th>
-            <th className="px-6 py-3 text-left text-xs font-semibold text-slate-700">
+            <th className="px-6 py-4 text-left text-sm font-semibold text-slate-900">
               Total de Horas
             </th>
-            <th className="px-6 py-3 text-left text-xs font-semibold text-slate-700">
+            <th className="px-6 py-4 text-left text-sm font-semibold text-slate-900">
               Custo-hora
             </th>
-            <th className="px-6 py-3 text-left text-xs font-semibold text-slate-700">
+            <th className="px-6 py-4 text-right text-sm font-semibold text-slate-900">
               Custo Total
             </th>
           </tr>
         </thead>
-        <tbody>
+        <tbody className="divide-y divide-slate-200">
           {data.map((row) => (
             <tr
               key={row.professional_id}
-              className="border-b border-slate-200 hover:bg-slate-50 transition"
+              className="hover:bg-slate-50 transition"
             >
               <td className="px-6 py-4 text-sm font-medium text-slate-900">
                 {row.professional_name}
@@ -79,7 +79,7 @@ export function ProfessionalSummary({
               <td className="px-6 py-4 text-sm text-slate-900">
                 {row.hourly_rates.map((rate) => formatCurrency(rate)).join(', ')}
               </td>
-              <td className="px-6 py-4 text-sm font-semibold text-slate-900">
+              <td className="px-6 py-4 text-sm font-semibold text-slate-900 text-right">
                 {formatCurrency(row.total_cost)}
               </td>
             </tr>

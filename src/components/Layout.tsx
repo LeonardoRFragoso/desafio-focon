@@ -1,5 +1,5 @@
 import { type ReactNode, useState } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, NavLink } from 'react-router-dom';
 import { useAuthContext } from '@/features/auth/useAuthContext';
 
 interface LayoutProps {
@@ -8,7 +8,6 @@ interface LayoutProps {
 
 export function Layout({ children }: LayoutProps) {
   const navigate = useNavigate();
-  const location = useLocation();
   const { user, logout, isAdmin } = useAuthContext();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
@@ -18,7 +17,6 @@ export function Layout({ children }: LayoutProps) {
   };
 
   const closeSidebar = () => setSidebarOpen(false);
-  const isActive = (path: string) => location.pathname === path;
 
   return (
     <div className="min-h-screen bg-slate-50 md:flex">
@@ -48,41 +46,47 @@ export function Layout({ children }: LayoutProps) {
         <nav className="p-6 space-y-2">
           {isAdmin ? (
             <>
-              <a
-                href="/dashboard"
+              <NavLink
+                to="/dashboard"
                 onClick={closeSidebar}
-                className={`block px-4 py-3 rounded-lg font-medium transition ${
-                  isActive('/dashboard')
-                    ? 'bg-focon-600 text-white'
-                    : 'text-slate-300 hover:bg-focon-800'
-                }`}
+                className={({ isActive }) =>
+                  `block px-4 py-3 rounded-lg font-medium transition ${
+                    isActive
+                      ? 'bg-focon-600 text-white'
+                      : 'text-slate-300 hover:bg-focon-800'
+                  }`
+                }
               >
                 Painel Administrativo
-              </a>
-              <a
-                href="/report"
+              </NavLink>
+              <NavLink
+                to="/report"
                 onClick={closeSidebar}
-                className={`block px-4 py-3 rounded-lg font-medium transition ${
-                  isActive('/report')
-                    ? 'bg-focon-600 text-white'
-                    : 'text-slate-300 hover:bg-focon-800'
-                }`}
+                className={({ isActive }) =>
+                  `block px-4 py-3 rounded-lg font-medium transition ${
+                    isActive
+                      ? 'bg-focon-600 text-white'
+                      : 'text-slate-300 hover:bg-focon-800'
+                  }`
+                }
               >
                 Relatório
-              </a>
+              </NavLink>
             </>
           ) : (
-            <a
-              href="/time-entries"
+            <NavLink
+              to="/time-entries"
               onClick={closeSidebar}
-              className={`block px-4 py-3 rounded-lg font-medium transition ${
-                isActive('/time-entries')
-                  ? 'bg-focon-600 text-white'
-                  : 'text-slate-300 hover:bg-focon-800'
-              }`}
+              className={({ isActive }) =>
+                `block px-4 py-3 rounded-lg font-medium transition ${
+                  isActive
+                    ? 'bg-focon-600 text-white'
+                    : 'text-slate-300 hover:bg-focon-800'
+                }`
+              }
             >
               Meus Apontamentos
-            </a>
+            </NavLink>
           )}
         </nav>
 

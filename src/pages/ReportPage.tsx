@@ -24,17 +24,17 @@ export function ReportPage() {
 
   return (
     <Layout>
-      <div className="max-w-7xl mx-auto space-y-6">
-        <div className="flex items-center justify-between">
+      <div className="space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-200 pb-6">
           <div>
-            <h1 className="text-3xl font-bold text-slate-900">Relatório Financeiro</h1>
-            <p className="mt-2 text-slate-600">
+            <h1 className="text-4xl font-bold text-slate-900">Relatório Financeiro</h1>
+            <p className="mt-2 text-lg text-slate-600">
               Gere relatórios para impressão ou PDF
             </p>
           </div>
           <button
             onClick={handlePrint}
-            className="px-6 py-2.5 bg-teal-600 hover:bg-teal-700 text-white font-semibold rounded-lg transition print:hidden"
+            className="px-6 py-3 bg-focon-600 hover:bg-focon-700 text-white font-semibold rounded-lg transition print:hidden"
           >
             Imprimir / Salvar em PDF
           </button>

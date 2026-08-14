@@ -103,15 +103,15 @@ export function TimeEntryForm({ onSuccess }: TimeEntryFormProps) {
         </div>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
         <div>
-          <label htmlFor="projectId" className="block text-sm font-medium text-slate-700 mb-1">
+          <label htmlFor="projectId" className="block text-sm font-medium text-slate-700 mb-2">
             Projeto *
           </label>
           <select
             {...register('projectId')}
             id="projectId"
-            className="w-full px-4 py-2 border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition"
+            className="w-full px-3 py-2.5 border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-focon-600 focus:border-transparent transition"
           >
             <option value="">Selecione um projeto</option>
             {projects.map((project) => (
@@ -126,14 +126,14 @@ export function TimeEntryForm({ onSuccess }: TimeEntryFormProps) {
         </div>
 
         <div>
-          <label htmlFor="entryDate" className="block text-sm font-medium text-slate-700 mb-1">
+          <label htmlFor="entryDate" className="block text-sm font-medium text-slate-700 mb-2">
             Data *
           </label>
           <input
             {...register('entryDate')}
             id="entryDate"
             type="date"
-            className="w-full px-4 py-2 border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition"
+            className="w-full px-3 py-2.5 border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-focon-600 focus:border-transparent transition"
           />
           {errors.entryDate && (
             <p className="mt-1 text-sm text-red-600">{errors.entryDate.message}</p>
@@ -141,7 +141,7 @@ export function TimeEntryForm({ onSuccess }: TimeEntryFormProps) {
         </div>
 
         <div>
-          <label htmlFor="durationMinutes" className="block text-sm font-medium text-slate-700 mb-1">
+          <label htmlFor="durationMinutes" className="block text-sm font-medium text-slate-700 mb-2">
             Duração (minutos) *
           </label>
           <input
@@ -150,7 +150,7 @@ export function TimeEntryForm({ onSuccess }: TimeEntryFormProps) {
             type="number"
             min="1"
             step="15"
-            className="w-full px-4 py-2 border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition"
+            className="w-full px-3 py-2.5 border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-focon-600 focus:border-transparent transition"
             placeholder="60"
           />
           {errors.durationMinutes && (
@@ -160,14 +160,14 @@ export function TimeEntryForm({ onSuccess }: TimeEntryFormProps) {
       </div>
 
       <div>
-        <label htmlFor="description" className="block text-sm font-medium text-slate-700 mb-1">
+        <label htmlFor="description" className="block text-sm font-medium text-slate-700 mb-2">
           Descrição *
         </label>
         <textarea
           {...register('description')}
           id="description"
-          rows={4}
-          className="w-full px-4 py-2 border border-slate-300 rounded-lg text-slate-900 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition"
+          rows={5}
+          className="w-full px-3 py-2.5 border border-slate-300 rounded-lg text-slate-900 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-focon-600 focus:border-transparent transition"
           placeholder="Descreva o trabalho realizado..."
         />
         {errors.description && (
@@ -178,7 +178,7 @@ export function TimeEntryForm({ onSuccess }: TimeEntryFormProps) {
       <button
         type="submit"
         disabled={loading}
-        className="w-full flex justify-center py-2.5 px-4 border border-transparent text-sm font-semibold rounded-lg text-white bg-teal-600 hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 disabled:opacity-50 disabled:cursor-not-allowed transition"
+        className="w-full sm:w-auto px-6 py-3 border border-transparent text-sm font-semibold rounded-lg text-white bg-focon-600 hover:bg-focon-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-focon-600 disabled:opacity-50 disabled:cursor-not-allowed transition"
       >
         {loading ? 'Registrando...' : 'Registrar Apontamento'}
       </button>

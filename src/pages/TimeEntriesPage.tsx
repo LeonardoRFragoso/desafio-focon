@@ -12,23 +12,23 @@ export function TimeEntriesPage() {
 
   return (
     <Layout>
-      <div className="max-w-6xl mx-auto space-y-8">
-        <div>
-          <h1 className="text-3xl font-bold text-slate-900">Meus Apontamentos</h1>
-          <p className="mt-2 text-slate-600">
+      <div className="space-y-8">
+        <div className="border-b border-slate-200 pb-6">
+          <h1 className="text-4xl font-bold text-slate-900">Meus Apontamentos</h1>
+          <p className="mt-2 text-lg text-slate-600">
             Registre suas horas de trabalho por projeto
           </p>
         </div>
 
-        <div className="bg-white rounded-lg border border-slate-200 p-6">
-          <h2 className="text-xl font-semibold text-slate-900 mb-6">
+        <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
+          <h2 className="text-2xl font-semibold text-slate-900 mb-6">
             Novo Apontamento
           </h2>
           <TimeEntryForm onSuccess={handleFormSuccess} />
         </div>
 
-        <div className="bg-white rounded-lg border border-slate-200 p-6">
-          <h2 className="text-xl font-semibold text-slate-900 mb-6">
+        <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
+          <h2 className="text-2xl font-semibold text-slate-900 mb-6">
             Histórico de Apontamentos
           </h2>
           <TimeEntryList key={refreshKey} />
