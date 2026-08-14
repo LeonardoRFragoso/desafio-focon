@@ -12,6 +12,12 @@ ALTER TABLE public.time_entries
   ADD COLUMN IF NOT EXISTS rejected_at TIMESTAMP WITH TIME ZONE;
 
 -- Rejection reason: required when status is rejected, forbidden otherwise.
+-- Backfill existing rejected entries with a default reason before adding the
+-- constraint (production may have rejected entries from before this migration).
+UPDATE public.time_entries
+  SET rejection_reason = 'Rejeitado anteriormente à migração (motivo não registrado)'
+  WHERE approval_status = 'rejected' AND rejection_reason IS NULL;
+
 ALTER TABLE public.time_entries
   DROP CONSTRAINT IF EXISTS valid_rejection_reason;
 ALTER TABLE public.time_entries
