@@ -1,5 +1,6 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { LoginPage } from '@/pages/LoginPage';
+import { RootPage } from '@/pages/RootPage';
 import { DashboardPage } from '@/pages/DashboardPage';
 import { TimeEntriesPage } from '@/pages/TimeEntriesPage';
 import { ReportPage } from '@/pages/ReportPage';
@@ -11,6 +12,7 @@ export function AppRoutes() {
   return (
     <BrowserRouter>
       <Routes>
+        <Route path="/" element={<RootPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route
           path="/dashboard"
@@ -37,7 +39,6 @@ export function AppRoutes() {
           }
         />
         <Route path="/access-denied" element={<AccessDeniedPage />} />
-        <Route path="/" element={<Navigate to="/dashboard" replace />} />
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </BrowserRouter>
