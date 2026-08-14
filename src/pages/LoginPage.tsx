@@ -24,7 +24,7 @@ export function LoginPage() {
       if (profile.role === 'admin') {
         navigate('/dashboard');
       } else {
-        navigate('/time-entries');
+        navigate('/my-dashboard');
       }
     }
   }, [user, profile, loading, navigate]);
