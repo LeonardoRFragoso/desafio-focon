@@ -7,6 +7,22 @@ interface ProtectedRouteProps {
   requiredRole?: 'admin' | 'member';
 }
 
+/**
+ * ProtectedRoute validates user authentication and authorization.
+ *
+ * Authorization rules:
+ * - Not authenticated → /login
+ * - No profile → /login (profile must exist in database)
+ * - Admin required but user is member → /access-denied
+ * - Member required but user is admin → allowed (admins can access member pages)
+ *
+ * Routes:
+ * - /dashboard (admin only)
+ * - /report (admin only)
+ * - /time-entries (member, but admins can also access)
+ * - /login (public)
+ * - /access-denied (public)
+ */
 export function ProtectedRoute({
   children,
   requiredRole,
