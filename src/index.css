@@ -1,5 +1,39 @@
 @import "tailwindcss";
 
+@theme {
+  --color-focon-50: #eff9f9;
+  --color-focon-100: #d9f0f0;
+  --color-focon-200: #b6dede;
+  --color-focon-300: #80c2c3;
+  --color-focon-400: #38a2a4;
+  --color-focon-500: #14898b;
+  --color-focon-600: #007678;
+  --color-focon-700: #005f61;
+  --color-focon-800: #064d50;
+  --color-focon-900: #073f42;
+  --color-focon-950: #022a2c;
+}
+
+@layer base {
+  html,
+  body,
+  #root {
+    min-height: 100%;
+    width: 100%;
+  }
+
+  body {
+    font-family:
+      system-ui,
+      -apple-system,
+      BlinkMacSystemFont,
+      "Segoe UI",
+      sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
 @layer utilities {
   @keyframes shake {
     0%, 100% {
@@ -16,25 +50,6 @@
   .animate-shake {
     animation: shake 0.5s ease-in-out;
   }
-}
-
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
-html,
-body,
-#root {
-  height: 100%;
-  width: 100%;
-}
-
-body {
-  font-family: system-ui, -apple-system, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
 }
 
 @media print {

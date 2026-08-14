@@ -172,14 +172,14 @@ export function FinancialReport({ filters }: FinancialReportProps) {
   if (loading) {
     return (
       <div className="flex justify-center items-center py-12">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-teal-600"></div>
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-focon-600"></div>
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="rounded-lg bg-red-50 border border-red-200 p-4">
+      <div className="rounded-xl bg-red-50 border border-red-200 p-4">
         <p className="text-sm font-medium text-red-800">Erro ao gerar relatório:</p>
         <p className="text-sm text-red-700 mt-1">{error}</p>
       </div>
@@ -228,7 +228,7 @@ export function FinancialReport({ filters }: FinancialReportProps) {
         </div>
       )}
       {!hasFilters && (
-        <div className="bg-blue-50 border border-blue-200 p-4 text-sm text-blue-800">
+        <div className="bg-focon-50 border border-focon-200 p-4 text-sm text-focon-800">
           <p className="font-semibold">Nenhum filtro aplicado - Exibindo todos os dados</p>
         </div>
       )}
@@ -242,21 +242,21 @@ export function FinancialReport({ filters }: FinancialReportProps) {
 
       {/* Indicators */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 print:gap-2">
-        <div className="bg-blue-50 border border-blue-200 p-4 print:border print:border-slate-900">
+        <div className="bg-white border border-focon-200 p-4 print:border print:border-slate-900">
           <p className="text-xs font-semibold text-slate-600 uppercase">Receita</p>
-          <p className="text-xl font-bold text-blue-900 mt-2">{formatCurrency(data.revenue)}</p>
+          <p className="text-xl font-bold text-focon-900 mt-2">{formatCurrency(data.revenue)}</p>
         </div>
-        <div className="bg-orange-50 border border-orange-200 p-4 print:border print:border-slate-900">
+        <div className="bg-white border border-focon-200 p-4 print:border print:border-slate-900">
           <p className="text-xs font-semibold text-slate-600 uppercase">Mão de Obra</p>
-          <p className="text-xl font-bold text-orange-900 mt-2">{formatCurrency(data.laborCost)}</p>
+          <p className="text-xl font-bold text-slate-900 mt-2">{formatCurrency(data.laborCost)}</p>
         </div>
-        <div className="bg-green-50 border border-green-200 p-4 print:border print:border-slate-900">
+        <div className="bg-white border border-green-200 p-4 print:border print:border-slate-900">
           <p className="text-xs font-semibold text-slate-600 uppercase">Resultado</p>
-          <p className="text-xl font-bold text-green-900 mt-2">{formatCurrency(data.result)}</p>
+          <p className="text-xl font-bold text-green-700 mt-2">{formatCurrency(data.result)}</p>
         </div>
-        <div className="bg-purple-50 border border-purple-200 p-4 print:border print:border-slate-900">
+        <div className="bg-white border border-focon-200 p-4 print:border print:border-slate-900">
           <p className="text-xs font-semibold text-slate-600 uppercase">Margem</p>
-          <p className="text-xl font-bold text-purple-900 mt-2">{data.margin.toFixed(2)}%</p>
+          <p className="text-xl font-bold text-focon-900 mt-2">{data.margin.toFixed(2)}%</p>
         </div>
       </div>
 

@@ -161,10 +161,10 @@ export function DashboardPage() {
 
   return (
     <Layout>
-      <div className="max-w-7xl mx-auto space-y-8">
-        <div>
-          <h1 className="text-3xl font-bold text-slate-900">Painel Administrativo</h1>
-          <p className="mt-2 text-slate-600">
+      <div className="space-y-8">
+        <div className="border-b border-slate-200 pb-6">
+          <h1 className="text-4xl font-bold text-slate-900">Painel Administrativo</h1>
+          <p className="mt-2 text-lg text-slate-600">
             Acompanhe a produção e rentabilidade dos projetos
           </p>
         </div>
@@ -179,19 +179,19 @@ export function DashboardPage() {
           loading={loading}
         />
 
-        <div className="bg-white rounded-lg border border-slate-200 p-6">
-          <h2 className="text-xl font-semibold text-slate-900 mb-6">
+        <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
+          <h2 className="text-2xl font-semibold text-slate-900 mb-6">
             Resumo por Profissional
           </h2>
           <ProfessionalSummary data={professionalData} loading={loading} />
         </div>
 
-        <div className="bg-white rounded-lg border border-slate-200 p-6">
+        <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
           <TimeEntryApproval onStatusChanged={handleStatusChanged} />
         </div>
 
-        <div className="bg-white rounded-lg border border-slate-200 p-6">
-          <h2 className="text-xl font-semibold text-slate-900 mb-6">
+        <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
+          <h2 className="text-2xl font-semibold text-slate-900 mb-6">
             Detalhamento de Apontamentos
           </h2>
           <TimeEntriesBreakdown filters={filters} dataRevision={dataRevision} />
