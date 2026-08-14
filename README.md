@@ -285,6 +285,18 @@ O repositório está integrado com Supabase para deploy automático:
 - Vídeo demonstrativo
 - Retrospectiva
 
+## Ativos de Marca
+
+Os ativos de marca da Fócon Engenharia estão organizados em `public/brand/`:
+
+- **focon-logo-horizontal.png** - Logo horizontal para superfícies claras
+- **focon-logo-white.png** - Logo branca para fundos escuros
+- **focon-colorida.jpeg** - Imagem quadrada para áreas compactas
+
+Todos os ativos utilizam `object-fit: contain` para preservar proporção e incluem alt text `Fócon Engenharia` para acessibilidade.
+
+Consulte `public/brand/README.md` para diretrizes de uso.
+
 ## Declaração de IA
 
 Foi utilizada inteligência artificial como apoio na interpretação dos requisitos, planejamento, revisão de código, testes e documentação. Todo o código e todas as decisões foram revisados e permanecem sob responsabilidade do candidato.

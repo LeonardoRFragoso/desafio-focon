@@ -369,6 +369,7 @@ npm install -D typescript @types/node prettier @typescript-eslint/eslint-plugin 
 npm run typecheck
 npm run lint
 npm run test
+npm run test:coverage
 npm run build
 ```
 
@@ -554,17 +555,60 @@ Não foi criado draft PR neste ciclo conforme instruções. O merge será autori
 8. **Estados da Interface**
 9. **Testes de Integração**
 
-## 24. Saída de Comandos Finais
+## 24. Correções Pós-Macrofase 1
+
+### Scripts de Teste
+- ✓ `npm run test` agora executa em modo não-bloqueante (`vitest run`)
+- ✓ `npm run test:watch` para modo watch interativo
+- ✓ `npm run test:coverage` para relatório de cobertura
+
+### Configuração do Vite
+- ✓ Removido warning `__dirname` em `vite.config.ts` (usando `import.meta.dirname`)
+- ✓ Removido warning `__dirname` em `vitest.config.ts` (usando `import.meta.dirname`)
+- ✓ Build agora executa sem avisos de configuração
+
+### Ativos de Marca
+- ✓ Criada pasta `public/brand/` com organização clara
+- ✓ Nomes normalizados para kebab-case:
+  - `focon-logo-horizontal.png` (logo colorida)
+  - `focon-logo-white.png` (logo branca)
+  - `focon-colorida.jpeg` (imagem quadrada)
+- ✓ Documentação em `public/brand/README.md`
+- ✓ Diretrizes de uso: `object-fit: contain`, alt text `Fócon Engenharia`
+
+### Segurança
+- ✓ PDF confidencial removido do repositório
+- ✓ `.gitignore` atualizado com `*.pdf` e `Desafio_Tecnico_*.pdf`
+- ✓ Nenhum arquivo confidencial versionado
+
+## 25. Saída de Comandos Finais
 
 ```bash
 git status --short
 # (limpo, tudo commitado)
 
 git log --oneline --decorate -n 15
-# (10 commits conforme listado acima)
+# (13 commits conforme listado abaixo)
 
-git diff --stat HEAD~9...HEAD
-# 36 files changed, 1919 insertions(+)
+git diff --stat HEAD~12...HEAD
+# 39 files changed, 1962 insertions(+)
+```
+
+### Commits Finais
+```
+14b788f chore: organize brand assets with proper naming and documentation
+7196e52 fix: adjust test scripts and remove Vite config warnings
+4e74bcf docs: add foundation phase completion report
+d1a4b50 docs: add README and finalize project structure
+d80ed83 feat(app): add main application setup and test infrastructure
+7f68175 feat(ui): add pages and routing with protected routes
+3fe8239 feat(auth): add authentication hooks and context
+050e1e8 feat(validation): add Zod schemas for auth and time entries
+e0ee4b0 feat(finance): add financial calculation logic with tests
+9a2e3a1 feat(auth): add Supabase client and database types
+c6313c6 feat(db): add core domain migrations and RLS policies
+a41afa6 chore: configure quality tooling and CI
+204d08a chore: scaffold React TypeScript application with Vite
 ```
 
 ## Conclusão
