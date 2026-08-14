@@ -33,6 +33,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     error: null,
   });
 
+  // Effect 1: Initialize session and listen for auth state changes
   useEffect(() => {
     // Check current session on mount
     const checkSession = async () => {
@@ -41,69 +42,84 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           data: { session },
         } = await supabase.auth.getSession();
 
-        if (session?.user) {
-          const profile = await loadProfile(session.user.id);
-          setState({
-            user: session.user,
-            profile,
-            loading: false,
-            error: null,
-          });
-        } else {
-          setState({
-            user: null,
-            profile: null,
-            loading: false,
-            error: null,
-          });
-        }
+        setState((prev) => ({
+          ...prev,
+          user: session?.user || null,
+          loading: session ? true : false, // Keep loading if user exists (profile will load separately)
+        }));
       } catch (err) {
-        setState({
+        setState((prev) => ({
+          ...prev,
           user: null,
-          profile: null,
           loading: false,
           error: err instanceof Error ? err : new Error('Unknown error'),
-        });
+        }));
       }
     };
 
     checkSession();
 
-    // Listen for auth state changes
+    // Listen for auth state changes - only update session, not profile
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (_event, session: Session | null) => {
-      try {
-        if (session?.user) {
-          const profile = await loadProfile(session.user.id);
-          setState({
-            user: session.user,
-            profile,
-            loading: false,
-            error: null,
-          });
-        } else {
-          setState({
-            user: null,
-            profile: null,
-            loading: false,
-            error: null,
-          });
-        }
-      } catch (err) {
-        setState({
-          user: session?.user || null,
-          profile: null,
-          loading: false,
-          error: err instanceof Error ? err : new Error('Failed to load profile'),
-        });
-      }
+    } = supabase.auth.onAuthStateChange((_event, session: Session | null) => {
+      // Just update user, profile will be loaded in separate effect
+      setState((prev) => ({
+        ...prev,
+        user: session?.user || null,
+        loading: session ? true : false,
+      }));
     });
 
     return () => {
       subscription?.unsubscribe();
     };
   }, []);
+
+  // Effect 2: Load profile when user changes (protected against unmount)
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadUserProfile = async () => {
+      if (!state.user) {
+        if (isMounted) {
+          setState((prev) => ({
+            ...prev,
+            profile: null,
+            loading: false,
+          }));
+        }
+        return;
+      }
+
+      try {
+        const profile = await loadProfile(state.user.id);
+        if (isMounted) {
+          setState((prev) => ({
+            ...prev,
+            profile,
+            loading: false,
+            error: null,
+          }));
+        }
+      } catch (err) {
+        if (isMounted) {
+          setState((prev) => ({
+            ...prev,
+            profile: null,
+            loading: false,
+            error: err instanceof Error ? err : new Error('Failed to load profile'),
+          }));
+        }
+      }
+    };
+
+    loadUserProfile();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [state.user]);
 
   const login = useCallback(async (email: string, password: string) => {
     try {
