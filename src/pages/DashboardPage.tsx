@@ -11,7 +11,7 @@ import type { AdminFilterValues } from '@/types/admin';
 
 export function DashboardPage() {
   const { filters, setFilters, clearFilters } = usePersistedFilters();
-  const { revenue, laborCost, result, margin, professionalData, loading, refetch } =
+  const { revenue, laborCost, result, margin, professionalData, loading, error, refetch } =
     useFinancialData(filters);
   const [dataRevision, setDataRevision] = useState(0);
 
@@ -43,6 +43,23 @@ export function DashboardPage() {
           onFilterChange={handleFilterChange}
           onClearFilters={handleClearFilters}
         />
+
+        {error && (
+          <div 
+            className="rounded-lg bg-red-50 border border-red-200 p-4"
+            role="alert"
+          >
+            <div className="flex items-center justify-between">
+              <p className="text-sm font-medium text-red-800">{error}</p>
+              <button
+                onClick={refetch}
+                className="ml-4 px-3 py-1.5 text-sm font-medium text-red-700 bg-red-100 hover:bg-red-200 rounded transition"
+              >
+                Tentar novamente
+              </button>
+            </div>
+          </div>
+        )}
 
         <FinancialIndicators
           revenue={revenue}
