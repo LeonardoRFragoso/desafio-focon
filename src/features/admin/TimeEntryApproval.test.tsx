@@ -1,9 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { render, screen, waitFor, fireEvent } from '@testing-library/react';
+import { TimeEntryApproval } from './TimeEntryApproval';
 import * as usePendingTimeEntriesModule from '@/hooks/usePendingTimeEntries';
 
 /**
- * Tests for TimeEntryApproval component behavior
- * Validates that callback is called only when approve/reject return true
+ * Real tests for TimeEntryApproval component
+ * Renders the actual component and validates callback behavior with real user interactions
  */
 
 describe('TimeEntryApproval', () => {
@@ -27,7 +29,7 @@ describe('TimeEntryApproval', () => {
     vi.clearAllMocks();
   });
 
-  describe('Callback behavior with Promise<boolean> return', () => {
+  describe('Approve button behavior', () => {
     it('should call onStatusChanged when approve returns true', async () => {
       const onStatusChanged = vi.fn();
       const mockApprove = vi.fn().mockResolvedValue(true);
@@ -44,11 +46,21 @@ describe('TimeEntryApproval', () => {
         refetch: vi.fn(),
       });
 
-      // Simulate component behavior: call approve and check if callback is invoked
-      const succeeded = await mockApprove('entry-1');
-      if (succeeded) {
-        onStatusChanged();
-      }
+      render(<TimeEntryApproval onStatusChanged={onStatusChanged} />);
+
+      // Wait for component to render with entry
+      await waitFor(() => {
+        expect(screen.getByText('John Doe')).toBeInTheDocument();
+      });
+
+      // Click the approve button
+      const approveButton = screen.getByText('Aprovar');
+      await fireEvent.click(approveButton);
+
+      // Wait for approve to be called
+      await waitFor(() => {
+        expect(mockApprove).toHaveBeenCalledWith('entry-1');
+      });
 
       // Callback should be called because approve returned true
       expect(onStatusChanged).toHaveBeenCalledTimes(1);
@@ -70,16 +82,28 @@ describe('TimeEntryApproval', () => {
         refetch: vi.fn(),
       });
 
-      // Simulate component behavior: call approve and check if callback is invoked
-      const succeeded = await mockApprove('entry-1');
-      if (succeeded) {
-        onStatusChanged();
-      }
+      render(<TimeEntryApproval onStatusChanged={onStatusChanged} />);
+
+      // Wait for component to render with entry
+      await waitFor(() => {
+        expect(screen.getByText('John Doe')).toBeInTheDocument();
+      });
+
+      // Click the approve button
+      const approveButton = screen.getByText('Aprovar');
+      await fireEvent.click(approveButton);
+
+      // Wait for approve to be called
+      await waitFor(() => {
+        expect(mockApprove).toHaveBeenCalledWith('entry-1');
+      });
 
       // Callback should NOT be called because approve returned false
       expect(onStatusChanged).not.toHaveBeenCalled();
     });
+  });
 
+  describe('Reject button behavior', () => {
     it('should call onStatusChanged when reject returns true', async () => {
       const onStatusChanged = vi.fn();
       const mockApprove = vi.fn().mockResolvedValue(false);
@@ -96,11 +120,21 @@ describe('TimeEntryApproval', () => {
         refetch: vi.fn(),
       });
 
-      // Simulate component behavior: call reject and check if callback is invoked
-      const succeeded = await mockReject('entry-1');
-      if (succeeded) {
-        onStatusChanged();
-      }
+      render(<TimeEntryApproval onStatusChanged={onStatusChanged} />);
+
+      // Wait for component to render with entry
+      await waitFor(() => {
+        expect(screen.getByText('John Doe')).toBeInTheDocument();
+      });
+
+      // Click the reject button
+      const rejectButton = screen.getByText('Rejeitar');
+      await fireEvent.click(rejectButton);
+
+      // Wait for reject to be called
+      await waitFor(() => {
+        expect(mockReject).toHaveBeenCalledWith('entry-1');
+      });
 
       // Callback should be called because reject returned true
       expect(onStatusChanged).toHaveBeenCalledTimes(1);
@@ -122,17 +156,29 @@ describe('TimeEntryApproval', () => {
         refetch: vi.fn(),
       });
 
-      // Simulate component behavior: call reject and check if callback is invoked
-      const succeeded = await mockReject('entry-1');
-      if (succeeded) {
-        onStatusChanged();
-      }
+      render(<TimeEntryApproval onStatusChanged={onStatusChanged} />);
+
+      // Wait for component to render with entry
+      await waitFor(() => {
+        expect(screen.getByText('John Doe')).toBeInTheDocument();
+      });
+
+      // Click the reject button
+      const rejectButton = screen.getByText('Rejeitar');
+      await fireEvent.click(rejectButton);
+
+      // Wait for reject to be called
+      await waitFor(() => {
+        expect(mockReject).toHaveBeenCalledWith('entry-1');
+      });
 
       // Callback should NOT be called because reject returned false
       expect(onStatusChanged).not.toHaveBeenCalled();
     });
+  });
 
-    it('should not call callback on initial mount', async () => {
+  describe('Initial render', () => {
+    it('should not call onStatusChanged on mount', async () => {
       const onStatusChanged = vi.fn();
       const mockApprove = vi.fn().mockResolvedValue(false);
       const mockReject = vi.fn().mockResolvedValue(false);
@@ -148,45 +194,108 @@ describe('TimeEntryApproval', () => {
         refetch: vi.fn(),
       });
 
-      // Just mounting the component should not call the callback
-      // (This is validated by the component not calling approve/reject on mount)
+      render(<TimeEntryApproval onStatusChanged={onStatusChanged} />);
+
+      await waitFor(() => {
+        expect(screen.getByText('John Doe')).toBeInTheDocument();
+      });
+
+      // Callback should NOT be called on mount
       expect(onStatusChanged).not.toHaveBeenCalled();
+    });
+
+    it('should disable button when actionLoading contains entry ID', async () => {
+      const mockApprove = vi.fn().mockResolvedValue(false);
+      const mockReject = vi.fn().mockResolvedValue(false);
+
+      vi.spyOn(usePendingTimeEntriesModule, 'usePendingTimeEntries').mockReturnValue({
+        entries: [mockEntry],
+        loading: false,
+        error: null,
+        actionLoading: 'entry-1', // Entry is being processed
+        successMessage: null,
+        approve: mockApprove,
+        reject: mockReject,
+        refetch: vi.fn(),
+      });
+
+      render(<TimeEntryApproval />);
+
+      // When actionLoading is set, both buttons show "Processando..." and are disabled
+      const processandoButtons = screen.getAllByText('Processando...');
+      expect(processandoButtons.length).toBe(2); // Both approve and reject
+      expect(processandoButtons[0]).toBeDisabled();
+      expect(processandoButtons[1]).toBeDisabled();
     });
   });
 
-  describe('Promise<boolean> return type validation', () => {
-    it('approve should return Promise<boolean>', async () => {
-      const mockApprove = vi.fn().mockResolvedValue(true);
+  describe('Component rendering', () => {
+    it('should display entry details', async () => {
+      const mockApprove = vi.fn();
+      const mockReject = vi.fn();
 
-      const result = await mockApprove('entry-1');
+      vi.spyOn(usePendingTimeEntriesModule, 'usePendingTimeEntries').mockReturnValue({
+        entries: [mockEntry],
+        loading: false,
+        error: null,
+        actionLoading: null,
+        successMessage: null,
+        approve: mockApprove,
+        reject: mockReject,
+        refetch: vi.fn(),
+      });
 
-      expect(typeof result).toBe('boolean');
-      expect(result).toBe(true);
+      render(<TimeEntryApproval />);
+
+      await waitFor(() => {
+        expect(screen.getByText('John Doe')).toBeInTheDocument();
+        expect(screen.getByText('Project A')).toBeInTheDocument();
+      });
     });
 
-    it('reject should return Promise<boolean>', async () => {
-      const mockReject = vi.fn().mockResolvedValue(true);
+    it('should show error message when present', async () => {
+      const mockApprove = vi.fn();
+      const mockReject = vi.fn();
+      const errorMessage = 'Erro ao carregar apontamentos';
 
-      const result = await mockReject('entry-1');
+      vi.spyOn(usePendingTimeEntriesModule, 'usePendingTimeEntries').mockReturnValue({
+        entries: [],
+        loading: false,
+        error: errorMessage,
+        actionLoading: null,
+        successMessage: null,
+        approve: mockApprove,
+        reject: mockReject,
+        refetch: vi.fn(),
+      });
 
-      expect(typeof result).toBe('boolean');
-      expect(result).toBe(true);
+      render(<TimeEntryApproval />);
+
+      await waitFor(() => {
+        expect(screen.getByText(errorMessage)).toBeInTheDocument();
+      });
     });
 
-    it('approve should return false on failure', async () => {
-      const mockApprove = vi.fn().mockResolvedValue(false);
+    it('should show loading state', () => {
+      const mockApprove = vi.fn();
+      const mockReject = vi.fn();
 
-      const result = await mockApprove('entry-1');
+      vi.spyOn(usePendingTimeEntriesModule, 'usePendingTimeEntries').mockReturnValue({
+        entries: [],
+        loading: true,
+        error: null,
+        actionLoading: null,
+        successMessage: null,
+        approve: mockApprove,
+        reject: mockReject,
+        refetch: vi.fn(),
+      });
 
-      expect(result).toBe(false);
-    });
+      render(<TimeEntryApproval />);
 
-    it('reject should return false on failure', async () => {
-      const mockReject = vi.fn().mockResolvedValue(false);
-
-      const result = await mockReject('entry-1');
-
-      expect(result).toBe(false);
+      // Should show loading spinner (div with animate-spin class)
+      const spinner = document.querySelector('.animate-spin');
+      expect(spinner).toBeInTheDocument();
     });
   });
 });
