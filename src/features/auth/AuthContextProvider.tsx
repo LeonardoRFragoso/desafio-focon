@@ -1,8 +1,22 @@
 import { type ReactNode, useEffect, useState, useCallback } from 'react';
-import type { User } from '@supabase/supabase-js';
+import type { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase/client';
 import type { Profile } from '@/types/database';
 import { AuthContext } from './AuthContext';
+
+/**
+ * Load profile for a given user ID
+ */
+async function loadProfile(userId: string): Promise<Profile | null> {
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('*')
+    .eq('id', userId)
+    .single();
+
+  if (error) throw error;
+  return data as Profile;
+}
 
 interface AuthState {
   user: User | null;
@@ -20,7 +34,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   });
 
   useEffect(() => {
-    // Check current session
+    // Check current session on mount
     const checkSession = async () => {
       try {
         const {
@@ -28,17 +42,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         } = await supabase.auth.getSession();
 
         if (session?.user) {
-          const { data: profile, error } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('id', session.user.id)
-            .single();
-
-          if (error) throw error;
-
+          const profile = await loadProfile(session.user.id);
           setState({
             user: session.user,
-            profile: profile as Profile,
+            profile,
             loading: false,
             error: null,
           });
@@ -62,39 +69,33 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     checkSession();
 
-    // Listen for auth changes
+    // Listen for auth state changes
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (_event: unknown, session: unknown) => {
-      const typedSession = session as { user?: { id: string } } | null;
-      if (typedSession?.user) {
-        const { data: profile, error } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', typedSession.user.id)
-          .single();
-
-        if (error) {
+    } = supabase.auth.onAuthStateChange(async (_event, session: Session | null) => {
+      try {
+        if (session?.user) {
+          const profile = await loadProfile(session.user.id);
           setState({
-            user: typedSession.user as User,
-            profile: null,
+            user: session.user,
+            profile,
             loading: false,
-            error,
+            error: null,
           });
         } else {
           setState({
-            user: typedSession.user as User,
-            profile: profile as Profile,
+            user: null,
+            profile: null,
             loading: false,
             error: null,
           });
         }
-      } else {
+      } catch (err) {
         setState({
-          user: null,
+          user: session?.user || null,
           profile: null,
           loading: false,
-          error: null,
+          error: err instanceof Error ? err : new Error('Failed to load profile'),
         });
       }
     });
