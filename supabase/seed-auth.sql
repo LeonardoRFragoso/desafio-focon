@@ -33,7 +33,6 @@ INSERT INTO auth.users (
   email_change_token_new,
   email_change,
   email_change_sent_at,
-  last_sign_in_at,
   raw_app_meta_data,
   raw_user_meta_data,
   is_super_admin,
@@ -49,7 +48,6 @@ INSERT INTO auth.users (
   email_change_confirm_token_new,
   user_metadata,
   identities,
-  last_sign_in_at,
   banned_until
 )
 VALUES
@@ -69,9 +67,8 @@ VALUES
     '',
     '',
     NULL,
-    NOW(),
     '{"provider":"email","providers":["email"]}'::jsonb,
-    '{}'::jsonb,
+    '{"full_name":"Ana Silva"}'::jsonb,
     false,
     NOW(),
     NOW(),
@@ -85,7 +82,6 @@ VALUES
     '',
     NULL,
     '[{"id":"550e8400-e29b-41d4-a716-446655550001","user_id":"550e8400-e29b-41d4-a716-446655550001","identity_data":{"email":"ana@example.com"},"provider":"email","last_sign_in_at":"2024-08-14T10:00:00Z","created_at":"2024-08-14T10:00:00Z","updated_at":"2024-08-14T10:00:00Z"}]'::jsonb,
-    NOW(),
     NULL
   ),
   (
@@ -104,9 +100,8 @@ VALUES
     '',
     '',
     NULL,
-    NOW(),
     '{"provider":"email","providers":["email"]}'::jsonb,
-    '{}'::jsonb,
+    '{"full_name":"Bruno Santos"}'::jsonb,
     false,
     NOW(),
     NOW(),
@@ -120,7 +115,6 @@ VALUES
     '',
     NULL,
     '[{"id":"550e8400-e29b-41d4-a716-446655550002","user_id":"550e8400-e29b-41d4-a716-446655550002","identity_data":{"email":"bruno@example.com"},"provider":"email","last_sign_in_at":"2024-08-14T10:00:00Z","created_at":"2024-08-14T10:00:00Z","updated_at":"2024-08-14T10:00:00Z"}]'::jsonb,
-    NOW(),
     NULL
   ),
   (
@@ -139,9 +133,8 @@ VALUES
     '',
     '',
     NULL,
-    NOW(),
     '{"provider":"email","providers":["email"]}'::jsonb,
-    '{}'::jsonb,
+    '{"full_name":"Carla Oliveira"}'::jsonb,
     false,
     NOW(),
     NOW(),
@@ -155,7 +148,6 @@ VALUES
     '',
     NULL,
     '[{"id":"550e8400-e29b-41d4-a716-446655550003","user_id":"550e8400-e29b-41d4-a716-446655550003","identity_data":{"email":"carla@example.com"},"provider":"email","last_sign_in_at":"2024-08-14T10:00:00Z","created_at":"2024-08-14T10:00:00Z","updated_at":"2024-08-14T10:00:00Z"}]'::jsonb,
-    NOW(),
     NULL
   ),
   (
@@ -174,9 +166,8 @@ VALUES
     '',
     '',
     NULL,
-    NOW(),
     '{"provider":"email","providers":["email"]}'::jsonb,
-    '{}'::jsonb,
+    '{"full_name":"Admin User"}'::jsonb,
     false,
     NOW(),
     NOW(),
@@ -190,7 +181,6 @@ VALUES
     '',
     NULL,
     '[{"id":"550e8400-e29b-41d4-a716-446655550099","user_id":"550e8400-e29b-41d4-a716-446655550099","identity_data":{"email":"admin@example.com"},"provider":"email","last_sign_in_at":"2024-08-14T10:00:00Z","created_at":"2024-08-14T10:00:00Z","updated_at":"2024-08-14T10:00:00Z"}]'::jsonb,
-    NOW(),
     NULL
   )
 ON CONFLICT (id) DO NOTHING;
