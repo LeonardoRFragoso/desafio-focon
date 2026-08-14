@@ -34,9 +34,13 @@ interface FinancialReportProps {
 export function FinancialReport({ filters }: FinancialReportProps) {
   const [data, setData] = useState<ReportData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const fetchReportData = useCallback(async () => {
     try {
+      setLoading(true);
+      setError(null);
+
       // Fetch time entries
       let query = supabase
         .from('time_entries')
@@ -48,8 +52,8 @@ export function FinancialReport({ filters }: FinancialReportProps) {
           duration_minutes,
           applied_hourly_rate,
           entry_date,
-          projects(id, name),
-          profiles(id, full_name)
+          project:projects!time_entries_project_id_fkey(name),
+          professional:profiles!time_entries_professional_id_fkey(full_name)
         `
         )
         .eq('approval_status', 'approved');
@@ -59,16 +63,18 @@ export function FinancialReport({ filters }: FinancialReportProps) {
       if (filters.startDate) query = query.gte('entry_date', filters.startDate);
       if (filters.endDate) query = query.lte('entry_date', filters.endDate);
 
-      const { data: entries } = await query;
+      const { data: entries, error: entriesError } = await query;
+      if (entriesError) throw entriesError;
 
       // Fetch project financials
       let projectQuery = supabase
         .from('project_financials')
-        .select('project_id, contracted_revenue, tax_rate, indirect_cost, projects(name)');
+        .select('project_id, contracted_revenue, tax_rate, indirect_cost, project:projects!project_financials_project_id_fkey(name)');
 
       if (filters.projectId) projectQuery = projectQuery.eq('project_id', filters.projectId);
 
-      const { data: financials } = await projectQuery;
+      const { data: financials, error: financialsError } = await projectQuery;
+      if (financialsError) throw financialsError;
 
       // Calculate report data
       let totalRevenue = 0;
@@ -92,7 +98,7 @@ export function FinancialReport({ filters }: FinancialReportProps) {
         professional_id: string;
         duration_minutes: number;
         applied_hourly_rate: number;
-        profiles?: Array<{ full_name: string }>;
+        professional: Array<{ full_name: string }>;
       }
 
       interface FinancialData {
@@ -100,7 +106,7 @@ export function FinancialReport({ filters }: FinancialReportProps) {
         contracted_revenue: number;
         tax_rate: number;
         indirect_cost: number;
-        projects?: Array<{ name: string }>;
+        project: Array<{ name: string }>;
       }
 
       const profMap = new Map<string, ProfessionalEntry>();
@@ -111,7 +117,7 @@ export function FinancialReport({ filters }: FinancialReportProps) {
         totalLaborCost += cost;
 
         const profId = entry.professional_id;
-        const profName = entry.profiles?.[0]?.full_name || 'Desconhecido';
+        const profName = entry.professional?.[0]?.full_name || 'Desconhecido';
 
         if (!profMap.has(profId)) {
           profMap.set(profId, {
@@ -134,7 +140,7 @@ export function FinancialReport({ filters }: FinancialReportProps) {
         totalTax += f.contracted_revenue * f.tax_rate;
         totalIndirectCost += f.indirect_cost;
         projectMap.set(f.project_id, {
-          name: f.projects?.[0]?.name || 'Desconhecido',
+          name: f.project?.[0]?.name || 'Desconhecido',
           revenue: f.contracted_revenue,
         });
       });
@@ -153,6 +159,8 @@ export function FinancialReport({ filters }: FinancialReportProps) {
         projects: Array.from(projectMap.values()),
       });
     } catch (err) {
+      const message = err instanceof Error ? err.message : 'Erro ao gerar relatório';
+      setError(message);
       console.error('Erro ao gerar relatório:', err);
     } finally {
       setLoading(false);
@@ -179,6 +187,15 @@ export function FinancialReport({ filters }: FinancialReportProps) {
     return (
       <div className="flex justify-center items-center py-12">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-teal-600"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="rounded-lg bg-red-50 border border-red-200 p-4">
+        <p className="text-sm font-medium text-red-800">Erro ao gerar relatório:</p>
+        <p className="text-sm text-red-700 mt-1">{error}</p>
       </div>
     );
   }

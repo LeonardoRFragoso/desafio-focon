@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -7,7 +7,7 @@ import { useAuthContext } from '@/features/auth/useAuthContext';
 
 export function LoginPage() {
   const navigate = useNavigate();
-  const { login, loading, error, profile } = useAuthContext();
+  const { login, loading, error, user, profile } = useAuthContext();
   const [submitError, setSubmitError] = useState<string | null>(null);
 
   const {
@@ -18,20 +18,22 @@ export function LoginPage() {
     resolver: zodResolver(loginSchema),
   });
 
+  // Redirect based on role when user and profile are loaded
+  useEffect(() => {
+    if (!loading && user && profile) {
+      if (profile.role === 'admin') {
+        navigate('/dashboard');
+      } else {
+        navigate('/time-entries');
+      }
+    }
+  }, [user, profile, loading, navigate]);
+
   const onSubmit = async (data: LoginInput) => {
     try {
       setSubmitError(null);
       await login(data.email, data.password);
-      
-      // Redirect based on role after profile is loaded
-      // The profile should be available after login completes
-      setTimeout(() => {
-        if (profile?.role === 'admin') {
-          navigate('/dashboard');
-        } else {
-          navigate('/time-entries');
-        }
-      }, 100);
+      // Redirection is handled by useEffect above
     } catch (err) {
       const message =
         err instanceof Error ? err.message : 'Falha no login. Tente novamente.';

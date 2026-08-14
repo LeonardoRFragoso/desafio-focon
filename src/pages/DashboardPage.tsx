@@ -18,7 +18,7 @@ interface ProfessionalData {
   professional_id: string;
   professional_name: string;
   total_hours: number;
-  hourly_rate: number;
+  hourly_rates: number[];
   total_cost: number;
 }
 
@@ -29,6 +29,7 @@ export function DashboardPage() {
   const [margin, setMargin] = useState(0);
   const [professionalData, setProfessionalData] = useState<ProfessionalData[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshKey, setRefreshKey] = useState(0);
   const [filters, setFilters] = useState<FilterValues>({
     projectId: '',
     professionalId: '',
@@ -36,9 +37,12 @@ export function DashboardPage() {
     endDate: '',
   });
 
+  const handleApprovalStatusChanged = useCallback(() => {
+    setRefreshKey((prev) => prev + 1);
+  }, []);
+
   const fetchFinancialData = useCallback(async () => {
     try {
-      setLoading(true);
 
       // Build query for time entries
       let query = supabase
@@ -52,8 +56,8 @@ export function DashboardPage() {
           applied_hourly_rate,
           approval_status,
           entry_date,
-          projects(id, name),
-          profiles(id, full_name)
+          project:projects!time_entries_project_id_fkey(name),
+          professional:profiles!time_entries_professional_id_fkey(full_name)
         `
         )
         .eq('approval_status', 'approved');
@@ -77,7 +81,7 @@ export function DashboardPage() {
       // Get projects for revenue calculation
       let projectQuery = supabase
         .from('project_financials')
-        .select('project_id, contracted_revenue, tax_rate, indirect_cost, projects(id, name)');
+        .select('project_id, contracted_revenue, tax_rate, indirect_cost, project:projects!project_financials_project_id_fkey(name)');
 
       if (filters.projectId) {
         projectQuery = projectQuery.eq('project_id', filters.projectId);
@@ -99,19 +103,26 @@ export function DashboardPage() {
       // Calculate labor cost and group by professional
       const profMap = new Map<string, ProfessionalData>();
 
-      entries?.forEach((entry: any) => {
+      interface TimeEntry {
+        professional_id: string;
+        duration_minutes: number;
+        applied_hourly_rate: number;
+        professional?: Array<{ full_name: string }>;
+      }
+
+      (entries as TimeEntry[] | undefined)?.forEach((entry) => {
         const cost = (entry.duration_minutes / 60) * entry.applied_hourly_rate;
         totalLaborCost += cost;
 
         const profId = entry.professional_id;
-        const profName = entry.profiles?.[0]?.full_name || 'Desconhecido';
+        const profName = entry.professional?.[0]?.full_name || 'Desconhecido';
 
         if (!profMap.has(profId)) {
           profMap.set(profId, {
             professional_id: profId,
             professional_name: profName,
             total_hours: 0,
-            hourly_rate: entry.applied_hourly_rate,
+            hourly_rates: [],
             total_cost: 0,
           });
         }
@@ -119,6 +130,11 @@ export function DashboardPage() {
         const prof = profMap.get(profId)!;
         prof.total_hours += entry.duration_minutes;
         prof.total_cost += cost;
+        
+        // Add hourly rate if not already present
+        if (!prof.hourly_rates.includes(entry.applied_hourly_rate)) {
+          prof.hourly_rates.push(entry.applied_hourly_rate);
+        }
       });
 
       // Calculate revenue and taxes
@@ -141,7 +157,7 @@ export function DashboardPage() {
     } finally {
       setLoading(false);
     }
-  }, [filters.projectId, filters.professionalId, filters.startDate, filters.endDate]);
+  }, [filters.projectId, filters.professionalId, filters.startDate, filters.endDate, refreshKey, setRevenue, setLaborCost, setResult, setMargin, setProfessionalData]);
 
   useEffect(() => {
     fetchFinancialData();
@@ -179,7 +195,7 @@ export function DashboardPage() {
         </div>
 
         <div className="bg-white rounded-lg border border-slate-200 p-6">
-          <TimeEntryApproval />
+          <TimeEntryApproval onStatusChanged={handleApprovalStatusChanged} />
         </div>
 
         <div className="bg-white rounded-lg border border-slate-200 p-6">

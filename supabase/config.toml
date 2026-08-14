@@ -10,7 +10,10 @@ max_rows = 1000
 [db]
 port = 54322
 major_version = 15
-seed_sql_paths = ["./supabase/seed-auth.sql", "./supabase/seed.sql"]
+
+[db.seed]
+enabled = true
+sql_paths = ["./seed-auth.sql", "./seed.sql"]
 
 [studio]
 enabled = true

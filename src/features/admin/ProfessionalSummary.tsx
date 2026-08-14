@@ -2,7 +2,7 @@ interface ProfessionalData {
   professional_id: string;
   professional_name: string;
   total_hours: number;
-  hourly_rate: number;
+  hourly_rates: number[];
   total_cost: number;
 }
 
@@ -77,7 +77,7 @@ export function ProfessionalSummary({
                 {formatHours(row.total_hours)}
               </td>
               <td className="px-6 py-4 text-sm text-slate-900">
-                {formatCurrency(row.hourly_rate)}
+                {row.hourly_rates.map((rate) => formatCurrency(rate)).join(', ')}
               </td>
               <td className="px-6 py-4 text-sm font-semibold text-slate-900">
                 {formatCurrency(row.total_cost)}
