@@ -13,22 +13,16 @@ export function TimeEntryApproval({ onStatusChanged }: TimeEntryApprovalProps) {
 
   // Wrapper functions that call onStatusChanged only after successful mutation
   const approve = async (entryId: string) => {
-    try {
-      await apiApprove(entryId);
-      // Only call if approve succeeded (no error thrown)
+    const succeeded = await apiApprove(entryId);
+    if (succeeded) {
       onStatusChanged?.();
-    } catch {
-      // Error already handled in hook, don't call callback
     }
   };
 
   const reject = async (entryId: string) => {
-    try {
-      await apiReject(entryId);
-      // Only call if reject succeeded (no error thrown)
+    const succeeded = await apiReject(entryId);
+    if (succeeded) {
       onStatusChanged?.();
-    } catch {
-      // Error already handled in hook, don't call callback
     }
   };
 

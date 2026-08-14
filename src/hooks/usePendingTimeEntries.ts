@@ -9,8 +9,8 @@ interface UsePendingTimeEntriesReturn {
   error: string | null;
   actionLoading: string | null;
   successMessage: string | null;
-  approve: (entryId: string) => Promise<void>;
-  reject: (entryId: string) => Promise<void>;
+  approve: (entryId: string) => Promise<boolean>;
+  reject: (entryId: string) => Promise<boolean>;
   refetch: () => Promise<void>;
 }
 
@@ -48,7 +48,7 @@ export function usePendingTimeEntries(): UsePendingTimeEntriesReturn {
   }, [fetchPendingEntries]);
 
   const approve = useCallback(
-    async (entryId: string) => {
+    async (entryId: string): Promise<boolean> => {
       try {
         setActionLoading(entryId);
         setSuccessMessage(null);
@@ -60,15 +60,17 @@ export function usePendingTimeEntries(): UsePendingTimeEntriesReturn {
         if (!data) {
           setError('Este apontamento já foi processado ou não está mais disponível.');
           setActionLoading(null);
-          return;
+          return false;
         }
 
         setSuccessMessage('Apontamento aprovado com sucesso!');
         await fetchPendingEntries();
+        return true;
       } catch (err) {
         const message = err instanceof Error ? mapDatabaseError(err) : 'Erro ao aprovar';
         setError(message);
         logError(err, 'usePendingTimeEntries.approve');
+        return false;
       } finally {
         setActionLoading(null);
       }
@@ -77,7 +79,7 @@ export function usePendingTimeEntries(): UsePendingTimeEntriesReturn {
   );
 
   const reject = useCallback(
-    async (entryId: string) => {
+    async (entryId: string): Promise<boolean> => {
       try {
         setActionLoading(entryId);
         setSuccessMessage(null);
@@ -89,15 +91,17 @@ export function usePendingTimeEntries(): UsePendingTimeEntriesReturn {
         if (!data) {
           setError('Este apontamento já foi processado ou não está mais disponível.');
           setActionLoading(null);
-          return;
+          return false;
         }
 
         setSuccessMessage('Apontamento rejeitado com sucesso!');
         await fetchPendingEntries();
+        return true;
       } catch (err) {
         const message = err instanceof Error ? mapDatabaseError(err) : 'Erro ao rejeitar';
         setError(message);
         logError(err, 'usePendingTimeEntries.reject');
+        return false;
       } finally {
         setActionLoading(null);
       }
