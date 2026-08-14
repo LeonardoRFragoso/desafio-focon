@@ -1,19 +1,27 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { auditAPI } from '@/lib/supabase/api';
 import { mapDatabaseError } from '@/lib/errors';
+import { useDebounce, usePagination } from '@/hooks/usePagination';
+import { Pagination } from '@/components/Pagination';
 import type { AuditLog } from '@/types/database';
+
+const PAGE_SIZE = 20;
 
 export function AuditLogPage() {
   const [logs, setLogs] = useState<AuditLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selected, setSelected] = useState<AuditLog | null>(null);
+  const [search, setSearch] = useState('');
+  const [actionFilter, setActionFilter] = useState('');
+  const debouncedSearch = useDebounce(search, 300);
+  const { page, setPage, resetPage } = usePagination({ pageSize: PAGE_SIZE });
 
   const fetchLogs = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
-      const { data, error: err } = await auditAPI.list(200);
+      const { data, error: err } = await auditAPI.list(500);
       if (err) throw err;
       setLogs((data as AuditLog[]) || []);
     } catch (err) {
@@ -27,6 +35,40 @@ export function AuditLogPage() {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchLogs();
   }, [fetchLogs]);
+
+  // Reset page when filters change
+  useEffect(() => {
+     
+    resetPage();
+  }, [debouncedSearch, actionFilter, resetPage]);
+
+  // Filter logs
+  const filteredLogs = useMemo(() => {
+    let result = logs;
+    if (debouncedSearch) {
+      const q = debouncedSearch.toLowerCase();
+      result = result.filter(
+        (l) =>
+          l.action.toLowerCase().includes(q) ||
+          l.entity_type.toLowerCase().includes(q) ||
+          (l.actor?.full_name?.toLowerCase().includes(q) ?? false)
+      );
+    }
+    if (actionFilter) {
+      result = result.filter((l) => l.action === actionFilter);
+    }
+    return result;
+  }, [logs, debouncedSearch, actionFilter]);
+
+  // Paginate
+  const paginatedLogs = useMemo(() => {
+    const start = (page - 1) * PAGE_SIZE;
+    return filteredLogs.slice(start, start + PAGE_SIZE);
+  }, [filteredLogs, page]);
+
+  const uniqueActions = useMemo(() => {
+    return Array.from(new Set(logs.map((l) => l.action))).sort();
+  }, [logs]);
 
   const formatDateTime = (d: string) =>
     new Date(d).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' });
@@ -51,54 +93,83 @@ export function AuditLogPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold text-slate-900">Auditoria</h2>
-        <p className="text-slate-600">Registro de alterações em apontamentos e períodos</p>
+        <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Auditoria</h2>
+        <p className="text-slate-600 dark:text-slate-400">Registro de alterações em apontamentos e períodos</p>
+      </div>
+
+      {/* Search and filter */}
+      <div className="flex flex-wrap gap-3">
+        <input
+          type="text"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Buscar por ação, entidade ou ator..."
+          className="flex-1 min-w-[200px] px-3 py-2 border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-focon-600"
+        />
+        <select
+          value={actionFilter}
+          onChange={(e) => setActionFilter(e.target.value)}
+          className="px-3 py-2 border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-focon-600"
+        >
+          <option value="">Todas as ações</option>
+          {uniqueActions.map((a) => (
+            <option key={a} value={a}>{a}</option>
+          ))}
+        </select>
       </div>
 
       {error && (
-        <div className="rounded-lg bg-red-50 border border-red-200 p-4">
-          <p className="text-sm font-medium text-red-800">{error}</p>
+        <div className="rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 p-4">
+          <p className="text-sm font-medium text-red-800 dark:text-red-400">{error}</p>
         </div>
       )}
 
-      {logs.length === 0 ? (
-        <div className="rounded-xl border border-slate-200 p-12 text-center bg-slate-50">
-          <p className="text-slate-600">Nenhum registro de auditoria</p>
+      {filteredLogs.length === 0 ? (
+        <div className="rounded-xl border border-slate-200 dark:border-slate-700 p-12 text-center bg-slate-50 dark:bg-slate-900">
+          <p className="text-slate-600 dark:text-slate-400">Nenhum registro de auditoria</p>
         </div>
       ) : (
-        <div className="overflow-x-auto rounded-xl border border-slate-200 shadow-sm">
-          <table className="w-full">
-            <thead className="bg-slate-100 border-b border-slate-200">
-              <tr>
-                <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900">Data/Hora</th>
-                <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900">Ação</th>
-                <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900">Entidade</th>
-                <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900">Ator</th>
-                <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900">Ações</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-200">
-              {logs.map((log) => (
-                <tr key={log.id} className="hover:bg-slate-50 transition">
-                  <td className="px-4 py-3 text-sm text-slate-700 whitespace-nowrap">{formatDateTime(log.created_at)}</td>
-                  <td className="px-4 py-3 text-sm text-slate-900 font-medium font-mono">{log.action}</td>
-                  <td className="px-4 py-3 text-sm text-slate-700">{log.entity_type}</td>
-                  <td className="px-4 py-3 text-sm text-slate-700">
-                    {log.actor?.full_name || log.actor_id?.slice(0, 8) || 'Sistema'}
-                  </td>
-                  <td className="px-4 py-3 text-sm">
-                    <button
-                      onClick={() => setSelected(log)}
-                      className="px-2.5 py-1 rounded-md text-xs font-medium border border-slate-300 text-slate-700 hover:bg-slate-100 transition"
-                    >
-                      Detalhes
-                    </button>
-                  </td>
+        <>
+          <div className="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
+            <table className="w-full">
+              <thead className="bg-slate-100 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700">
+                <tr>
+                  <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900 dark:text-slate-100">Data/Hora</th>
+                  <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900 dark:text-slate-100">Ação</th>
+                  <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900 dark:text-slate-100">Entidade</th>
+                  <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900 dark:text-slate-100">Ator</th>
+                  <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900 dark:text-slate-100">Ações</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
+                {paginatedLogs.map((log) => (
+                  <tr key={log.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition">
+                    <td className="px-4 py-3 text-sm text-slate-700 dark:text-slate-300 whitespace-nowrap">{formatDateTime(log.created_at)}</td>
+                    <td className="px-4 py-3 text-sm text-slate-900 dark:text-slate-100 font-medium font-mono">{log.action}</td>
+                    <td className="px-4 py-3 text-sm text-slate-700 dark:text-slate-300">{log.entity_type}</td>
+                    <td className="px-4 py-3 text-sm text-slate-700 dark:text-slate-300">
+                      {log.actor?.full_name || log.actor_id?.slice(0, 8) || 'Sistema'}
+                    </td>
+                    <td className="px-4 py-3 text-sm">
+                      <button
+                        onClick={() => setSelected(log)}
+                        className="px-2.5 py-1 rounded-md text-xs font-medium border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition"
+                      >
+                        Detalhes
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <Pagination
+            page={page}
+            pageSize={PAGE_SIZE}
+            total={filteredLogs.length}
+            onPageChange={setPage}
+          />
+        </>
       )}
 
       {selected && (
