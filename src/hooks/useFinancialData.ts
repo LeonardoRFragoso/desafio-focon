@@ -63,9 +63,12 @@ export function useFinancialData(filters: AdminFilterValues): UseFinancialDataRe
       // Calculate labor cost and group by professional
       const profMap = new Map<string, ProfessionalData>();
 
-      (entries as TimeEntryWithRelations[] | undefined)?.forEach((entry) => {
-        const cost = (entry.duration_minutes / 60) * entry.applied_hourly_rate;
-        totalLaborCost += cost;
+      // Filter defensively to only include approved entries
+      (entries as TimeEntryWithRelations[] | undefined)
+        ?.filter((entry) => entry.approval_status === 'approved')
+        .forEach((entry) => {
+          const cost = (entry.duration_minutes / 60) * entry.applied_hourly_rate;
+          totalLaborCost += cost;
 
         const profId = entry.professional_id;
         const profName = entry.professional?.full_name || 'Desconhecido';
