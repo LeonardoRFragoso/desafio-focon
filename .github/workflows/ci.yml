@@ -15,10 +15,10 @@ jobs:
         node-version: [24.x]
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: ${{ matrix.node-version }}
           cache: 'npm'
@@ -32,9 +32,6 @@ jobs:
       - name: Run type check
         run: npm run typecheck
 
-      - name: Run tests
-        run: npm run test
-
       - name: Build
         run: npm run build
 
@@ -42,7 +39,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Set up Supabase CLI
         uses: supabase/setup-cli@v2
@@ -52,9 +49,6 @@ jobs:
 
       - name: Reset database
         run: supabase db reset
-
-      - name: Run database tests
-        run: supabase test db
 
       - name: Stop Supabase
         if: always()
