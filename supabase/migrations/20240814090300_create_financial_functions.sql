@@ -1,4 +1,4 @@
--- Function to calculate labor cost for a project
+-- Internal function to calculate labor cost (not exposed to API)
 CREATE OR REPLACE FUNCTION calculate_labor_cost(
   p_project_id UUID,
   p_start_date DATE DEFAULT NULL,
@@ -20,7 +20,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path = public;
 
--- Function to calculate tax for a project
+-- Internal function to calculate tax (not exposed to API)
 CREATE OR REPLACE FUNCTION calculate_tax(
   p_project_id UUID
 )
@@ -42,7 +42,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path = public;
 
--- Function to calculate result for a project
+-- Internal function to calculate result (not exposed to API)
 CREATE OR REPLACE FUNCTION calculate_result(
   p_project_id UUID,
   p_start_date DATE DEFAULT NULL,
@@ -71,7 +71,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path = public;
 
--- Function to calculate margin for a project
+-- Internal function to calculate margin (not exposed to API)
 CREATE OR REPLACE FUNCTION calculate_margin(
   p_project_id UUID,
   p_start_date DATE DEFAULT NULL,
@@ -97,7 +97,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path = public;
 
--- Function to get project financial summary (admin only)
+-- Admin-only RPC to get project financial summary
 CREATE OR REPLACE FUNCTION get_project_financial_summary(
   p_project_id UUID
 )
@@ -112,6 +112,10 @@ RETURNS TABLE (
   margin NUMERIC
 ) AS $$
 BEGIN
+  IF NOT EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'admin') THEN
+    RAISE EXCEPTION 'Only administrators can access financial summaries';
+  END IF;
+
   RETURN QUERY
   SELECT
     p.id,
@@ -128,7 +132,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path = public;
 
--- Function to get aggregated financial summary (admin only)
+-- Admin-only RPC to get aggregated financial summary
 CREATE OR REPLACE FUNCTION get_aggregated_financial_summary()
 RETURNS TABLE (
   total_revenue NUMERIC,
@@ -139,6 +143,10 @@ RETURNS TABLE (
   total_margin NUMERIC
 ) AS $$
 BEGIN
+  IF NOT EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'admin') THEN
+    RAISE EXCEPTION 'Only administrators can access financial summaries';
+  END IF;
+
   RETURN QUERY
   SELECT
     COALESCE(SUM(pf.contracted_revenue), 0),
@@ -154,3 +162,9 @@ BEGIN
   LEFT JOIN project_financials pf ON p.id = pf.project_id;
 END;
 $$ LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path = public;
+
+-- Revoke public access to internal functions
+REVOKE EXECUTE ON FUNCTION calculate_labor_cost(UUID, DATE, DATE) FROM PUBLIC;
+REVOKE EXECUTE ON FUNCTION calculate_tax(UUID) FROM PUBLIC;
+REVOKE EXECUTE ON FUNCTION calculate_result(UUID, DATE, DATE) FROM PUBLIC;
+REVOKE EXECUTE ON FUNCTION calculate_margin(UUID, DATE, DATE) FROM PUBLIC;
