@@ -195,19 +195,42 @@ async function provision() {
     // Step 2: Ensure profiles
     console.log('\n📋 Ensuring profiles...');
     for (const [email, userData] of userMap) {
-      const { error: upsertError } = await supabase
+      // Check if profile exists
+      const { data: existingProfile, error: selectError } = await supabase
         .from('profiles')
-        .upsert(
-          {
-            id: userData.id,
+        .select('id')
+        .eq('id', userData.id)
+        .maybeSingle();
+
+      if (selectError) throw new Error(`Failed to query profile for ${email}: ${selectError.message}`);
+
+      if (existingProfile) {
+        // Profile exists - update it
+        const { error: updateError } = await supabase
+          .from('profiles')
+          .update({
             full_name: userData.fullName,
             role: userData.role,
-          },
-          { onConflict: 'id' }
-        );
+          })
+          .eq('id', userData.id);
 
-      if (upsertError) throw new Error(`Failed to upsert profile for ${email}: ${upsertError.message}`);
-      console.log(`  ✓ Profile ensured: ${email} (${userData.role})`);
+        if (updateError) throw new Error(`Failed to update profile for ${email}: ${updateError.message}`);
+        console.log(`  ✓ Profile updated: ${email} (${userData.role})`);
+      } else {
+        // Profile doesn't exist - create it
+        const { error: insertError } = await supabase
+          .from('profiles')
+          .insert([
+            {
+              id: userData.id,
+              full_name: userData.fullName,
+              role: userData.role,
+            },
+          ]);
+
+        if (insertError) throw new Error(`Failed to create profile for ${email}: ${insertError.message}`);
+        console.log(`  ✓ Profile created: ${email} (${userData.role})`);
+      }
     }
 
     // Step 3: Create projects
