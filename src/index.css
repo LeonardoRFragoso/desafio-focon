@@ -178,6 +178,8 @@
   }
 
   /* Preserve color adjustment for print */
-  -webkit-print-color-adjust: exact;
-  print-color-adjust: exact;
+  body {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
 }
