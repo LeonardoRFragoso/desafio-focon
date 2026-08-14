@@ -43,7 +43,7 @@ export function Layout({ children }: LayoutProps) {
           <h1 className="mt-4 text-2xl font-bold text-white">FoconFlow</h1>
         </div>
 
-        <nav className="p-6 space-y-2">
+        <nav className="p-6 space-y-2 overflow-y-auto" style={{ maxHeight: 'calc(100vh - 220px)' }}>
           {isAdmin ? (
             <>
               <NavLink
@@ -71,6 +71,84 @@ export function Layout({ children }: LayoutProps) {
                 }
               >
                 Relatório
+              </NavLink>
+              <NavLink
+                to="/admin/projects"
+                onClick={closeSidebar}
+                className={({ isActive }) =>
+                  `block px-4 py-3 rounded-lg font-medium transition ${
+                    isActive
+                      ? 'bg-focon-600 text-white'
+                      : 'text-slate-300 hover:bg-focon-800'
+                  }`
+                }
+              >
+                Projetos
+              </NavLink>
+              <NavLink
+                to="/admin/professionals"
+                onClick={closeSidebar}
+                className={({ isActive }) =>
+                  `block px-4 py-3 rounded-lg font-medium transition ${
+                    isActive
+                      ? 'bg-focon-600 text-white'
+                      : 'text-slate-300 hover:bg-focon-800'
+                  }`
+                }
+              >
+                Profissionais
+              </NavLink>
+              <NavLink
+                to="/admin/hourly-rates"
+                onClick={closeSidebar}
+                className={({ isActive }) =>
+                  `block px-4 py-3 rounded-lg font-medium transition ${
+                    isActive
+                      ? 'bg-focon-600 text-white'
+                      : 'text-slate-300 hover:bg-focon-800'
+                  }`
+                }
+              >
+                Valor/Hora
+              </NavLink>
+              <NavLink
+                to="/admin/financial"
+                onClick={closeSidebar}
+                className={({ isActive }) =>
+                  `block px-4 py-3 rounded-lg font-medium transition ${
+                    isActive
+                      ? 'bg-focon-600 text-white'
+                      : 'text-slate-300 hover:bg-focon-800'
+                  }`
+                }
+              >
+                Financeiro
+              </NavLink>
+              <NavLink
+                to="/admin/periods"
+                onClick={closeSidebar}
+                className={({ isActive }) =>
+                  `block px-4 py-3 rounded-lg font-medium transition ${
+                    isActive
+                      ? 'bg-focon-600 text-white'
+                      : 'text-slate-300 hover:bg-focon-800'
+                  }`
+                }
+              >
+                Fechamentos
+              </NavLink>
+              <NavLink
+                to="/admin/audit"
+                onClick={closeSidebar}
+                className={({ isActive }) =>
+                  `block px-4 py-3 rounded-lg font-medium transition ${
+                    isActive
+                      ? 'bg-focon-600 text-white'
+                      : 'text-slate-300 hover:bg-focon-800'
+                  }`
+                }
+              >
+                Auditoria
               </NavLink>
             </>
           ) : (
