@@ -1,6 +1,6 @@
 # FoconFlow
 
-Controle de Produção e Rentabilidade por Projeto - MVP Core Flows
+Controle de Produção e Rentabilidade por Projeto - MVP Completo
 
 ## Objetivo
 
@@ -16,28 +16,24 @@ Implementar o MVP funcional do FoconFlow com autenticação real, fluxos de usu�
 - **Runtime**: Node.js 24
 - **Code Quality**: ESLint + Prettier + TypeScript strict mode
 - **CI/CD**: GitHub Actions com Supabase CLI v2
+- **Deployment**: Vercel (Frontend)
+- **Production**: https://desafio-focon.vercel.app
 
 ## Arquitetura
 
 ```
 src/
-  app/                 # Application configuration
   components/          # Reusable UI components
   features/
     auth/              # Authentication logic
-    dashboard/         # Dashboard features
-    projects/          # Project management
+    admin/             # Admin dashboard and approval
     time-entries/      # Time entry features
-  hooks/               # Custom React hooks
   lib/
     supabase/          # Supabase client
     financial-calculations.ts  # Pure financial logic
   pages/               # Page components
   routes/              # Routing configuration
   schemas/             # Zod validation schemas
-  services/            # API services
-  styles/              # Global styles
-  test/                # Test utilities
   types/               # TypeScript types
 
 supabase/
@@ -72,10 +68,11 @@ supabase/
 - Consultar próprio perfil
 - Consultar informações não-financeiras de projetos
 - Inserir apontamentos para si mesmo
-- Consultar próprios apontamentos
-- Editar/deletar próprios apontamentos pendentes
+- Consultar próprios apontamentos e seus status
+- Visualizar detalhes completos de cada apontamento (modal)
 
 **Não pode:**
+- Editar ou deletar apontamentos (não há interface frontend)
 - Ler perfis de outros usuários
 - Ler custos-hora
 - Ler dados financeiros
@@ -84,6 +81,7 @@ supabase/
 - Criar apontamento em nome de outro
 - Escolher custo-hora aplicado
 - Aprovar próprio apontamento
+- Acessar dashboard ou relatório
 
 ### Administrador
 
@@ -93,6 +91,8 @@ supabase/
 - Consultar dados financeiros
 - Consultar histórico de custos
 - Aprovar/rejeitar apontamentos
+- Visualizar dashboard com indicadores
+- Gerar relatório para impressão/PDF
 - Executar funções administrativas
 
 ## Preservação de Custo Histórico
@@ -178,57 +178,76 @@ Após `supabase db reset`, os seguintes usuários estão disponíveis:
 ## Fluxos Implementados
 
 ### Fluxo do Usuário Comum
+
 1. Login com email/senha
 2. Redirecionamento automático para `/time-entries`
-3. Registrar novo apontamento (projeto, data, duração, descrição)
-4. Visualizar histórico de apontamentos com status
-5. Logout
+3. Registrar novo apontamento:
+   - Selecionar projeto (com carregamento robusto e feedback de erro)
+   - Informar data
+   - Informar duração em minutos
+   - Descrever o trabalho realizado
+4. Visualizar histórico de apontamentos com status (Pendente, Aprovado, Rejeitado)
+5. Clicar em um apontamento para visualizar detalhes completos em modal:
+   - Projeto, data, duração
+   - Custo-hora aplicado e custo total
+   - Descrição completa
+   - Status e data de criação
+6. Validações em português para todos os campos
+7. Logout
+
+**Observações:**
+- Não há edição ou exclusão de apontamentos pelo frontend
+- O banco possui políticas RLS para proteger os registros
+- Apontamentos pendentes não entram nos cálculos financeiros até aprovação
 
 ### Fluxo do Administrador
+
 1. Login com email/senha
 2. Redirecionamento automático para `/dashboard`
-3. Visualizar indicadores financeiros (receita, mão de obra, resultado, margem)
+3. Visualizar indicadores financeiros:
+   - Receita: Valor total contratado
+   - Mão de Obra: Soma de (horas × custo-hora) dos apontamentos aprovados
+   - Resultado: Receita - Mão de Obra - Imposto (8%) - Custo Indireto
+   - Margem: (Resultado ÷ Receita) × 100%
 4. Aplicar filtros (projeto, profissional, período)
-5. Visualizar tabela de profissionais com custos
-6. Aprovar/rejeitar apontamentos pendentes
-7. Visualizar detalhamento de apontamentos aprovados
-8. Navegar para `/report` para gerar relatório
-9. Imprimir/salvar em PDF
-10. Logout
+5. Visualizar tabela de resumo por profissional (total de horas, custo-hora, custo total)
+6. Visualizar detalhamento de apontamentos aprovados
+7. Seção "Aprovação de Apontamentos":
+   - Lista todos os apontamentos pendentes de todos os funcionários
+   - Mostra profissional, projeto, data, duração, descrição e custo
+   - Botões para Aprovar ou Rejeitar
+   - Após ação, indicadores são atualizados automaticamente
+8. Navegar para `/report` para gerar relatório:
+   - Exibe filtros aplicados
+   - Mostra indicadores financeiros
+   - Composição do resultado
+   - Resumo por projeto
+   - Resumo por profissional
+   - Botão "Imprimir / Salvar em PDF" visível na tela, oculto na impressão
+   - Estilos otimizados para impressão/PDF
+9. Logout
 
-## Aprovação de Apontamentos
+## Validações e Feedback
 
-- Somente administradores podem aprovar/rejeitar
-- Apontamentos pendentes aparecem em seção dedicada no dashboard
-- Após aprovação, apontamentos entram nos cálculos financeiros
-- Indicadores são atualizados após aprovação
+### Formulário de Apontamento
 
-## Dashboard Administrativo
+- **Projeto**: Validação obrigatória com carregamento robusto
+  - Estado de carregamento: "Carregando projetos..."
+  - Erro com botão "Tentar novamente"
+  - Lista vazia: "Nenhum projeto ativo disponível para apontamento."
+- **Data**: Validação obrigatória e de formato
+- **Duração**: Validação obrigatória, mínimo 1 minuto, máximo 24 horas
+- **Descrição**: Validação obrigatória, mínimo 10 caracteres, máximo 500
+- Todas as mensagens em português
+- Acessibilidade: `aria-invalid`, `aria-describedby`, `role="alert"`, `role="status"`
 
-**Indicadores Financeiros:**
-- Receita: Valor total contratado
-- Mão de Obra: Soma de (horas × custo-hora) dos apontamentos aprovados
-- Resultado: Receita - Mão de Obra - Imposto (8%) - Custo Indireto
-- Margem: (Resultado ÷ Receita) × 100%
+### Histórico de Apontamentos
 
-**Filtros Funcionais:**
-- Projeto
-- Profissional
-- Data inicial
-- Data final
-
-**Tabelas:**
-- Resumo por Profissional (total de horas, custo-hora, custo total)
-- Detalhamento de Apontamentos (projeto, profissional, data, duração, custo)
-
-## Relatório para Impressão
-
-- Exibe filtros aplicados
-- Mostra indicadores financeiros
-- Composição do resultado
-- Resumo por projeto
-- Estilos otimizados para impressão/PDF
-- Botão "Imprimir / Salvar em PDF" visível na tela, oculto na impressão
+- Loading com feedback visual e texto acessível
+- Erro com botão "Tentar novamente"
+- Estado vazio com orientação ao usuário
+- Tabela com `<caption>` acessível e `scope="col"` nos cabeçalhos
+- Linhas clicáveis para visualizar detalhes em modal
 
 ## Supabase Local
 
@@ -274,7 +293,7 @@ supabase db reset
 
 ### Deploy remoto
 
-O deploy automático ocorre via integração GitHub–Supabase quando há merge na branch `main`. Não execute `supabase db push` manualmente neste ciclo.
+O deploy automático ocorre via integração GitHub–Supabase quando há merge na branch `main`.
 
 ## Seed
 
@@ -288,27 +307,12 @@ Os arquivos `supabase/seed-auth.sql` e `supabase/seed.sql` contêm dados de demo
 
 Os dados são idempotentes e executados automaticamente via `supabase db reset`.
 
-## Limitações Atuais
-
-- ❌ Gerenciamento de projetos (criar, editar, deletar)
-- ❌ Gerenciamento de custos-hora (criar, editar, deletar)
-- ❌ Edição de apontamentos após criação
-- ❌ Atualização em tempo real (Supabase Realtime não implementado)
-- ❌ Testes automatizados completos (estrutura criada, implementação pendente)
-- ❌ Validação de migrations em banco real (pendente)
-
 ## Testes
 
 ### Executar testes
 
 ```bash
 npm run test
-```
-
-### Cobertura
-
-```bash
-npm run test:coverage
 ```
 
 ### Testes implementados
@@ -330,47 +334,8 @@ npm run build        # Build para produção
 npm run lint         # Executar linter (com --fix)
 npm run typecheck    # Verificar tipos TypeScript
 npm run test         # Executar testes
-npm run test:coverage # Testes com cobertura
 npm run preview      # Preview do build
 ```
-
-## Integração GitHub–Supabase
-
-O repositório está integrado com Supabase para deploy automático:
-
-- **Branch de produção**: `main`
-- **Comportamento**: Merge na `main` dispara aplicação de migrations no banco remoto
-- **Aviso**: Não faça merge neste ciclo sem auditoria humana
-
-## Limitações (MVP Foundation)
-
-- Dashboard completo não implementado
-- Relatório para PDF não implementado
-- Responsividade em progresso
-- Acessibilidade em progresso
-- Testes de RLS requerem Supabase local rodando
-
-## Roadmap (Macrofase 2)
-
-- Login completo e fluxo de autenticação
-- Formulário de apontamento funcional
-- Listagem de apontamentos
-- Aprovação administrativa
-- Dashboard com indicadores
-- Filtros avançados
-- Tabela por profissional
-- Estados da interface
-
-## Roadmap (Macrofase 3)
-
-- Relatório para impressão/PDF
-- Responsividade completa
-- Acessibilidade (WCAG 2.1)
-- Testes finais
-- Revisão de segurança
-- Deploy em produção
-- Vídeo demonstrativo
-- Retrospectiva
 
 ## Ativos de Marca
 
@@ -382,46 +347,62 @@ Os ativos de marca da Fócon Engenharia estão organizados em `public/brand/`:
 
 Todos os ativos utilizam `object-fit: contain` para preservar proporção e incluem alt text `Fócon Engenharia` para acessibilidade.
 
-Consulte `public/brand/README.md` para diretrizes de uso.
-
 ## Status de Implementação
 
-✅ **Completo - Estabilização Final**
+✅ **Completo - MVP Entregue**
 
 ### Funcionalidades Implementadas
+
 - ✅ Autenticação com Supabase Auth
-- ✅ Redirecionamento por role (admin/member) com useEffect
+- ✅ Redirecionamento por role (admin/member)
 - ✅ Dashboard administrativo com indicadores financeiros
-- ✅ Aprovação de apontamentos com atualização de dashboard
+- ✅ Filtros por projeto, profissional e período
+- ✅ Aprovação/rejeição de apontamentos com atualização automática
 - ✅ Relatório para impressão/PDF com filtros
 - ✅ Estilos para impressão (@media print)
 - ✅ Suporte a múltiplos custos-hora por profissional
-- ✅ Relacionamentos Supabase com aliases explícitos
-- ✅ Seed reproduzível com usuários demo (Ana, Bruno, Carla, Admin)
-- ✅ Lint e typecheck sem erros
+- ✅ Formulário de apontamento com validações em português
+- ✅ Carregamento robusto de projetos com feedback de erro
+- ✅ Histórico de apontamentos com visualização de detalhes em modal
+- ✅ Acessibilidade (ARIA, roles, live regions)
+- ✅ Responsividade desktop e mobile
+- ✅ Login premium com gradiente e animações
+- ✅ Seed reproduzível com usuários demo
+- ✅ Lint, typecheck e testes sem erros
 - ✅ Build funcional
-- ✅ Supabase `db reset` funcional
+- ✅ Deploy em produção (Vercel)
 
-### Commits da Estabilização (10 etapas)
-1. `48b8fa1` - fix(db): correct Supabase seed configuration and auth user creation
-2. `c920641` - fix(auth): implement role-based redirect with useEffect
-3. `e409d8e` - fix(ui): use profile.role and isAdmin from context for menu
-4. `91c9482` - fix(supabase): use explicit aliases for relationships in queries
-5. `1a313bd` - feat(admin): refresh dashboard after approval status change
-6. `e823135` - fix(dashboard): support multiple hourly rates per professional
-7. `8094318` - fix(report): correct filter visibility and add error handling
-8. `12c4fb0` - feat(print): add comprehensive print media styles
-9. `4511691` - fix(types): correct array types for Supabase relationships
-10. `27b5cf5` - docs: update README with implementation status
+## Retrospectiva
 
-### Correções Adicionais de Seed
-- `e799def` - fix(seed): remove non-existent column from auth users
-- `32b7b91` - fix(seed): remove non-existent user_metadata column
-- `e0ff02a` - fix(seed): remove identities column from users insert
-- `949eb6d` - fix(seed): simplify auth users insert to match actual columns
-- `4507b78` - fix(seed): remove identities insert due to provider_id constraint
-- `2cdbffc` - fix(seed): remove time entries due to constraint violation
+### Com Mais Tempo
+
+- Implementação de edição/exclusão de apontamentos pendentes (com auditoria)
+- Testes E2E com Playwright ou Cypress
+- Observabilidade e monitoramento em produção
+- Integração com webhooks para notificações
+- Exportação de relatórios em múltiplos formatos (Excel, CSV)
+
+### Maior Risco Tratado
+
+**Autorização e Preservação Histórica do Custo-Hora**
+
+O maior risco identificado foi garantir que:
+1. O custo-hora aplicado a um apontamento nunca pudesse ser alterado após criação
+2. Cada apontamento sempre refletisse o custo-hora vigente na data do trabalho
+3. Mudanças futuras de custo-hora não afetassem apontamentos históricos
+
+Tratamento implementado:
+- Trigger `trg_apply_hourly_rate_on_time_entry` aplica automaticamente na criação
+- Trigger `trg_prevent_hourly_rate_modification` bloqueia alterações
+- RLS garante que membros não possam manipular o campo
+- Testes validam o comportamento
+
+### Primeira Melhoria para Produção
+
+1. **Auditoria de Ações**: Log de todas as aprovações/rejeições com timestamp e usuário
+2. **Monitoramento**: Alertas para anomalias (ex: rejeição em massa, aprovação fora do horário)
+3. **Testes Ponta a Ponta**: Validação de fluxos completos em ambiente de staging
 
 ## Declaração de IA
 
-Foi utilizada inteligência artificial como apoio na interpretação dos requisitos, planejamento, revisão de código, testes e documentação. Todo o código e todas as decisões foram revisados e permanecem sob responsabilidade do candidato.
+Foi utilizada inteligência artificial (ChatGPT e Devin) como apoio na interpretação dos requisitos, planejamento, organização do desenvolvimento, revisão de código, testes e documentação. Todo o código, todas as decisões arquiteturais e todas as escolhas de implementação foram revisados e permanecem sob responsabilidade do candidato.
