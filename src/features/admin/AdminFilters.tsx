@@ -3,20 +3,14 @@ import { supabase } from '@/lib/supabase/client';
 import type { AdminFilterValues, FilterOption } from '@/types/admin';
 
 interface AdminFiltersProps {
+  filters: AdminFilterValues;
   onFilterChange: (filters: AdminFilterValues) => void;
+  onClearFilters?: () => void;
 }
 
-export function AdminFilters({ onFilterChange }: AdminFiltersProps) {
+export function AdminFilters({ filters, onFilterChange, onClearFilters }: AdminFiltersProps) {
   const [projects, setProjects] = useState<FilterOption[]>([]);
   const [professionals, setProfessionals] = useState<FilterOption[]>([]);
-  const [filters, setFilters] = useState<AdminFilterValues>({
-    projectId: '',
-    projectName: '',
-    professionalId: '',
-    professionalName: '',
-    startDate: '',
-    endDate: '',
-  });
 
   useEffect(() => {
     const fetchData = async () => {
@@ -47,20 +41,17 @@ export function AdminFilters({ onFilterChange }: AdminFiltersProps) {
   const handleProjectChange = (projectId: string) => {
     const projectName = projects.find(p => p.id === projectId)?.name || '';
     const newFilters = { ...filters, projectId, projectName };
-    setFilters(newFilters);
     onFilterChange(newFilters);
   };
 
   const handleProfessionalChange = (professionalId: string) => {
     const professionalName = professionals.find(p => p.id === professionalId)?.name || '';
     const newFilters = { ...filters, professionalId, professionalName };
-    setFilters(newFilters);
     onFilterChange(newFilters);
   };
 
   const handleDateChange = (field: 'startDate' | 'endDate', value: string) => {
     const newFilters = { ...filters, [field]: value };
-    setFilters(newFilters);
     onFilterChange(newFilters);
   };
 
@@ -73,8 +64,8 @@ export function AdminFilters({ onFilterChange }: AdminFiltersProps) {
       startDate: '',
       endDate: '',
     };
-    setFilters(clearedFilters);
     onFilterChange(clearedFilters);
+    onClearFilters?.();
   };
 
   return (
@@ -147,14 +138,19 @@ export function AdminFilters({ onFilterChange }: AdminFiltersProps) {
         </div>
       </div>
 
-      <div className="flex justify-end">
-        <button
-          onClick={handleClearFilters}
-          className="px-4 py-2 text-sm font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg transition"
-        >
-          Limpar Filtros
-        </button>
-      </div>
+      {(filters.projectId ||
+        filters.professionalId ||
+        filters.startDate ||
+        filters.endDate) && (
+        <div className="flex justify-end">
+          <button
+            onClick={handleClearFilters}
+            className="px-4 py-2 text-sm font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg transition"
+          >
+            Limpar Filtros
+          </button>
+        </div>
+      )}
     </div>
   );
 }

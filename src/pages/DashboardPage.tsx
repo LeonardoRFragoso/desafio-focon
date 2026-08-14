@@ -38,20 +38,11 @@ export function DashboardPage() {
           </p>
         </div>
 
-        <div className="space-y-4">
-          <AdminFilters onFilterChange={handleFilterChange} />
-          {(filters.projectId ||
-            filters.professionalId ||
-            filters.startDate ||
-            filters.endDate) && (
-            <button
-              onClick={handleClearFilters}
-              className="px-4 py-2 text-sm font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg transition"
-            >
-              Limpar Filtros
-            </button>
-          )}
-        </div>
+        <AdminFilters 
+          filters={filters}
+          onFilterChange={handleFilterChange}
+          onClearFilters={handleClearFilters}
+        />
 
         <FinancialIndicators
           revenue={revenue}
