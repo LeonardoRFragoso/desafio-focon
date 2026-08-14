@@ -1,6 +1,5 @@
-import { useState, useEffect, useCallback } from 'react';
-import { supabase } from '@/lib/supabase/client';
-import { useAuthContext } from '@/features/auth/useAuthContext';
+import { useState, useEffect } from 'react';
+import { usePendingTimeEntries } from '@/hooks/usePendingTimeEntries';
 import type { TimeEntryWithRelations } from '@/types/database';
 
 interface TimeEntryApprovalProps {
@@ -8,121 +7,13 @@ interface TimeEntryApprovalProps {
 }
 
 export function TimeEntryApproval({ onStatusChanged }: TimeEntryApprovalProps) {
-  const { user } = useAuthContext();
-  const [entries, setEntries] = useState<TimeEntryWithRelations[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [actionLoading, setActionLoading] = useState<string | null>(null);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const { entries, loading, error, actionLoading, successMessage, approve, reject } =
+    usePendingTimeEntries();
   const [selectedEntry, setSelectedEntry] = useState<TimeEntryWithRelations | null>(null);
 
-  const fetchPendingEntries = useCallback(async () => {
-    try {
-      setError(null);
-      setLoading(true);
-
-      const { data, error: err } = await supabase
-        .from('time_entries')
-        .select(
-          `
-          id,
-          professional_id,
-          project_id,
-          entry_date,
-          duration_minutes,
-          description,
-          approval_status,
-          applied_hourly_rate,
-          professional:profiles!time_entries_professional_id_fkey(full_name),
-          project:projects!time_entries_project_id_fkey(name)
-        `
-        )
-        .eq('approval_status', 'pending')
-        .order('entry_date', { ascending: false });
-
-      if (err) throw err;
-
-      setEntries((data as TimeEntryWithRelations[]) || []);
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'Erro ao carregar apontamentos';
-      setError(message);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    fetchPendingEntries();
-  }, [fetchPendingEntries]);
-
-  const handleApprove = useCallback(async (entryId: string) => {
-    if (!user) return;
-
-    try {
-      setActionLoading(entryId);
-      setSuccessMessage(null);
-      setError(null);
-
-      const { data, error: err } = await supabase
-        .from('time_entries')
-        .update({ approval_status: 'approved' })
-        .eq('id', entryId)
-        .eq('approval_status', 'pending')
-        .select('id, approval_status')
-        .maybeSingle();
-
-      if (err) throw err;
-      if (!data) {
-        setError('Este apontamento já foi processado ou não está mais disponível.');
-        setActionLoading(null);
-        return;
-      }
-
-      setSuccessMessage('Apontamento aprovado com sucesso!');
-      await fetchPendingEntries();
-      await onStatusChanged?.();
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'Erro ao aprovar';
-      setError(message);
-    } finally {
-      setActionLoading(null);
-    }
-  }, [user, fetchPendingEntries, onStatusChanged]);
-
-  const handleReject = useCallback(async (entryId: string) => {
-    if (!user) return;
-
-    try {
-      setActionLoading(entryId);
-      setSuccessMessage(null);
-      setError(null);
-
-      const { data, error: err } = await supabase
-        .from('time_entries')
-        .update({ approval_status: 'rejected' })
-        .eq('id', entryId)
-        .eq('approval_status', 'pending')
-        .select('id, approval_status')
-        .maybeSingle();
-
-      if (err) throw err;
-      if (!data) {
-        setError('Este apontamento já foi processado ou não está mais disponível.');
-        setActionLoading(null);
-        return;
-      }
-
-      setSuccessMessage('Apontamento rejeitado com sucesso!');
-      await fetchPendingEntries();
-      await onStatusChanged?.();
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'Erro ao rejeitar';
-      setError(message);
-    } finally {
-      setActionLoading(null);
-    }
-  }, [user, fetchPendingEntries, onStatusChanged]);
+    onStatusChanged?.();
+  }, [entries, onStatusChanged]);
 
   const formatDuration = (minutes: number) => {
     const hours = Math.floor(minutes / 60);
@@ -220,14 +111,14 @@ export function TimeEntryApproval({ onStatusChanged }: TimeEntryApprovalProps) {
                   </td>
                   <td className="px-6 py-4 text-sm space-x-2 flex" onClick={(e) => e.stopPropagation()}>
                     <button
-                      onClick={() => handleApprove(entry.id)}
+                      onClick={() => approve(entry.id)}
                       disabled={actionLoading === entry.id}
                       className="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white rounded-lg text-xs font-medium transition disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       {actionLoading === entry.id ? 'Processando...' : 'Aprovar'}
                     </button>
                     <button
-                      onClick={() => handleReject(entry.id)}
+                      onClick={() => reject(entry.id)}
                       disabled={actionLoading === entry.id}
                       className="px-3 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-lg text-xs font-medium transition disabled:opacity-50 disabled:cursor-not-allowed"
                     >

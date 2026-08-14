@@ -4,6 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { timeEntrySchema, type TimeEntryInput } from '@/schemas/time-entry';
 import { supabase } from '@/lib/supabase/client';
 import { useAuthContext } from '@/features/auth/useAuthContext';
+import { mapDatabaseError } from '@/lib/errors';
 
 interface Project {
   id: string;
@@ -109,10 +110,6 @@ export function TimeEntryForm({ onSuccess }: TimeEntryFormProps) {
       ]);
 
       if (error) {
-        // Map database error to user-friendly message
-        if (error.message.includes('hourly_rate')) {
-          throw new Error('Não foi possível registrar o apontamento porque não existe um custo-hora configurado para este profissional na data informada. Entre em contato com o administrador.');
-        }
         throw error;
       }
 
@@ -122,8 +119,7 @@ export function TimeEntryForm({ onSuccess }: TimeEntryFormProps) {
 
       setTimeout(() => setSubmitSuccess(false), 3000);
     } catch (err) {
-      const message =
-        err instanceof Error ? err.message : 'Erro ao registrar apontamento';
+      const message = err instanceof Error ? mapDatabaseError(err) : 'Erro ao registrar apontamento';
       setSubmitError(message);
     } finally {
       setLoading(false);

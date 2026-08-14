@@ -1,163 +1,32 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import { Layout } from '@/components/Layout';
 import { FinancialIndicators } from '@/features/admin/FinancialIndicators';
 import { AdminFilters } from '@/features/admin/AdminFilters';
 import { ProfessionalSummary } from '@/features/admin/ProfessionalSummary';
 import { TimeEntryApproval } from '@/features/admin/TimeEntryApproval';
 import { TimeEntriesBreakdown } from '@/features/admin/TimeEntriesBreakdown';
-import { supabase } from '@/lib/supabase/client';
+import { useFinancialData } from '@/hooks/useFinancialData';
+import { usePersistedFilters } from '@/hooks/usePersistedFilters';
 import type { AdminFilterValues } from '@/types/admin';
-import type { TimeEntryWithRelations } from '@/types/database';
-
-interface ProfessionalData {
-  professional_id: string;
-  professional_name: string;
-  total_hours: number;
-  hourly_rates: number[];
-  total_cost: number;
-}
 
 export function DashboardPage() {
-  const [revenue, setRevenue] = useState(0);
-  const [laborCost, setLaborCost] = useState(0);
-  const [result, setResult] = useState(0);
-  const [margin, setMargin] = useState(0);
-  const [professionalData, setProfessionalData] = useState<ProfessionalData[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { filters, setFilters, clearFilters } = usePersistedFilters();
+  const { revenue, laborCost, result, margin, professionalData, loading, refetch } =
+    useFinancialData(filters);
   const [dataRevision, setDataRevision] = useState(0);
-  const [filters, setFilters] = useState<AdminFilterValues>({
-    projectId: '',
-    projectName: '',
-    professionalId: '',
-    professionalName: '',
-    startDate: '',
-    endDate: '',
-  });
-
-  const fetchFinancialData = useCallback(async () => {
-    try {
-
-      // Build query for time entries
-      let query = supabase
-        .from('time_entries')
-        .select(
-          `
-          id,
-          project_id,
-          professional_id,
-          duration_minutes,
-          applied_hourly_rate,
-          approval_status,
-          entry_date,
-          project:projects!time_entries_project_id_fkey(name),
-          professional:profiles!time_entries_professional_id_fkey(full_name)
-        `
-        )
-        .eq('approval_status', 'approved');
-
-      if (filters.projectId) {
-        query = query.eq('project_id', filters.projectId);
-      }
-      if (filters.professionalId) {
-        query = query.eq('professional_id', filters.professionalId);
-      }
-      if (filters.startDate) {
-        query = query.gte('entry_date', filters.startDate);
-      }
-      if (filters.endDate) {
-        query = query.lte('entry_date', filters.endDate);
-      }
-
-      const { data: entries, error: entriesError } = await query;
-      if (entriesError) throw entriesError;
-
-      // Get projects for revenue calculation
-      let projectQuery = supabase
-        .from('project_financials')
-        .select('project_id, contracted_revenue, tax_rate, indirect_cost, project:projects!project_financials_project_id_fkey(name)');
-
-      if (filters.projectId) {
-        projectQuery = projectQuery.eq('project_id', filters.projectId);
-      }
-
-      const { data: financials, error: financialsError } = await projectQuery;
-      if (financialsError) throw financialsError;
-
-      // Calculate totals
-      let totalRevenue = 0;
-      let totalLaborCost = 0;
-      let totalIndirectCost = 0;
-      let totalTax = 0;
-
-      const projectMap = new Map(
-        financials?.map((f) => [f.project_id, f]) || []
-      );
-
-      // Calculate labor cost and group by professional
-      const profMap = new Map<string, ProfessionalData>();
-
-      (entries as TimeEntryWithRelations[] | undefined)?.forEach((entry) => {
-        const cost = (entry.duration_minutes / 60) * entry.applied_hourly_rate;
-        totalLaborCost += cost;
-
-        const profId = entry.professional_id;
-        const profName = entry.professional?.full_name || 'Desconhecido';
-
-        if (!profMap.has(profId)) {
-          profMap.set(profId, {
-            professional_id: profId,
-            professional_name: profName,
-            total_hours: 0,
-            hourly_rates: [],
-            total_cost: 0,
-          });
-        }
-
-        const prof = profMap.get(profId)!;
-        prof.total_hours += entry.duration_minutes;
-        prof.total_cost += cost;
-        
-        // Add hourly rate if not already present
-        if (!prof.hourly_rates.includes(entry.applied_hourly_rate)) {
-          prof.hourly_rates.push(entry.applied_hourly_rate);
-        }
-      });
-
-      // Calculate revenue and taxes
-      projectMap.forEach((financial) => {
-        totalRevenue += financial.contracted_revenue;
-        totalTax += financial.contracted_revenue * financial.tax_rate;
-        totalIndirectCost += financial.indirect_cost;
-      });
-
-      const totalResult = totalRevenue - totalLaborCost - totalTax - totalIndirectCost;
-      const totalMargin = totalRevenue > 0 ? (totalResult / totalRevenue) * 100 : 0;
-
-      setRevenue(totalRevenue);
-      setLaborCost(totalLaborCost);
-      setResult(totalResult);
-      setMargin(totalMargin);
-      setProfessionalData(Array.from(profMap.values()));
-    } catch (err) {
-      console.error('Erro ao carregar dados financeiros:', err);
-    } finally {
-      setLoading(false);
-    }
-  }, [filters.projectId, filters.professionalId, filters.startDate, filters.endDate]);
-
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    fetchFinancialData();
-  }, [fetchFinancialData]);
 
   const handleFilterChange = (newFilters: AdminFilterValues) => {
     setFilters(newFilters);
   };
 
+  const handleClearFilters = () => {
+    clearFilters();
+  };
+
   const handleStatusChanged = useCallback(async () => {
-    await fetchFinancialData();
-    setDataRevision(prev => prev + 1);
-  }, [fetchFinancialData]);
+    await refetch();
+    setDataRevision((prev) => prev + 1);
+  }, [refetch]);
 
   return (
     <Layout>
@@ -169,7 +38,20 @@ export function DashboardPage() {
           </p>
         </div>
 
-        <AdminFilters onFilterChange={handleFilterChange} />
+        <div className="space-y-4">
+          <AdminFilters onFilterChange={handleFilterChange} />
+          {(filters.projectId ||
+            filters.professionalId ||
+            filters.startDate ||
+            filters.endDate) && (
+            <button
+              onClick={handleClearFilters}
+              className="px-4 py-2 text-sm font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg transition"
+            >
+              Limpar Filtros
+            </button>
+          )}
+        </div>
 
         <FinancialIndicators
           revenue={revenue}

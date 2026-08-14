@@ -4,6 +4,7 @@ import { RootPage } from '@/pages/RootPage';
 import { DashboardPage } from '@/pages/DashboardPage';
 import { TimeEntriesPage } from '@/pages/TimeEntriesPage';
 import { ReportPage } from '@/pages/ReportPage';
+import { ProfessionalDashboardPage } from '@/pages/ProfessionalDashboardPage';
 import { NotFoundPage } from '@/pages/NotFoundPage';
 import { AccessDeniedPage } from '@/pages/AccessDeniedPage';
 import { ProtectedRoute } from './ProtectedRoute';
@@ -19,6 +20,14 @@ export function AppRoutes() {
           element={
             <ProtectedRoute requiredRole="admin">
               <DashboardPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/my-dashboard"
+          element={
+            <ProtectedRoute requiredRole="member">
+              <ProfessionalDashboardPage />
             </ProtectedRoute>
           }
         />

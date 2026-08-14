@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabase/client';
+import { exportToCSV, exportToPDF } from '@/lib/export';
 import type { AdminFilterValues } from '@/types/admin';
 import type { TimeEntryWithRelations } from '@/types/database';
 
@@ -145,8 +146,58 @@ export function TimeEntriesBreakdown({ filters, dataRevision }: TimeEntriesBreak
     );
   }
 
+  const handleExportCSV = () => {
+    const dataForExport: TimeEntryWithRelations[] = entries.map((entry) => ({
+      id: entry.id,
+      project_id: '',
+      professional_id: '',
+      entry_date: entry.entry_date,
+      duration_minutes: entry.duration_minutes,
+      description: entry.description || '',
+      approval_status: 'approved',
+      applied_hourly_rate: entry.applied_hourly_rate,
+      professional: { id: '', full_name: entry.professional_name, role: 'member', created_at: '', updated_at: '' },
+      project: { id: '', name: entry.project_name, client: '', status: 'active', start_date: '', end_date: '', created_at: '', updated_at: '' },
+      created_at: entry.created_at || '',
+      updated_at: '',
+    }));
+    exportToCSV(dataForExport, 'apontamentos.csv');
+  };
+
+  const handleExportPDF = () => {
+    const dataForExport: TimeEntryWithRelations[] = entries.map((entry) => ({
+      id: entry.id,
+      project_id: '',
+      professional_id: '',
+      entry_date: entry.entry_date,
+      duration_minutes: entry.duration_minutes,
+      description: entry.description || '',
+      approval_status: 'approved',
+      applied_hourly_rate: entry.applied_hourly_rate,
+      professional: { id: '', full_name: entry.professional_name, role: 'member', created_at: '', updated_at: '' },
+      project: { id: '', name: entry.project_name, client: '', status: 'active', start_date: '', end_date: '', created_at: '', updated_at: '' },
+      created_at: entry.created_at || '',
+      updated_at: '',
+    }));
+    exportToPDF(dataForExport, 'Apontamentos');
+  };
+
   return (
     <div className="space-y-4">
+      <div className="flex gap-2 print:hidden">
+        <button
+          onClick={handleExportCSV}
+          className="px-4 py-2 text-sm font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg transition"
+        >
+          Exportar CSV
+        </button>
+        <button
+          onClick={handleExportPDF}
+          className="px-4 py-2 text-sm font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg transition"
+        >
+          Exportar PDF
+        </button>
+      </div>
       <div className="overflow-x-auto rounded-xl border border-slate-200 shadow-sm">
         <table className="w-full">
           <thead className="bg-slate-100 border-b border-slate-200">

@@ -29,15 +29,17 @@ export function ReportPage() {
           <div>
             <h1 className="text-4xl font-bold text-slate-900">Relatório Financeiro</h1>
             <p className="mt-2 text-lg text-slate-600">
-              Gere relatórios para impressão ou PDF
+              Gere relatórios para impressão, PDF ou exportação
             </p>
           </div>
-          <button
-            onClick={handlePrint}
-            className="px-6 py-3 bg-focon-600 hover:bg-focon-700 text-white font-semibold rounded-lg transition print:hidden"
-          >
-            Imprimir / Salvar em PDF
-          </button>
+          <div className="flex gap-3 print:hidden">
+            <button
+              onClick={handlePrint}
+              className="px-6 py-3 bg-focon-600 hover:bg-focon-700 text-white font-semibold rounded-lg transition"
+            >
+              Imprimir / PDF
+            </button>
+          </div>
         </div>
 
         <div className="print:hidden">
