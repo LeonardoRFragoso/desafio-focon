@@ -43,7 +43,6 @@ export function DashboardPage() {
 
   const fetchFinancialData = useCallback(async () => {
     try {
-      setLoading(true);
 
       // Build query for time entries
       let query = supabase
@@ -108,7 +107,7 @@ export function DashboardPage() {
         professional_id: string;
         duration_minutes: number;
         applied_hourly_rate: number;
-        professional?: { full_name: string };
+        professional?: Array<{ full_name: string }>;
       }
 
       (entries as TimeEntry[] | undefined)?.forEach((entry) => {
@@ -116,7 +115,7 @@ export function DashboardPage() {
         totalLaborCost += cost;
 
         const profId = entry.professional_id;
-        const profName = entry.professional?.full_name || 'Desconhecido';
+        const profName = entry.professional?.[0]?.full_name || 'Desconhecido';
 
         if (!profMap.has(profId)) {
           profMap.set(profId, {
@@ -158,7 +157,7 @@ export function DashboardPage() {
     } finally {
       setLoading(false);
     }
-  }, [filters.projectId, filters.professionalId, filters.startDate, filters.endDate, refreshKey]);
+  }, [filters.projectId, filters.professionalId, filters.startDate, filters.endDate, refreshKey, setRevenue, setLaborCost, setResult, setMargin, setProfessionalData]);
 
   useEffect(() => {
     fetchFinancialData();

@@ -38,6 +38,9 @@ export function FinancialReport({ filters }: FinancialReportProps) {
 
   const fetchReportData = useCallback(async () => {
     try {
+      setLoading(true);
+      setError(null);
+
       // Fetch time entries
       let query = supabase
         .from('time_entries')
@@ -95,7 +98,7 @@ export function FinancialReport({ filters }: FinancialReportProps) {
         professional_id: string;
         duration_minutes: number;
         applied_hourly_rate: number;
-        professional: { full_name: string };
+        professional: Array<{ full_name: string }>;
       }
 
       interface FinancialData {
@@ -103,7 +106,7 @@ export function FinancialReport({ filters }: FinancialReportProps) {
         contracted_revenue: number;
         tax_rate: number;
         indirect_cost: number;
-        project: { name: string };
+        project: Array<{ name: string }>;
       }
 
       const profMap = new Map<string, ProfessionalEntry>();
@@ -114,7 +117,7 @@ export function FinancialReport({ filters }: FinancialReportProps) {
         totalLaborCost += cost;
 
         const profId = entry.professional_id;
-        const profName = entry.professional?.full_name || 'Desconhecido';
+        const profName = entry.professional?.[0]?.full_name || 'Desconhecido';
 
         if (!profMap.has(profId)) {
           profMap.set(profId, {
@@ -137,7 +140,7 @@ export function FinancialReport({ filters }: FinancialReportProps) {
         totalTax += f.contracted_revenue * f.tax_rate;
         totalIndirectCost += f.indirect_cost;
         projectMap.set(f.project_id, {
-          name: f.project?.name || 'Desconhecido',
+          name: f.project?.[0]?.name || 'Desconhecido',
           revenue: f.contracted_revenue,
         });
       });

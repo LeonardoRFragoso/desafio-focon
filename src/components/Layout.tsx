@@ -8,7 +8,7 @@ interface LayoutProps {
 
 export function Layout({ children }: LayoutProps) {
   const navigate = useNavigate();
-  const { user, profile, logout, isAdmin } = useAuthContext();
+  const { user, logout, isAdmin } = useAuthContext();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const handleLogout = async () => {

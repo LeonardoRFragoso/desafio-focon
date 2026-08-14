@@ -11,8 +11,8 @@ interface TimeEntryForApproval {
   description: string;
   approval_status: string;
   applied_hourly_rate: number;
-  professional: { full_name: string };
-  project: { name: string };
+  professional: Array<{ full_name: string }>;
+  project: Array<{ name: string }>;
 }
 
 interface TimeEntryApprovalProps {
@@ -29,6 +29,7 @@ export function TimeEntryApproval({ onStatusChanged }: TimeEntryApprovalProps) {
 
   const fetchPendingEntries = useCallback(async () => {
     try {
+      setLoading(true);
       setError(null);
 
       const { data, error: err } = await supabase
@@ -181,10 +182,10 @@ export function TimeEntryApproval({ onStatusChanged }: TimeEntryApprovalProps) {
               {entries.map((entry) => (
                 <tr key={entry.id} className="hover:bg-slate-50 transition">
                   <td className="px-6 py-4 text-sm text-slate-900">
-                    {entry.professional?.full_name || 'Desconhecido'}
+                    {entry.professional?.[0]?.full_name || 'Desconhecido'}
                   </td>
                   <td className="px-6 py-4 text-sm text-slate-900">
-                    {entry.project?.name || 'Desconhecido'}
+                    {entry.project?.[0]?.name || 'Desconhecido'}
                   </td>
                   <td className="px-6 py-4 text-sm text-slate-900">
                     {formatDate(entry.entry_date)}
