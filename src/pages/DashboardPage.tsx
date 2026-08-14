@@ -3,6 +3,7 @@ import { Layout } from '@/components/Layout';
 import { FinancialIndicators } from '@/features/admin/FinancialIndicators';
 import { AdminFilters } from '@/features/admin/AdminFilters';
 import { ProfessionalSummary } from '@/features/admin/ProfessionalSummary';
+import { TimeEntryApproval } from '@/features/admin/TimeEntryApproval';
 import { supabase } from '@/lib/supabase/client';
 
 interface FilterValues {
@@ -174,6 +175,10 @@ export function DashboardPage() {
             Resumo por Profissional
           </h2>
           <ProfessionalSummary data={professionalData} loading={loading} />
+        </div>
+
+        <div className="bg-white rounded-lg border border-slate-200 p-6">
+          <TimeEntryApproval />
         </div>
       </div>
     </Layout>
