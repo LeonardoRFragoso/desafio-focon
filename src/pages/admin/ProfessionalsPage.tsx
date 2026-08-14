@@ -1,8 +1,9 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { profilesAPI } from '@/lib/supabase/api';
 import { supabase } from '@/lib/supabase/client';
 import { mapDatabaseError } from '@/lib/errors';
 import { Modal } from '@/components/Modal';
+import { useDebounce } from '@/hooks/usePagination';
 import type { Profile, UserRole } from '@/types/database';
 
 export function ProfessionalsPage() {
@@ -12,6 +13,9 @@ export function ProfessionalsPage() {
   const [editTarget, setEditTarget] = useState<Profile | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
   const [inviteOpen, setInviteOpen] = useState(false);
+  const [search, setSearch] = useState('');
+  const [roleFilter, setRoleFilter] = useState('');
+  const debouncedSearch = useDebounce(search, 300);
 
   const fetchProfiles = useCallback(async () => {
     try {
@@ -33,6 +37,21 @@ export function ProfessionalsPage() {
   }, [fetchProfiles]);
 
   const formatDate = (d: string) => new Date(d).toLocaleDateString('pt-BR');
+
+  const filteredProfiles = useMemo(() => {
+    let result = profiles;
+    if (debouncedSearch) {
+      const q = debouncedSearch.toLowerCase();
+      result = result.filter(
+        (p) =>
+          (p.full_name ?? '').toLowerCase().includes(q)
+      );
+    }
+    if (roleFilter) {
+      result = result.filter((p) => p.role === roleFilter);
+    }
+    return result;
+  }, [profiles, debouncedSearch, roleFilter]);
 
   if (loading) {
     return (
@@ -68,6 +87,26 @@ export function ProfessionalsPage() {
         </div>
       )}
 
+      {/* Search and filter */}
+      <div className="flex flex-wrap gap-2">
+        <input
+          type="text"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Buscar por nome ou email..."
+          className="flex-1 min-w-[180px] px-3 py-2 border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-focon-600"
+        />
+        <select
+          value={roleFilter}
+          onChange={(e) => setRoleFilter(e.target.value)}
+          className="px-3 py-2 border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-focon-600"
+        >
+          <option value="">Todos os papéis</option>
+          <option value="admin">Administrador</option>
+          <option value="member">Profissional</option>
+        </select>
+      </div>
+
       {profiles.length === 0 ? (
         <div className="rounded-xl border border-slate-200 p-12 text-center bg-slate-50">
           <p className="text-slate-600">Nenhum profissional cadastrado</p>
@@ -84,7 +123,10 @@ export function ProfessionalsPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-200">
-              {profiles.map((p) => (
+              {filteredProfiles.length === 0 ? (
+                <tr><td colSpan={4} className="px-4 py-8 text-center text-sm text-slate-500">Nenhum profissional encontrado</td></tr>
+              ) : (
+                filteredProfiles.map((p) => (
                 <tr key={p.id} className="hover:bg-slate-50 transition">
                   <td className="px-4 py-3 text-sm text-slate-900 font-medium">{p.full_name}</td>
                   <td className="px-4 py-3 text-sm">
@@ -102,7 +144,8 @@ export function ProfessionalsPage() {
                     </button>
                   </td>
                 </tr>
-              ))}
+              ))
+              )}
             </tbody>
           </table>
         </div>

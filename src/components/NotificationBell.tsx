@@ -1,3 +1,4 @@
+import { useState, useMemo } from 'react';
 import { useNotifications } from '@/hooks/useNotifications';
 import type { Notification } from '@/types/database';
 
@@ -34,6 +35,12 @@ function formatTimeAgo(date: string): string {
 export function NotificationBell() {
   const { notifications, unreadCount, loading, open, setOpen, markRead, markAllRead, remove } =
     useNotifications();
+  const [typeFilter, setTypeFilter] = useState('');
+
+  const filteredNotifications = useMemo(() => {
+    if (!typeFilter) return notifications;
+    return notifications.filter((n) => n.type === typeFilter);
+  }, [notifications, typeFilter]);
 
   return (
     <div className="relative">
@@ -68,13 +75,34 @@ export function NotificationBell() {
               )}
             </div>
 
+            {notifications.length > 0 && (
+              <div className="px-3 py-2 border-b border-slate-100 dark:border-slate-800">
+                <select
+                  value={typeFilter}
+                  onChange={(e) => setTypeFilter(e.target.value)}
+                  className="w-full px-2 py-1.5 border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-focon-600"
+                >
+                  <option value="">Todos os tipos</option>
+                  <option value="entry_approved">Aprovações</option>
+                  <option value="entry_rejected">Rejeições</option>
+                  <option value="entry_pending_reminder">Lembretes</option>
+                  <option value="period_closing">Fechamento</option>
+                  <option value="budget_threshold">Orçamento</option>
+                  <option value="comment_received">Comentários</option>
+                  <option value="system">Sistema</option>
+                </select>
+              </div>
+            )}
+
             {loading ? (
               <div className="p-8 text-center text-sm text-slate-500">Carregando...</div>
-            ) : notifications.length === 0 ? (
-              <div className="p-8 text-center text-sm text-slate-500">Nenhuma notificação</div>
+            ) : filteredNotifications.length === 0 ? (
+              <div className="p-8 text-center text-sm text-slate-500">
+                {notifications.length === 0 ? 'Nenhuma notificação' : 'Nenhuma notificação deste tipo'}
+              </div>
             ) : (
               <ul className="divide-y divide-slate-100 dark:divide-slate-800">
-                {notifications.map((n: Notification) => (
+                {filteredNotifications.map((n: Notification) => (
                   <li
                     key={n.id}
                     className={`p-3 hover:bg-slate-50 dark:hover:bg-slate-800 transition ${!n.read_at ? 'bg-focon-50 dark:bg-slate-800/50' : ''}`}

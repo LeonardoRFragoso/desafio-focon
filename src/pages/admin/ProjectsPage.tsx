@@ -1,8 +1,9 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { projectsAPI } from '@/lib/supabase/api';
 import { mapDatabaseError } from '@/lib/errors';
 import { Modal } from '@/components/Modal';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
+import { useDebounce } from '@/hooks/usePagination';
 import type { Project, ProjectStatus } from '@/types/database';
 
 export function ProjectsPage() {
@@ -13,6 +14,9 @@ export function ProjectsPage() {
   const [createOpen, setCreateOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<Project | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
+  const [search, setSearch] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
+  const debouncedSearch = useDebounce(search, 300);
 
   const fetchProjects = useCallback(async () => {
     try {
@@ -49,6 +53,22 @@ export function ProjectsPage() {
 
   const formatDate = (d: string) => new Date(d).toLocaleDateString('pt-BR');
 
+  const filteredProjects = useMemo(() => {
+    let result = projects;
+    if (debouncedSearch) {
+      const q = debouncedSearch.toLowerCase();
+      result = result.filter(
+        (p) =>
+          p.name.toLowerCase().includes(q) ||
+          (p.client ?? '').toLowerCase().includes(q)
+      );
+    }
+    if (statusFilter) {
+      result = result.filter((p) => p.status === statusFilter);
+    }
+    return result;
+  }, [projects, debouncedSearch, statusFilter]);
+
   if (loading) {
     return (
       <div className="flex justify-center items-center py-12">
@@ -83,6 +103,28 @@ export function ProjectsPage() {
         </div>
       )}
 
+      {/* Search and filter */}
+      <div className="flex flex-wrap gap-2">
+        <input
+          type="text"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Buscar por nome ou cliente..."
+          className="flex-1 min-w-[180px] px-3 py-2 border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-focon-600"
+        />
+        <select
+          value={statusFilter}
+          onChange={(e) => setStatusFilter(e.target.value)}
+          className="px-3 py-2 border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-focon-600"
+        >
+          <option value="">Todos os status</option>
+          <option value="planned">Planejado</option>
+          <option value="active">Ativo</option>
+          <option value="completed">Concluído</option>
+          <option value="cancelled">Cancelado</option>
+        </select>
+      </div>
+
       {projects.length === 0 ? (
         <div className="rounded-xl border border-slate-200 p-12 text-center bg-slate-50">
           <p className="text-slate-600">Nenhum projeto cadastrado</p>
@@ -101,7 +143,10 @@ export function ProjectsPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-200">
-              {projects.map((p) => (
+              {filteredProjects.length === 0 ? (
+                <tr><td colSpan={5} className="px-4 py-8 text-center text-sm text-slate-500">Nenhum projeto encontrado</td></tr>
+              ) : (
+                filteredProjects.map((p) => (
                 <tr key={p.id} className="hover:bg-slate-50 transition">
                   <td className="px-4 py-3 text-sm text-slate-900 font-medium">{p.name}</td>
                   <td className="px-4 py-3 text-sm text-slate-700">{p.client}</td>
@@ -127,7 +172,8 @@ export function ProjectsPage() {
                     </button>
                   </td>
                 </tr>
-              ))}
+              ))
+              )}
             </tbody>
           </table>
         </div>
