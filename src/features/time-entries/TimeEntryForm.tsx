@@ -57,6 +57,19 @@ export function TimeEntryForm({ onSuccess }: TimeEntryFormProps) {
       setSubmitError(null);
       setSubmitSuccess(false);
 
+      // Get the hourly rate for the professional on the entry date
+      const { data: rateData, error: rateError } = await supabase.rpc(
+        'get_hourly_rate_for_date',
+        {
+          p_professional_id: user.id,
+          p_date: data.entryDate,
+        }
+      );
+
+      if (rateError) throw rateError;
+
+      const appliedRate = rateData || 0;
+
       const { error } = await supabase.from('time_entries').insert([
         {
           project_id: data.projectId,
@@ -65,6 +78,7 @@ export function TimeEntryForm({ onSuccess }: TimeEntryFormProps) {
           duration_minutes: data.durationMinutes,
           description: data.description,
           approval_status: 'pending',
+          applied_hourly_rate: appliedRate,
         },
       ]);
 
