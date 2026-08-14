@@ -4,8 +4,7 @@ import { useAuthContext } from '@/features/auth/useAuthContext';
 import type { TimeEntryWithRelations } from '@/types/database';
 
 interface ProfessionalStats {
-  totalHours: number;
-  totalCost: number;
+  approvedHours: number;
   approvedCount: number;
   pendingCount: number;
   rejectedCount: number;
@@ -15,8 +14,7 @@ export function ProfessionalDashboard() {
   const { user } = useAuthContext();
   const [entries, setEntries] = useState<TimeEntryWithRelations[]>([]);
   const [stats, setStats] = useState<ProfessionalStats>({
-    totalHours: 0,
-    totalCost: 0,
+    approvedHours: 0,
     approvedCount: 0,
     pendingCount: 0,
     rejectedCount: 0,
@@ -54,25 +52,25 @@ export function ProfessionalDashboard() {
       const typedEntries = (data as TimeEntryWithRelations[]) || [];
       setEntries(typedEntries);
 
-      // Calculate stats
-      let totalHours = 0;
-      let totalCost = 0;
+      // Calculate stats - only approved hours count
+      let approvedHours = 0;
       let approvedCount = 0;
       let pendingCount = 0;
       let rejectedCount = 0;
 
       typedEntries.forEach((entry) => {
-        totalHours += entry.duration_minutes;
-        totalCost += (entry.duration_minutes / 60) * entry.applied_hourly_rate;
-
-        if (entry.approval_status === 'approved') approvedCount++;
-        else if (entry.approval_status === 'pending') pendingCount++;
-        else if (entry.approval_status === 'rejected') rejectedCount++;
+        if (entry.approval_status === 'approved') {
+          approvedHours += entry.duration_minutes;
+          approvedCount++;
+        } else if (entry.approval_status === 'pending') {
+          pendingCount++;
+        } else if (entry.approval_status === 'rejected') {
+          rejectedCount++;
+        }
       });
 
       setStats({
-        totalHours,
-        totalCost,
+        approvedHours,
         approvedCount,
         pendingCount,
         rejectedCount,
@@ -94,13 +92,6 @@ export function ProfessionalDashboard() {
     const hours = Math.floor(minutes / 60);
     const mins = minutes % 60;
     return `${hours}h ${mins}m`;
-  };
-
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'BRL',
-    }).format(value);
   };
 
   const formatDate = (date: string) => {
@@ -151,15 +142,10 @@ export function ProfessionalDashboard() {
       )}
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
-          <p className="text-sm font-medium text-slate-600 mb-2">Total de Horas</p>
-          <p className="text-3xl font-bold text-slate-900">{formatDuration(stats.totalHours)}</p>
-        </div>
-
-        <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
-          <p className="text-sm font-medium text-slate-600 mb-2">Custo Total</p>
-          <p className="text-3xl font-bold text-slate-900">{formatCurrency(stats.totalCost)}</p>
+          <p className="text-sm font-medium text-slate-600 mb-2">Horas Aprovadas</p>
+          <p className="text-3xl font-bold text-green-600">{formatDuration(stats.approvedHours)}</p>
         </div>
 
         <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
@@ -200,12 +186,6 @@ export function ProfessionalDashboard() {
                   <th className="px-6 py-4 text-left text-sm font-semibold text-slate-900">
                     Duração
                   </th>
-                  <th className="px-6 py-4 text-right text-sm font-semibold text-slate-900">
-                    Custo/Hora
-                  </th>
-                  <th className="px-6 py-4 text-right text-sm font-semibold text-slate-900">
-                    Total
-                  </th>
                   <th className="px-6 py-4 text-left text-sm font-semibold text-slate-900">
                     Status
                   </th>
@@ -222,12 +202,6 @@ export function ProfessionalDashboard() {
                     </td>
                     <td className="px-6 py-4 text-sm text-slate-900">
                       {formatDuration(entry.duration_minutes)}
-                    </td>
-                    <td className="px-6 py-4 text-sm text-right text-slate-900">
-                      {formatCurrency(entry.applied_hourly_rate)}
-                    </td>
-                    <td className="px-6 py-4 text-sm text-right font-medium text-slate-900">
-                      {formatCurrency((entry.duration_minutes / 60) * entry.applied_hourly_rate)}
                     </td>
                     <td className="px-6 py-4 text-sm">
                       <span className={getStatusBadge(entry.approval_status)}>
