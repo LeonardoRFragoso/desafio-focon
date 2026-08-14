@@ -384,6 +384,19 @@ Todos os ativos utilizam `object-fit: contain` para preservar proporção e incl
 
 Consulte `public/brand/README.md` para diretrizes de uso.
 
+## Status de Implementação
+
+✅ **Completo**
+- Autenticação com Supabase Auth
+- Redirecionamento por role (admin/member)
+- Dashboard administrativo com indicadores financeiros
+- Aprovação de apontamentos
+- Relatório para impressão/PDF
+- Estilos para impressão
+- Seed reproduzível com usuários demo
+- Lint e typecheck sem erros
+- Build funcional
+
 ## Declaração de IA
 
 Foi utilizada inteligência artificial como apoio na interpretação dos requisitos, planejamento, revisão de código, testes e documentação. Todo o código e todas as decisões foram revisados e permanecem sob responsabilidade do candidato.
