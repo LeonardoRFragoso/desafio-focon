@@ -1,4 +1,5 @@
--- Function to get valid hourly rate for a professional on a given date
+-- Internal function to get valid hourly rate for a professional on a given date
+-- Used by triggers and internal functions, not exposed to API
 CREATE OR REPLACE FUNCTION get_hourly_rate_for_date(
   p_professional_id UUID,
   p_date DATE
@@ -118,3 +119,6 @@ CREATE TRIGGER trg_prevent_approved_entry_creation
 BEFORE INSERT ON time_entries
 FOR EACH ROW
 EXECUTE FUNCTION prevent_approved_entry_creation();
+
+-- Revoke public access to internal function
+REVOKE EXECUTE ON FUNCTION get_hourly_rate_for_date(UUID, DATE) FROM PUBLIC;
