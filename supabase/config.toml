@@ -20,9 +20,9 @@ enabled = true
 port = 54323
 
 [local_smtp]
-enabled = true
+enabled = false
 port = 54325
-smtp_port = 54325
+smtp_port = 54326
 
 [auth]
 enabled = true
