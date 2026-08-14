@@ -71,9 +71,13 @@ body {
   }
 
   /* Remove sidebar margin from main content */
+  .layout-content {
+    margin-left: 0 !important;
+  }
+
   main {
     margin-left: 0 !important;
-    padding: 0 !important;
+    padding: 0.5rem !important;
   }
 
   /* Set white background for print */
@@ -90,7 +94,6 @@ body {
 
   /* Prevent breaking tables and cards */
   table {
-    page-break-inside: avoid;
     width: 100%;
   }
 
@@ -102,19 +105,12 @@ body {
     display: table-footer-group;
   }
 
-  tr {
+  /* Allow long tables to span multiple pages */
+  tbody tr {
     page-break-inside: avoid;
   }
 
-  /* Optimize colors for print */
-  body,
-  main,
-  div {
-    background-color: white !important;
-    color: black !important;
-  }
-
-  /* Preserve borders for print */
+  /* Preserve specific print styles */
   .print\:border-slate-900 {
     border-color: #000 !important;
   }
@@ -160,14 +156,13 @@ body {
     font-size: 0.65rem !important;
   }
 
-  /* Ensure text is readable */
-  p, span, td, th {
-    color: black !important;
-  }
-
   /* Optimize images for print */
   img {
     max-width: 100%;
     page-break-inside: avoid;
   }
+
+  /* Preserve color adjustment for print */
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
 }
