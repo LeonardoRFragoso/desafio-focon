@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { LoginPage } from '@/pages/LoginPage';
 import { DashboardPage } from '@/pages/DashboardPage';
+import { TimeEntriesPage } from '@/pages/TimeEntriesPage';
 import { NotFoundPage } from '@/pages/NotFoundPage';
 import { AccessDeniedPage } from '@/pages/AccessDeniedPage';
 import { ProtectedRoute } from './ProtectedRoute';
@@ -13,8 +14,16 @@ export function AppRoutes() {
         <Route
           path="/dashboard"
           element={
-            <ProtectedRoute>
+            <ProtectedRoute requiredRole="admin">
               <DashboardPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/time-entries"
+          element={
+            <ProtectedRoute requiredRole="member">
+              <TimeEntriesPage />
             </ProtectedRoute>
           }
         />
