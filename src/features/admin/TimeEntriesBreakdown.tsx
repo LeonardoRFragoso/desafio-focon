@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabase/client';
+import type { TimeEntryWithRelations } from '@/types/database';
 
 interface FilterValues {
   projectId: string;
@@ -20,15 +21,6 @@ interface TimeEntryRow {
 
 interface TimeEntriesBreakdownProps {
   filters: FilterValues;
-}
-
-interface RawEntry {
-  id: string;
-  entry_date: string;
-  duration_minutes: number;
-  applied_hourly_rate: number;
-  professional: Array<{ full_name: string }>;
-  project: Array<{ name: string }>;
 }
 
 export function TimeEntriesBreakdown({ filters }: TimeEntriesBreakdownProps) {
@@ -75,7 +67,7 @@ export function TimeEntriesBreakdown({ filters }: TimeEntriesBreakdownProps) {
 
       if (err) throw err;
 
-      const formatted = ((data as RawEntry[]) || []).map((entry) => ({
+      const formatted = ((data as TimeEntryWithRelations[]) || []).map((entry) => ({
         id: entry.id,
         professional_name: entry.professional?.[0]?.full_name || 'Desconhecido',
         project_name: entry.project?.[0]?.name || 'Desconhecido',

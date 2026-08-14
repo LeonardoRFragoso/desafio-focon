@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { supabase } from '@/lib/supabase/client';
+import type { TimeEntryWithRelations, ProjectFinancialsWithRelations } from '@/types/database';
 
 interface FilterValues {
   projectId: string;
@@ -94,25 +95,10 @@ export function FinancialReport({ filters }: FinancialReportProps) {
         revenue: number;
       }
 
-      interface TimeEntryData {
-        professional_id: string;
-        duration_minutes: number;
-        applied_hourly_rate: number;
-        professional: Array<{ full_name: string }>;
-      }
-
-      interface FinancialData {
-        project_id: string;
-        contracted_revenue: number;
-        tax_rate: number;
-        indirect_cost: number;
-        project: Array<{ name: string }>;
-      }
-
       const profMap = new Map<string, ProfessionalEntry>();
       const projectMap = new Map<string, ProjectEntry>();
 
-      (entries as TimeEntryData[] | undefined)?.forEach((entry) => {
+      (entries as TimeEntryWithRelations[] | undefined)?.forEach((entry) => {
         const cost = (entry.duration_minutes / 60) * entry.applied_hourly_rate;
         totalLaborCost += cost;
 
@@ -135,7 +121,7 @@ export function FinancialReport({ filters }: FinancialReportProps) {
         }
       });
 
-      (financials as FinancialData[] | undefined)?.forEach((f) => {
+      (financials as ProjectFinancialsWithRelations[] | undefined)?.forEach((f) => {
         totalRevenue += f.contracted_revenue;
         totalTax += f.contracted_revenue * f.tax_rate;
         totalIndirectCost += f.indirect_cost;
@@ -219,9 +205,9 @@ export function FinancialReport({ filters }: FinancialReportProps) {
   const hasFilters = filters.projectId || filters.professionalId || filters.startDate || filters.endDate;
 
   return (
-    <div className="bg-white p-8 space-y-8 print:p-0">
+    <div className="bg-white p-8 space-y-8 print:p-4 print:space-y-4">
       {/* Header */}
-      <div className="flex items-start justify-between border-b border-slate-200 pb-8 print:border-b-2 print:border-slate-900">
+      <div className="flex items-start justify-between border-b border-slate-200 pb-8 print:pb-4 print:border-b-2 print:border-slate-900">
         <div>
           <img
             src="/brand/focon-logo-horizontal.png"
@@ -239,11 +225,15 @@ export function FinancialReport({ filters }: FinancialReportProps) {
 
       {/* Applied Filters */}
       {hasFilters && (
-        <div className="bg-slate-50 border border-slate-200 p-4 text-sm">
+        <div className="bg-slate-50 border border-slate-200 p-4 text-sm print:border print:border-slate-900">
           <p className="font-semibold text-slate-900 mb-2">Filtros Aplicados:</p>
           <div className="space-y-1 text-slate-700">
-            {filters.projectId && <p>• Projeto: {filters.projectId}</p>}
-            {filters.professionalId && <p>• Profissional: {filters.professionalId}</p>}
+            {filters.projectId && data && (
+              <p>• Projeto: {data.projects.find(p => p.name !== 'Desconhecido')?.name || filters.projectId}</p>
+            )}
+            {filters.professionalId && data && (
+              <p>• Profissional: {data.professionals.find(p => p.name !== 'Desconhecido')?.name || filters.professionalId}</p>
+            )}
             {filters.startDate && <p>• Data Inicial: {new Date(filters.startDate).toLocaleDateString('pt-BR')}</p>}
             {filters.endDate && <p>• Data Final: {new Date(filters.endDate).toLocaleDateString('pt-BR')}</p>}
           </div>
