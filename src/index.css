@@ -38,8 +38,18 @@ body {
 }
 
 @media print {
+  /* Page setup for A4 */
+  @page {
+    size: A4;
+    margin: 0.5in;
+  }
+
   /* Hide sidebar and header */
   aside {
+    display: none !important;
+  }
+
+  header {
     display: none !important;
   }
 
@@ -52,14 +62,29 @@ body {
     display: none !important;
   }
 
+  /* Hide interactive controls */
+  input[type="date"],
+  input[type="text"],
+  select,
+  .print\:hidden {
+    display: none !important;
+  }
+
   /* Remove sidebar margin from main content */
+  .layout-content {
+    margin-left: 0 !important;
+  }
+
   main {
     margin-left: 0 !important;
+    padding: 0.5rem !important;
   }
 
   /* Set white background for print */
   body {
     background-color: white !important;
+    margin: 0;
+    padding: 0;
   }
 
   /* Optimize page breaks */
@@ -69,18 +94,20 @@ body {
 
   /* Prevent breaking tables and cards */
   table {
-    page-break-inside: avoid;
+    width: 100%;
   }
 
-  tr {
-    page-break-inside: avoid;
+  thead {
+    display: table-header-group;
   }
 
-  /* Optimize colors for print */
-  * {
-    background-color: white !important;
-    color: black !important;
-    border-color: #333 !important;
+  tfoot {
+    display: table-footer-group;
+  }
+
+  /* Allow long tables to span multiple pages */
+  tbody tr {
+    page-break-inside: avoid;
   }
 
   /* Preserve specific print styles */
@@ -92,9 +119,29 @@ body {
     color: #000 !important;
   }
 
+  .print\:border {
+    border: 1px solid #000 !important;
+  }
+
+  .print\:border-b {
+    border-bottom: 1px solid #000 !important;
+  }
+
+  .print\:border-b-2 {
+    border-bottom: 2px solid #000 !important;
+  }
+
+  .print\:border-t-2 {
+    border-top: 2px solid #000 !important;
+  }
+
   /* Adjust spacing for print */
   .print\:p-0 {
     padding: 0 !important;
+  }
+
+  .print\:p-4 {
+    padding: 0.5rem !important;
   }
 
   .print\:gap-2 {
@@ -106,18 +153,16 @@ body {
   }
 
   .print\:text-xs {
-    font-size: 0.75rem !important;
+    font-size: 0.65rem !important;
   }
 
-  .print\:border-b-2 {
-    border-bottom-width: 2px !important;
+  /* Optimize images for print */
+  img {
+    max-width: 100%;
+    page-break-inside: avoid;
   }
 
-  .print\:border-b {
-    border-bottom-width: 1px !important;
-  }
-
-  .print\:border-t-2 {
-    border-top-width: 2px !important;
-  }
+  /* Preserve color adjustment for print */
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
 }

@@ -6,13 +6,8 @@ import { ProfessionalSummary } from '@/features/admin/ProfessionalSummary';
 import { TimeEntryApproval } from '@/features/admin/TimeEntryApproval';
 import { TimeEntriesBreakdown } from '@/features/admin/TimeEntriesBreakdown';
 import { supabase } from '@/lib/supabase/client';
-
-interface FilterValues {
-  projectId: string;
-  professionalId: string;
-  startDate: string;
-  endDate: string;
-}
+import type { AdminFilterValues } from '@/types/admin';
+import type { TimeEntryWithRelations } from '@/types/database';
 
 interface ProfessionalData {
   professional_id: string;
@@ -29,9 +24,12 @@ export function DashboardPage() {
   const [margin, setMargin] = useState(0);
   const [professionalData, setProfessionalData] = useState<ProfessionalData[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filters, setFilters] = useState<FilterValues>({
+  const [dataRevision, setDataRevision] = useState(0);
+  const [filters, setFilters] = useState<AdminFilterValues>({
     projectId: '',
+    projectName: '',
     professionalId: '',
+    professionalName: '',
     startDate: '',
     endDate: '',
   });
@@ -98,19 +96,12 @@ export function DashboardPage() {
       // Calculate labor cost and group by professional
       const profMap = new Map<string, ProfessionalData>();
 
-      interface TimeEntry {
-        professional_id: string;
-        duration_minutes: number;
-        applied_hourly_rate: number;
-        professional?: Array<{ full_name: string }>;
-      }
-
-      (entries as TimeEntry[] | undefined)?.forEach((entry) => {
+      (entries as TimeEntryWithRelations[] | undefined)?.forEach((entry) => {
         const cost = (entry.duration_minutes / 60) * entry.applied_hourly_rate;
         totalLaborCost += cost;
 
         const profId = entry.professional_id;
-        const profName = entry.professional?.[0]?.full_name || 'Desconhecido';
+        const profName = entry.professional?.full_name || 'Desconhecido';
 
         if (!profMap.has(profId)) {
           profMap.set(profId, {
@@ -155,24 +146,18 @@ export function DashboardPage() {
   }, [filters.projectId, filters.professionalId, filters.startDate, filters.endDate]);
 
   useEffect(() => {
-    let isMounted = true;
-    
-    const load = async () => {
-      await fetchFinancialData();
-    };
-    
-    if (isMounted) {
-      load();
-    }
-    
-    return () => {
-      isMounted = false;
-    };
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    fetchFinancialData();
   }, [fetchFinancialData]);
 
-  const handleFilterChange = (newFilters: FilterValues) => {
+  const handleFilterChange = (newFilters: AdminFilterValues) => {
     setFilters(newFilters);
   };
+
+  const handleStatusChanged = useCallback(async () => {
+    await fetchFinancialData();
+    setDataRevision(prev => prev + 1);
+  }, [fetchFinancialData]);
 
   return (
     <Layout>
@@ -202,14 +187,14 @@ export function DashboardPage() {
         </div>
 
         <div className="bg-white rounded-lg border border-slate-200 p-6">
-          <TimeEntryApproval />
+          <TimeEntryApproval onStatusChanged={handleStatusChanged} />
         </div>
 
         <div className="bg-white rounded-lg border border-slate-200 p-6">
           <h2 className="text-xl font-semibold text-slate-900 mb-6">
             Detalhamento de Apontamentos
           </h2>
-          <TimeEntriesBreakdown filters={filters} />
+          <TimeEntriesBreakdown filters={filters} dataRevision={dataRevision} />
         </div>
       </div>
     </Layout>

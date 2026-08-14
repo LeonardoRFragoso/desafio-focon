@@ -81,9 +81,9 @@ export function Layout({ children }: LayoutProps) {
       </aside>
 
       {/* Main content */}
-      <div className="md:ml-64">
+      <div className="layout-content md:ml-64">
         {/* Header */}
-        <header className="bg-white border-b border-slate-200 sticky top-0 z-40">
+        <header className="bg-white border-b border-slate-200 sticky top-0 z-40 print:hidden">
           <div className="flex items-center justify-between px-6 py-4">
             <button
               onClick={() => setSidebarOpen(!sidebarOpen)}

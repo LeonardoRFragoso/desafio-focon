@@ -57,6 +57,8 @@ export function TimeEntryForm({ onSuccess }: TimeEntryFormProps) {
       setSubmitError(null);
       setSubmitSuccess(false);
 
+      // The hourly rate is determined by the database trigger
+      // based on the professional's valid rate for the entry date
       const { error } = await supabase.from('time_entries').insert([
         {
           project_id: data.projectId,
@@ -65,6 +67,7 @@ export function TimeEntryForm({ onSuccess }: TimeEntryFormProps) {
           duration_minutes: data.durationMinutes,
           description: data.description,
           approval_status: 'pending',
+          applied_hourly_rate: 0, // Placeholder; trigger will set the actual rate
         },
       ]);
 

@@ -44,12 +44,21 @@ jobs:
       - name: Set up Supabase CLI
         uses: supabase/setup-cli@v2
 
+      - name: Clean up previous Supabase instance
+        run: supabase stop --no-backup || true
+
       - name: Start Supabase
         run: supabase start
+
+      - name: Verify Supabase status
+        run: supabase status
 
       - name: Reset database
         run: supabase db reset
 
+      - name: Verify migrations applied
+        run: supabase migration list --local
+
       - name: Stop Supabase
         if: always()
-        run: supabase stop
+        run: supabase stop --no-backup || true

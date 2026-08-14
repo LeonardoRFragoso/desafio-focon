@@ -1,33 +1,19 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase/client';
-
-interface FilterValues {
-  projectId: string;
-  professionalId: string;
-  startDate: string;
-  endDate: string;
-}
+import type { AdminFilterValues, FilterOption } from '@/types/admin';
 
 interface AdminFiltersProps {
-  onFilterChange: (filters: FilterValues) => void;
-}
-
-interface Project {
-  id: string;
-  name: string;
-}
-
-interface Professional {
-  id: string;
-  full_name: string;
+  onFilterChange: (filters: AdminFilterValues) => void;
 }
 
 export function AdminFilters({ onFilterChange }: AdminFiltersProps) {
-  const [projects, setProjects] = useState<Project[]>([]);
-  const [professionals, setProfessionals] = useState<Professional[]>([]);
-  const [filters, setFilters] = useState<FilterValues>({
+  const [projects, setProjects] = useState<FilterOption[]>([]);
+  const [professionals, setProfessionals] = useState<FilterOption[]>([]);
+  const [filters, setFilters] = useState<AdminFilterValues>({
     projectId: '',
+    projectName: '',
     professionalId: '',
+    professionalName: '',
     startDate: '',
     endDate: '',
   });
@@ -44,8 +30,12 @@ export function AdminFilters({ onFilterChange }: AdminFiltersProps) {
             .order('full_name'),
         ]);
 
-        if (projectsRes.data) setProjects(projectsRes.data);
-        if (professionalsRes.data) setProfessionals(professionalsRes.data);
+        if (projectsRes.data) {
+          setProjects(projectsRes.data.map(p => ({ id: p.id, name: p.name })));
+        }
+        if (professionalsRes.data) {
+          setProfessionals(professionalsRes.data.map(p => ({ id: p.id, name: p.full_name })));
+        }
       } catch (err) {
         console.error('Erro ao carregar filtros:', err);
       }
@@ -54,16 +44,32 @@ export function AdminFilters({ onFilterChange }: AdminFiltersProps) {
     fetchData();
   }, []);
 
-  const handleFilterChange = (field: keyof FilterValues, value: string) => {
+  const handleProjectChange = (projectId: string) => {
+    const projectName = projects.find(p => p.id === projectId)?.name || '';
+    const newFilters = { ...filters, projectId, projectName };
+    setFilters(newFilters);
+    onFilterChange(newFilters);
+  };
+
+  const handleProfessionalChange = (professionalId: string) => {
+    const professionalName = professionals.find(p => p.id === professionalId)?.name || '';
+    const newFilters = { ...filters, professionalId, professionalName };
+    setFilters(newFilters);
+    onFilterChange(newFilters);
+  };
+
+  const handleDateChange = (field: 'startDate' | 'endDate', value: string) => {
     const newFilters = { ...filters, [field]: value };
     setFilters(newFilters);
     onFilterChange(newFilters);
   };
 
   const handleClearFilters = () => {
-    const clearedFilters = {
+    const clearedFilters: AdminFilterValues = {
       projectId: '',
+      projectName: '',
       professionalId: '',
+      professionalName: '',
       startDate: '',
       endDate: '',
     };
@@ -83,7 +89,7 @@ export function AdminFilters({ onFilterChange }: AdminFiltersProps) {
           <select
             id="project"
             value={filters.projectId}
-            onChange={(e) => handleFilterChange('projectId', e.target.value)}
+            onChange={(e) => handleProjectChange(e.target.value)}
             className="w-full px-3 py-2 border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition"
           >
             <option value="">Todos os projetos</option>
@@ -102,13 +108,13 @@ export function AdminFilters({ onFilterChange }: AdminFiltersProps) {
           <select
             id="professional"
             value={filters.professionalId}
-            onChange={(e) => handleFilterChange('professionalId', e.target.value)}
+            onChange={(e) => handleProfessionalChange(e.target.value)}
             className="w-full px-3 py-2 border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition"
           >
             <option value="">Todos os profissionais</option>
             {professionals.map((prof) => (
               <option key={prof.id} value={prof.id}>
-                {prof.full_name}
+                {prof.name}
               </option>
             ))}
           </select>
@@ -122,7 +128,7 @@ export function AdminFilters({ onFilterChange }: AdminFiltersProps) {
             id="startDate"
             type="date"
             value={filters.startDate}
-            onChange={(e) => handleFilterChange('startDate', e.target.value)}
+            onChange={(e) => handleDateChange('startDate', e.target.value)}
             className="w-full px-3 py-2 border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition"
           />
         </div>
@@ -135,7 +141,7 @@ export function AdminFilters({ onFilterChange }: AdminFiltersProps) {
             id="endDate"
             type="date"
             value={filters.endDate}
-            onChange={(e) => handleFilterChange('endDate', e.target.value)}
+            onChange={(e) => handleDateChange('endDate', e.target.value)}
             className="w-full px-3 py-2 border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition"
           />
         </div>

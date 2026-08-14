@@ -2,23 +2,19 @@ import { useState } from 'react';
 import { Layout } from '@/components/Layout';
 import { AdminFilters } from '@/features/admin/AdminFilters';
 import { FinancialReport } from '@/features/admin/FinancialReport';
-
-interface FilterValues {
-  projectId: string;
-  professionalId: string;
-  startDate: string;
-  endDate: string;
-}
+import type { AdminFilterValues } from '@/types/admin';
 
 export function ReportPage() {
-  const [filters, setFilters] = useState<FilterValues>({
+  const [filters, setFilters] = useState<AdminFilterValues>({
     projectId: '',
+    projectName: '',
     professionalId: '',
+    professionalName: '',
     startDate: '',
     endDate: '',
   });
 
-  const handleFilterChange = (newFilters: FilterValues) => {
+  const handleFilterChange = (newFilters: AdminFilterValues) => {
     setFilters(newFilters);
   };
 
