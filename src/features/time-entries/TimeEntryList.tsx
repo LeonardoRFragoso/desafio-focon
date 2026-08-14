@@ -118,16 +118,36 @@ export function TimeEntryList() {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center py-12">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-focon-600"></div>
+      <div
+        className="flex justify-center items-center py-12"
+        role="status"
+        aria-live="polite"
+      >
+        <div className="flex flex-col items-center gap-3">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-focon-600"></div>
+          <p className="text-sm text-slate-600">Carregando apontamentos...</p>
+        </div>
       </div>
     );
   }
 
   if (error) {
+    const handleRetry = () => {
+      window.location.reload();
+    };
+
     return (
-      <div className="rounded-xl bg-red-50 border border-red-200 p-4">
-        <p className="text-sm font-medium text-red-800">{error}</p>
+      <div
+        className="rounded-xl bg-red-50 border border-red-200 p-4"
+        role="alert"
+      >
+        <p className="text-sm font-medium text-red-800 mb-3">{error}</p>
+        <button
+          onClick={handleRetry}
+          className="text-sm font-medium text-red-700 hover:text-red-800 underline"
+        >
+          Tentar novamente
+        </button>
       </div>
     );
   }
@@ -146,13 +166,14 @@ export function TimeEntryList() {
   return (
     <div className="overflow-x-auto rounded-xl border border-slate-200 shadow-sm">
       <table className="w-full">
+        <caption className="sr-only">Histórico de apontamentos de horas</caption>
         <thead>
           <tr className="border-b border-slate-200 bg-slate-100">
-            <th className="px-6 py-4 text-left text-sm font-semibold text-slate-900">Projeto</th>
-            <th className="px-6 py-4 text-left text-sm font-semibold text-slate-900">Data</th>
-            <th className="px-6 py-4 text-left text-sm font-semibold text-slate-900">Duração</th>
-            <th className="px-6 py-4 text-left text-sm font-semibold text-slate-900">Descrição</th>
-            <th className="px-6 py-4 text-left text-sm font-semibold text-slate-900">Status</th>
+            <th className="px-6 py-4 text-left text-sm font-semibold text-slate-900" scope="col">Projeto</th>
+            <th className="px-6 py-4 text-left text-sm font-semibold text-slate-900" scope="col">Data</th>
+            <th className="px-6 py-4 text-left text-sm font-semibold text-slate-900" scope="col">Duração</th>
+            <th className="px-6 py-4 text-left text-sm font-semibold text-slate-900" scope="col">Descrição</th>
+            <th className="px-6 py-4 text-left text-sm font-semibold text-slate-900" scope="col">Status</th>
           </tr>
         </thead>
         <tbody className="divide-y divide-slate-200">
@@ -161,7 +182,7 @@ export function TimeEntryList() {
               <td className="px-6 py-4 text-sm text-slate-900">{entry.project_name}</td>
               <td className="px-6 py-4 text-sm text-slate-900">{formatDate(entry.entry_date)}</td>
               <td className="px-6 py-4 text-sm text-slate-900">{formatDuration(entry.duration_minutes)}</td>
-              <td className="px-6 py-4 text-sm text-slate-600 max-w-xs truncate">
+              <td className="px-6 py-4 text-sm text-slate-600 min-w-[240px] whitespace-normal break-words">
                 {entry.description}
               </td>
               <td className="px-6 py-4 text-sm">{getStatusBadge(entry.approval_status)}</td>
