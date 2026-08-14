@@ -49,11 +49,11 @@ export function mapDatabaseError(error: Error | null): string {
 
 /**
  * Log error to console in development
+ * Never logs sensitive data like credentials, tokens, or passwords
  */
 export function logError(error: unknown, context?: string): void {
   // Only log in development environment
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  if (typeof window !== 'undefined' && (window as any).__DEV__) {
+  if (import.meta.env.DEV) {
     console.error(
       `[Error${context ? ` - ${context}` : ''}]`,
       error instanceof Error ? error.message : error
