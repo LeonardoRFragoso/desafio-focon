@@ -3,13 +3,11 @@ import { auditAPI } from '@/lib/supabase/api';
 import { mapDatabaseError } from '@/lib/errors';
 import type { AuditLog } from '@/types/database';
 
-interface AuditRow extends AuditLog {}
-
 export function AuditLogPage() {
-  const [logs, setLogs] = useState<AuditRow[]>([]);
+  const [logs, setLogs] = useState<AuditLog[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [selected, setSelected] = useState<AuditRow | null>(null);
+  const [selected, setSelected] = useState<AuditLog | null>(null);
 
   const fetchLogs = useCallback(async () => {
     try {
@@ -17,7 +15,7 @@ export function AuditLogPage() {
       setError(null);
       const { data, error: err } = await auditAPI.list(200);
       if (err) throw err;
-      setLogs((data as AuditRow[]) || []);
+      setLogs((data as AuditLog[]) || []);
     } catch (err) {
       setError(err instanceof Error ? mapDatabaseError(err) : 'Erro ao carregar auditoria');
     } finally {

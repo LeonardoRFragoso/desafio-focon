@@ -50,7 +50,7 @@ export function HourlyRatesPage() {
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchRates();
-    // eslint-disable-next-line react-hooks/set-state-in-effect
+     
     fetchProfiles();
   }, [fetchRates, fetchProfiles]);
 

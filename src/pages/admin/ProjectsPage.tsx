@@ -5,15 +5,13 @@ import { Modal } from '@/components/Modal';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
 import type { Project, ProjectStatus } from '@/types/database';
 
-interface ProjectRow extends Project {}
-
 export function ProjectsPage() {
-  const [projects, setProjects] = useState<ProjectRow[]>([]);
+  const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [editTarget, setEditTarget] = useState<ProjectRow | null>(null);
+  const [editTarget, setEditTarget] = useState<Project | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
-  const [deleteTarget, setDeleteTarget] = useState<ProjectRow | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<Project | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
 
   const fetchProjects = useCallback(async () => {
@@ -22,7 +20,7 @@ export function ProjectsPage() {
       setError(null);
       const { data, error: err } = await projectsAPI.list();
       if (err) throw err;
-      setProjects((data as ProjectRow[]) || []);
+      setProjects((data as Project[]) || []);
     } catch (err) {
       setError(err instanceof Error ? mapDatabaseError(err) : 'Erro ao carregar projetos');
     } finally {
@@ -186,7 +184,7 @@ export function ProjectsPage() {
 }
 
 interface ProjectFormModalProps {
-  project?: ProjectRow;
+  project?: Project;
   onClose: () => void;
   onSaved: () => void;
   onError: (msg: string) => void;

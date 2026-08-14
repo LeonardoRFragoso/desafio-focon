@@ -4,14 +4,12 @@ import { mapDatabaseError } from '@/lib/errors';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
 import type { AccountingPeriod } from '@/types/database';
 
-interface PeriodRow extends AccountingPeriod {}
-
 export function AccountingPeriodsPage() {
-  const [periods, setPeriods] = useState<PeriodRow[]>([]);
+  const [periods, setPeriods] = useState<AccountingPeriod[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [closeTarget, setCloseTarget] = useState<PeriodRow | null>(null);
-  const [reopenTarget, setReopenTarget] = useState<PeriodRow | null>(null);
+  const [closeTarget, setCloseTarget] = useState<AccountingPeriod | null>(null);
+  const [reopenTarget, setReopenTarget] = useState<AccountingPeriod | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -21,7 +19,7 @@ export function AccountingPeriodsPage() {
       setError(null);
       const { data, error: err } = await accountingPeriodsAPI.list();
       if (err) throw err;
-      setPeriods((data as PeriodRow[]) || []);
+      setPeriods((data as AccountingPeriod[]) || []);
     } catch (err) {
       setError(err instanceof Error ? mapDatabaseError(err) : 'Erro ao carregar fechamentos');
     } finally {

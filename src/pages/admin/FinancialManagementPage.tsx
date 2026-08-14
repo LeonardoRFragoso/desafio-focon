@@ -50,7 +50,7 @@ export function FinancialManagementPage() {
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchFinancials();
-    // eslint-disable-next-line react-hooks/set-state-in-effect
+     
     fetchProjects();
   }, [fetchFinancials, fetchProjects]);
 
