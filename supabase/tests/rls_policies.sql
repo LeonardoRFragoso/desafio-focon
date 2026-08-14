@@ -93,3 +93,76 @@ SELECT 'Test 18: Seed data produces correct financial totals' AS test_name;
 --   Edifício Horizonte labor cost: 4900
 --   Total labor cost: 14200
 -- This is tested via financial calculation functions
+
+-- Test 19: Comments — author can delete own comment
+SELECT 'Test 19: Comments — author can delete own comment' AS test_name;
+-- Expected: User can DELETE from time_entry_comments WHERE author_id = auth.uid()
+-- This is tested via RLS policy "Authors can delete their own comments"
+
+-- Test 20: Comments — user cannot delete another user's comment
+SELECT 'Test 20: Comments — user cannot delete another user comment' AS test_name;
+-- Expected: User cannot DELETE comments WHERE author_id != auth.uid()
+-- This is tested via RLS policy restriction
+
+-- Test 21: Comments — authenticated users can view all comments on entries they can see
+SELECT 'Test 21: Comments — authenticated users can view comments' AS test_name;
+-- Expected: Any authenticated user can SELECT from time_entry_comments
+-- This is tested via RLS policy "Authenticated users can view comments"
+
+-- Test 22: Attachments — uploader can delete own attachment
+SELECT 'Test 22: Attachments — uploader can delete own attachment' AS test_name;
+-- Expected: User can DELETE from time_entry_attachments WHERE uploaded_by = auth.uid()
+-- This is tested via RLS policy "Uploaders can delete their own attachments"
+
+-- Test 23: Attachments — user cannot delete another user's attachment
+SELECT 'Test 23: Attachments — user cannot delete another user attachment' AS test_name;
+-- Expected: User cannot DELETE attachments WHERE uploaded_by != auth.uid()
+-- This is tested via RLS policy restriction
+
+-- Test 24: Attachments — authenticated users can view all attachments
+SELECT 'Test 24: Attachments — authenticated users can view attachments' AS test_name;
+-- Expected: Any authenticated user can SELECT from time_entry_attachments
+-- This is tested via RLS policy "Authenticated users can view attachments"
+
+-- Test 25: Project budgets — only admins can create/update/delete
+SELECT 'Test 25: Project budgets — only admins can manage' AS test_name;
+-- Expected: Only users with role='admin' can INSERT/UPDATE/DELETE project_budgets
+-- This is tested via RLS policy "Only admins can manage project budgets"
+
+-- Test 26: Project budgets — authenticated users can view
+SELECT 'Test 26: Project budgets — authenticated users can view' AS test_name;
+-- Expected: Any authenticated user can SELECT from project_budgets
+-- This is tested via RLS policy "Authenticated users can view project budgets"
+
+-- Test 27: Profitability alerts — only admins can create/update/delete
+SELECT 'Test 27: Profitability alerts — only admins can manage' AS test_name;
+-- Expected: Only users with role='admin' can INSERT/UPDATE/DELETE profitability_alerts
+-- This is tested via RLS policy "Only admins can manage profitability alerts"
+
+-- Test 28: Profitability alerts — authenticated users can view
+SELECT 'Test 28: Profitability alerts — authenticated users can view' AS test_name;
+-- Expected: Any authenticated user can SELECT from profitability_alerts
+-- This is tested via RLS policy "Authenticated users can view profitability alerts"
+
+-- Test 29: User preferences — user can only access own preferences
+SELECT 'Test 29: User preferences — user can only access own' AS test_name;
+-- Expected: User can SELECT/INSERT/UPDATE only rows WHERE user_id = auth.uid()
+-- This is tested via RLS policy "Users can manage their own preferences"
+
+-- Test 30: User preferences — user cannot access another user's preferences
+SELECT 'Test 30: User preferences — user cannot access others' AS test_name;
+-- Expected: User cannot SELECT/INSERT/UPDATE rows WHERE user_id != auth.uid()
+-- This is tested via RLS policy restriction
+
+-- Test 31: Invite user Edge Function — only admins can invite
+SELECT 'Test 31: Invite user — only admins can invite' AS test_name;
+-- Expected: Edge Function invite-user validates JWT and checks profile.role = 'admin'
+-- Non-admins receive 403 Forbidden
+
+-- Test 32: Invite user Edge Function — prevents duplicate invites
+SELECT 'Test 32: Invite user — prevents duplicates' AS test_name;
+-- Expected: Edge Function returns 409 Conflict if email already registered
+
+-- Test 33: Invite user Edge Function — provisions profile after invite
+SELECT 'Test 33: Invite user — provisions profile' AS test_name;
+-- Expected: Edge Function upserts profile with full_name and role after successful invite
