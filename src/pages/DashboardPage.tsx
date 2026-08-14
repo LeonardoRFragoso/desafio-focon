@@ -4,6 +4,7 @@ import { FinancialIndicators } from '@/features/admin/FinancialIndicators';
 import { AdminFilters } from '@/features/admin/AdminFilters';
 import { ProfessionalSummary } from '@/features/admin/ProfessionalSummary';
 import { TimeEntryApproval } from '@/features/admin/TimeEntryApproval';
+import { TimeEntriesBreakdown } from '@/features/admin/TimeEntriesBreakdown';
 import { supabase } from '@/lib/supabase/client';
 
 interface FilterValues {
@@ -179,6 +180,13 @@ export function DashboardPage() {
 
         <div className="bg-white rounded-lg border border-slate-200 p-6">
           <TimeEntryApproval />
+        </div>
+
+        <div className="bg-white rounded-lg border border-slate-200 p-6">
+          <h2 className="text-xl font-semibold text-slate-900 mb-6">
+            Detalhamento de Apontamentos
+          </h2>
+          <TimeEntriesBreakdown filters={filters} />
         </div>
       </div>
     </Layout>
