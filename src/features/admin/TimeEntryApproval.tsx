@@ -15,11 +15,7 @@ interface TimeEntryForApproval {
   project: Array<{ name: string }>;
 }
 
-interface TimeEntryApprovalProps {
-  onStatusChanged?: () => void;
-}
-
-export function TimeEntryApproval({ onStatusChanged }: TimeEntryApprovalProps) {
+export function TimeEntryApproval() {
   const { user } = useAuthContext();
   const [entries, setEntries] = useState<TimeEntryForApproval[]>([]);
   const [loading, setLoading] = useState(true);
@@ -29,8 +25,8 @@ export function TimeEntryApproval({ onStatusChanged }: TimeEntryApprovalProps) {
 
   const fetchPendingEntries = useCallback(async () => {
     try {
-      setLoading(true);
       setError(null);
+      setLoading(true);
 
       const { data, error: err } = await supabase
         .from('time_entries')
@@ -63,7 +59,19 @@ export function TimeEntryApproval({ onStatusChanged }: TimeEntryApprovalProps) {
   }, []);
 
   useEffect(() => {
-    fetchPendingEntries();
+    let isMounted = true;
+    
+    const load = async () => {
+      await fetchPendingEntries();
+    };
+    
+    if (isMounted) {
+      load();
+    }
+    
+    return () => {
+      isMounted = false;
+    };
   }, [fetchPendingEntries]);
 
   const handleApprove = useCallback(async (entryId: string) => {
@@ -82,14 +90,13 @@ export function TimeEntryApproval({ onStatusChanged }: TimeEntryApprovalProps) {
 
       setSuccessMessage('Apontamento aprovado com sucesso!');
       await fetchPendingEntries();
-      onStatusChanged?.();
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Erro ao aprovar';
       setError(message);
     } finally {
       setActionLoading(null);
     }
-  }, [user, fetchPendingEntries, onStatusChanged]);
+  }, [user, fetchPendingEntries]);
 
   const handleReject = useCallback(async (entryId: string) => {
     if (!user) return;
@@ -105,16 +112,15 @@ export function TimeEntryApproval({ onStatusChanged }: TimeEntryApprovalProps) {
 
       if (err) throw err;
 
-      setSuccessMessage('Apontamento rejeitado!');
+      setSuccessMessage('Apontamento rejeitado com sucesso!');
       await fetchPendingEntries();
-      onStatusChanged?.();
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Erro ao rejeitar';
       setError(message);
     } finally {
       setActionLoading(null);
     }
-  }, [user, fetchPendingEntries, onStatusChanged]);
+  }, [user, fetchPendingEntries]);
 
   const formatDuration = (minutes: number) => {
     const hours = Math.floor(minutes / 60);

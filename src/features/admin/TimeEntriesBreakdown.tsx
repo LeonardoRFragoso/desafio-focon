@@ -38,8 +38,8 @@ export function TimeEntriesBreakdown({ filters }: TimeEntriesBreakdownProps) {
 
   const fetchEntries = useCallback(async () => {
     try {
-      setLoading(true);
       setError(null);
+      setLoading(true);
 
       let query = supabase
         .from('time_entries')
@@ -95,7 +95,19 @@ export function TimeEntriesBreakdown({ filters }: TimeEntriesBreakdownProps) {
   }, [filters.projectId, filters.professionalId, filters.startDate, filters.endDate]);
 
   useEffect(() => {
-    fetchEntries();
+    let isMounted = true;
+    
+    const load = async () => {
+      await fetchEntries();
+    };
+    
+    if (isMounted) {
+      load();
+    }
+    
+    return () => {
+      isMounted = false;
+    };
   }, [fetchEntries]);
 
   const formatDuration = (minutes: number) => {

@@ -38,8 +38,8 @@ export function FinancialReport({ filters }: FinancialReportProps) {
 
   const fetchReportData = useCallback(async () => {
     try {
-      setLoading(true);
       setError(null);
+      setLoading(true);
 
       // Fetch time entries
       let query = supabase
@@ -168,7 +168,19 @@ export function FinancialReport({ filters }: FinancialReportProps) {
   }, [filters.projectId, filters.professionalId, filters.startDate, filters.endDate]);
 
   useEffect(() => {
-    fetchReportData();
+    let isMounted = true;
+    
+    const load = async () => {
+      await fetchReportData();
+    };
+    
+    if (isMounted) {
+      load();
+    }
+    
+    return () => {
+      isMounted = false;
+    };
   }, [fetchReportData]);
 
   const formatCurrency = (value: number) => {
