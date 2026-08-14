@@ -30,7 +30,7 @@ function formatDuration(minutes: number): string {
  * Escape CSV cell to prevent formula injection
  * Prepend single quote to cells starting with =, +, -, or @
  */
-function escapeCSVCell(value: string): string {
+export function escapeCSVCell(value: string): string {
   const trimmed = value.trim();
   if (trimmed.startsWith('=') || trimmed.startsWith('+') || trimmed.startsWith('-') || trimmed.startsWith('@')) {
     return `'${value}`;
@@ -89,7 +89,7 @@ export function exportToCSV(entries: TimeEntryWithRelations[], filename = 'apont
 /**
  * Escape HTML special characters to prevent XSS
  */
-function escapeHTML(text: string | undefined): string {
+export function escapeHTML(text: string | undefined): string {
   if (!text) return '';
   const map: Record<string, string> = {
     '&': '&amp;',
