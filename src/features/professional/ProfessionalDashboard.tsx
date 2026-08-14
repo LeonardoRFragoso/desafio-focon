@@ -40,7 +40,6 @@ export function ProfessionalDashboard() {
           duration_minutes,
           description,
           approval_status,
-          applied_hourly_rate,
           project:projects!time_entries_project_id_fkey(name)
         `
         )
