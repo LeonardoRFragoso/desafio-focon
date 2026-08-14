@@ -44,4 +44,5 @@ Desafio_Tecnico_*.pdf
 
 # Local credentials (never commit)
 .env.production.local
+.env.provision.local
 SUPABASE_SERVICE_ROLE_KEY
