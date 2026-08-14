@@ -28,8 +28,17 @@ src/
     auth/              # Authentication logic
     admin/             # Admin dashboard and approval
     time-entries/      # Time entry features
+    professional/      # Professional dashboard
+  hooks/               # Custom React hooks
+    useFinancialData.ts       # Financial data fetching
+    usePendingTimeEntries.ts  # Time entry approval
+    usePersistedFilters.ts    # Filter persistence
   lib/
-    supabase/          # Supabase client
+    supabase/
+      client.ts        # Supabase client
+      api.ts           # Centralized API queries
+    errors.ts          # Error mapping and logging
+    export.ts          # CSV/PDF export utilities
     financial-calculations.ts  # Pure financial logic
   pages/               # Page components
   routes/              # Routing configuration
@@ -70,18 +79,19 @@ supabase/
 - Inserir apontamentos para si mesmo
 - Consultar próprios apontamentos e seus status
 - Visualizar detalhes completos de cada apontamento (modal)
+- Acessar `/my-dashboard` com resumo de apontamentos (apenas aprovados contam para horas)
+- Acessar `/time-entries` para registrar e visualizar histórico
 
 **Não pode:**
 - Editar ou deletar apontamentos (não há interface frontend)
 - Ler perfis de outros usuários
-- Ler custos-hora
-- Ler dados financeiros
+- Ler custos-hora ou dados financeiros
 - Ler apontamentos de outros
 - Alterar próprio role
 - Criar apontamento em nome de outro
 - Escolher custo-hora aplicado
 - Aprovar próprio apontamento
-- Acessar dashboard ou relatório
+- Acessar `/dashboard` ou `/report`
 
 ### Administrador
 
@@ -168,7 +178,7 @@ Após `supabase db reset`, os seguintes usuários estão disponíveis:
 ### Usuário Comum (Member)
 - **Email**: `ana@example.com`
 - **Senha**: `password123`
-- **Acesso**: Página de apontamentos (`/time-entries`)
+- **Acesso**: Painel pessoal (`/my-dashboard`) e página de apontamentos (`/time-entries`)
 
 ### Administrador
 - **Email**: `admin@example.com`
@@ -180,25 +190,28 @@ Após `supabase db reset`, os seguintes usuários estão disponíveis:
 ### Fluxo do Usuário Comum
 
 1. Login com email/senha
-2. Redirecionamento automático para `/time-entries`
-3. Registrar novo apontamento:
+2. Redirecionamento automático para `/my-dashboard`
+3. Visualizar painel pessoal:
+   - Horas aprovadas (apenas aprovados contam)
+   - Quantidade de apontamentos aprovados, pendentes e rejeitados
+   - Tabela com histórico de apontamentos (projeto, data, duração, status)
+   - Sem visualização de custos ou dados financeiros
+4. Navegar para `/time-entries` para registrar novo apontamento:
    - Selecionar projeto (com carregamento robusto e feedback de erro)
    - Informar data
    - Informar duração em minutos
    - Descrever o trabalho realizado
-4. Visualizar histórico de apontamentos com status (Pendente, Aprovado, Rejeitado)
-5. Clicar em um apontamento para visualizar detalhes completos em modal:
-   - Projeto, data, duração
-   - Custo-hora aplicado e custo total
-   - Descrição completa
-   - Status e data de criação
-6. Validações em português para todos os campos
-7. Logout
+5. Visualizar histórico de apontamentos com status (Pendente, Aprovado, Rejeitado)
+6. Clicar em um apontamento para visualizar detalhes completos em modal:
+   - Projeto, data, duração, descrição, status
+7. Validações em português para todos os campos
+8. Logout
 
 **Observações:**
 - Não há edição ou exclusão de apontamentos pelo frontend
 - O banco possui políticas RLS para proteger os registros
-- Apontamentos pendentes não entram nos cálculos financeiros até aprovação
+- Apontamentos pendentes não entram nos cálculos de horas aprovadas
+- Membro nunca visualiza custos-hora ou dados financeiros
 
 ### Fluxo do Administrador
 
@@ -355,15 +368,23 @@ Todos os ativos utilizam `object-fit: contain` para preservar proporção e incl
 
 - ✅ Autenticação com Supabase Auth
 - ✅ Redirecionamento por role (admin/member)
+- ✅ Painel do profissional (`/my-dashboard`) com resumo de apontamentos
 - ✅ Dashboard administrativo com indicadores financeiros
-- ✅ Filtros por projeto, profissional e período
+- ✅ Filtros persistidos com localStorage (admin)
 - ✅ Aprovação/rejeição de apontamentos com atualização automática
 - ✅ Relatório para impressão/PDF com filtros
+- ✅ Exportação de apontamentos em CSV e PDF
+- ✅ Proteção contra formula injection em CSV
+- ✅ Escape de HTML em exportações
 - ✅ Estilos para impressão (@media print)
 - ✅ Suporte a múltiplos custos-hora por profissional
 - ✅ Formulário de apontamento com validações em português
 - ✅ Carregamento robusto de projetos com feedback de erro
 - ✅ Histórico de apontamentos com visualização de detalhes em modal
+- ✅ Tratamento de erros com retry no dashboard
+- ✅ Hooks customizados para lógica de dados (useFinancialData, usePendingTimeEntries)
+- ✅ Serviço centralizado de API (lib/supabase/api.ts)
+- ✅ Logging seguro sem exposição de credenciais
 - ✅ Acessibilidade (ARIA, roles, live regions)
 - ✅ Responsividade desktop e mobile
 - ✅ Login premium com gradiente e animações
@@ -380,7 +401,7 @@ Todos os ativos utilizam `object-fit: contain` para preservar proporção e incl
 - Testes E2E com Playwright ou Cypress
 - Observabilidade e monitoramento em produção
 - Integração com webhooks para notificações
-- Exportação de relatórios em múltiplos formatos (Excel, CSV)
+- Notificações em tempo real para aprovações/rejeições
 
 ### Maior Risco Tratado
 
