@@ -8,15 +8,13 @@ interface LayoutProps {
 
 export function Layout({ children }: LayoutProps) {
   const navigate = useNavigate();
-  const { user, logout } = useAuthContext();
+  const { user, profile, logout, isAdmin } = useAuthContext();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const handleLogout = async () => {
     await logout();
     navigate('/login');
   };
-
-  const isAdmin = user?.role === 'admin';
 
   return (
     <div className="min-h-screen bg-slate-50">
