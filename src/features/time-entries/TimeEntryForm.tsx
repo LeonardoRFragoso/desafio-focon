@@ -230,7 +230,6 @@ export function TimeEntryForm({ onSuccess }: TimeEntryFormProps) {
             id="durationMinutes"
             type="number"
             min="1"
-            step="15"
             aria-invalid={!!errors.durationMinutes}
             aria-describedby={errors.durationMinutes ? 'durationMinutes-error' : undefined}
             className="w-full px-3 py-2.5 border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-focon-600 focus:border-transparent transition"
