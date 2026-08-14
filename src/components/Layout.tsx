@@ -152,6 +152,58 @@ export function Layout({ children }: LayoutProps) {
               >
                 Auditoria
               </NavLink>
+              <NavLink
+                to="/admin/budget"
+                onClick={closeSidebar}
+                className={({ isActive }) =>
+                  `block px-4 py-3 rounded-lg font-medium transition ${
+                    isActive
+                      ? 'bg-focon-600 text-white'
+                      : 'text-slate-300 hover:bg-focon-800'
+                  }`
+                }
+              >
+                Orçamento × Realizado
+              </NavLink>
+              <NavLink
+                to="/admin/charts"
+                onClick={closeSidebar}
+                className={({ isActive }) =>
+                  `block px-4 py-3 rounded-lg font-medium transition ${
+                    isActive
+                      ? 'bg-focon-600 text-white'
+                      : 'text-slate-300 hover:bg-focon-800'
+                  }`
+                }
+              >
+                Gráficos
+              </NavLink>
+              <NavLink
+                to="/admin/alerts"
+                onClick={closeSidebar}
+                className={({ isActive }) =>
+                  `block px-4 py-3 rounded-lg font-medium transition ${
+                    isActive
+                      ? 'bg-focon-600 text-white'
+                      : 'text-slate-300 hover:bg-focon-800'
+                  }`
+                }
+              >
+                Alertas
+              </NavLink>
+              <NavLink
+                to="/admin/system-status"
+                onClick={closeSidebar}
+                className={({ isActive }) =>
+                  `block px-4 py-3 rounded-lg font-medium transition ${
+                    isActive
+                      ? 'bg-focon-600 text-white'
+                      : 'text-slate-300 hover:bg-focon-800'
+                  }`
+                }
+              >
+                Status do Sistema
+              </NavLink>
             </>
           ) : (
             <>
@@ -180,6 +232,19 @@ export function Layout({ children }: LayoutProps) {
                 }
               >
                 Meus Apontamentos
+              </NavLink>
+              <NavLink
+                to="/time-entries/calendar"
+                onClick={closeSidebar}
+                className={({ isActive }) =>
+                  `block px-4 py-3 rounded-lg font-medium transition ${
+                    isActive
+                      ? 'bg-focon-600 text-white'
+                      : 'text-slate-300 hover:bg-focon-800'
+                  }`
+                }
+              >
+                Calendário Semanal
               </NavLink>
               <NavLink
                 to="/recurring"

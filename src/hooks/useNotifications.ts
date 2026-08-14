@@ -25,16 +25,16 @@ export function useNotifications() {
   }, [user]);
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
+     
     fetchNotifications();
   }, [fetchNotifications]);
 
   useEffect(() => {
     if (!user) return;
     channelRef.current = notificationsAPI.subscribeToUnread(user.id, (count) => {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
+       
       setUnreadCount(count);
-      // eslint-disable-next-line react-hooks/set-state-in-effect
+       
       fetchNotifications();
     });
     return () => {

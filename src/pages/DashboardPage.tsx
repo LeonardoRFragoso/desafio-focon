@@ -5,6 +5,7 @@ import { AdminFilters } from '@/features/admin/AdminFilters';
 import { ProfessionalSummary } from '@/features/admin/ProfessionalSummary';
 import { TimeEntryApproval } from '@/features/admin/TimeEntryApproval';
 import { TimeEntriesBreakdown } from '@/features/admin/TimeEntriesBreakdown';
+import { AdminExcelExportButton } from '@/features/admin/AdminExcelExportButton';
 import { useFinancialData } from '@/hooks/useFinancialData';
 import { usePersistedFilters } from '@/hooks/usePersistedFilters';
 import type { AdminFilterValues } from '@/types/admin';
@@ -31,11 +32,14 @@ export function DashboardPage() {
   return (
     <Layout>
       <div className="space-y-8">
-        <div className="border-b border-slate-200 pb-6">
-          <h1 className="text-4xl font-bold text-slate-900">Painel Administrativo</h1>
-          <p className="mt-2 text-lg text-slate-600">
-            Acompanhe a produção e rentabilidade dos projetos
-          </p>
+        <div className="border-b border-slate-200 dark:border-slate-700 pb-6 flex justify-between items-start">
+          <div>
+            <h1 className="text-4xl font-bold text-slate-900 dark:text-slate-100">Painel Administrativo</h1>
+            <p className="mt-2 text-lg text-slate-600 dark:text-slate-400">
+              Acompanhe a produção e rentabilidade dos projetos
+            </p>
+          </div>
+          <AdminExcelExportButton filters={filters} />
         </div>
 
         <AdminFilters 

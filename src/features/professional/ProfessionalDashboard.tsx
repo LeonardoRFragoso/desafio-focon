@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabase/client';
 import { useAuthContext } from '@/features/auth/useAuthContext';
+import { HourGoalWidget } from '@/features/time-entries/HourGoalWidget';
 import type { TimeEntryWithRelations } from '@/types/database';
 
 interface ProfessionalStats {
@@ -142,26 +143,29 @@ export function ProfessionalDashboard() {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
-          <p className="text-sm font-medium text-slate-600 mb-2">Horas Aprovadas</p>
-          <p className="text-3xl font-bold text-green-600">{formatDuration(stats.approvedHours)}</p>
+        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 p-6 shadow-sm">
+          <p className="text-sm font-medium text-slate-600 dark:text-slate-400 mb-2">Horas Aprovadas</p>
+          <p className="text-3xl font-bold text-green-600 dark:text-green-400">{formatDuration(stats.approvedHours)}</p>
         </div>
 
-        <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
-          <p className="text-sm font-medium text-slate-600 mb-2">Aprovados</p>
-          <p className="text-3xl font-bold text-green-600">{stats.approvedCount}</p>
+        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 p-6 shadow-sm">
+          <p className="text-sm font-medium text-slate-600 dark:text-slate-400 mb-2">Aprovados</p>
+          <p className="text-3xl font-bold text-green-600 dark:text-green-400">{stats.approvedCount}</p>
         </div>
 
-        <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
-          <p className="text-sm font-medium text-slate-600 mb-2">Pendentes</p>
-          <p className="text-3xl font-bold text-yellow-600">{stats.pendingCount}</p>
+        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 p-6 shadow-sm">
+          <p className="text-sm font-medium text-slate-600 dark:text-slate-400 mb-2">Pendentes</p>
+          <p className="text-3xl font-bold text-yellow-600 dark:text-yellow-400">{stats.pendingCount}</p>
         </div>
 
-        <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
-          <p className="text-sm font-medium text-slate-600 mb-2">Rejeitados</p>
-          <p className="text-3xl font-bold text-red-600">{stats.rejectedCount}</p>
+        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 p-6 shadow-sm">
+          <p className="text-sm font-medium text-slate-600 dark:text-slate-400 mb-2">Rejeitados</p>
+          <p className="text-3xl font-bold text-red-600 dark:text-red-400">{stats.rejectedCount}</p>
         </div>
       </div>
+
+      {/* Hour Goal Widget */}
+      <HourGoalWidget />
 
       {/* Entries Table */}
       <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { loginSchema, type LoginInput } from '@/schemas/auth';
@@ -139,6 +139,16 @@ export function LoginPage() {
                     </p>
                   )}
                 </div>
+              </div>
+
+              {/* Forgot password link */}
+              <div className="text-right">
+                <Link
+                  to="/forgot-password"
+                  className="text-sm text-teal-300 hover:text-teal-200 transition"
+                >
+                  Esqueci minha senha
+                </Link>
               </div>
 
               {/* Submit button with enhanced styling */}

@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { profilesAPI } from '@/lib/supabase/api';
+import { supabase } from '@/lib/supabase/client';
 import { mapDatabaseError } from '@/lib/errors';
 import { Modal } from '@/components/Modal';
 import type { Profile, UserRole } from '@/types/database';
@@ -10,6 +11,7 @@ export function ProfessionalsPage() {
   const [error, setError] = useState<string | null>(null);
   const [editTarget, setEditTarget] = useState<Profile | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
+  const [inviteOpen, setInviteOpen] = useState(false);
 
   const fetchProfiles = useCallback(async () => {
     try {
@@ -42,9 +44,17 @@ export function ProfessionalsPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-bold text-slate-900">Profissionais</h2>
-        <p className="text-slate-600">Gerencie os profissionais e seus papéis</p>
+      <div className="flex justify-between items-center">
+        <div>
+          <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Profissionais</h2>
+          <p className="text-slate-600 dark:text-slate-400">Gerencie os profissionais e seus papéis</p>
+        </div>
+        <button
+          onClick={() => setInviteOpen(true)}
+          className="px-4 py-2 bg-focon-600 hover:bg-focon-700 text-white rounded-lg font-medium transition"
+        >
+          Convidar Profissional
+        </button>
       </div>
 
       {error && (
@@ -109,7 +119,112 @@ export function ProfessionalsPage() {
           onError={(msg) => setActionError(msg)}
         />
       )}
+
+      {inviteOpen && (
+        <InviteUserModal
+          onClose={() => setInviteOpen(false)}
+          onSaved={() => {
+            setInviteOpen(false);
+            fetchProfiles();
+          }}
+          onError={(msg) => setActionError(msg)}
+        />
+      )}
     </div>
+  );
+}
+
+interface InviteUserModalProps {
+  onClose: () => void;
+  onSaved: () => void;
+  onError: (msg: string) => void;
+}
+
+function InviteUserModal({ onClose, onSaved, onError }: InviteUserModalProps) {
+  const [email, setEmail] = useState('');
+  const [fullName, setFullName] = useState('');
+  const [role, setRole] = useState<UserRole>('member');
+  const [submitting, setSubmitting] = useState(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email.trim() || !fullName.trim()) {
+      onError('Preencha todos os campos.');
+      return;
+    }
+    setSubmitting(true);
+    try {
+      const { data: session } = await supabase.auth.getSession();
+      if (!session.session?.access_token) {
+        onError('Sessão expirada. Faça login novamente.');
+        return;
+      }
+
+      const response = await fetch(`${import.meta.env['VITE_SUPABASE_URL']}/functions/v1/invite-user`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.session.access_token}`,
+        },
+        body: JSON.stringify({
+          email: email.trim(),
+          full_name: fullName.trim(),
+          role,
+        }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        onError(result.error || 'Erro ao enviar convite');
+        return;
+      }
+
+      onSaved();
+    } catch (err) {
+      onError(err instanceof Error ? err.message : 'Erro ao enviar convite');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  return (
+    <Modal
+      open
+      onClose={onClose}
+      title="Convidar Profissional"
+      footer={
+        <>
+          <button type="button" onClick={onClose} disabled={submitting} className="px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 transition disabled:opacity-50">
+            Cancelar
+          </button>
+          <button type="submit" form="invite-form" disabled={submitting} className="px-4 py-2 rounded-lg bg-focon-600 hover:bg-focon-700 text-white transition disabled:opacity-50">
+            {submitting ? 'Enviando...' : 'Enviar Convite'}
+          </button>
+        </>
+      }
+    >
+      <form id="invite-form" onSubmit={handleSubmit} className="space-y-4">
+        <div>
+          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">E-mail *</label>
+          <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} className="w-full px-3 py-2.5 border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-focon-600" placeholder="profissional@email.com" />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Nome Completo *</label>
+          <input type="text" required value={fullName} onChange={(e) => setFullName(e.target.value)} className="w-full px-3 py-2.5 border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-focon-600" />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Papel *</label>
+          <select value={role} onChange={(e) => setRole(e.target.value as UserRole)} className="w-full px-3 py-2.5 border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-focon-600">
+            <option value="member">Profissional</option>
+            <option value="admin">Administrador</option>
+          </select>
+        </div>
+        <p className="text-xs text-slate-500 dark:text-slate-400">
+          O convite será enviado por e-mail. O usuário deverá definir sua senha ao aceitar.
+        </p>
+      </form>
+    </Modal>
   );
 }
 

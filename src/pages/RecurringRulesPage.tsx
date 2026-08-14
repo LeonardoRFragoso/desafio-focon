@@ -42,7 +42,7 @@ export function RecurringRulesPage() {
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchRules();
-    // eslint-disable-next-line react-hooks/set-state-in-effect
+     
     fetchProjects();
   }, [fetchRules, fetchProjects]);
 

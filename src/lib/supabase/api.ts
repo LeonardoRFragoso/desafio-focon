@@ -492,6 +492,22 @@ export const commentsAPI = {
   remove: async (id: string) => {
     return supabase.from('time_entry_comments').delete().eq('id', id);
   },
+  subscribe: (entryId: string, callback: () => void) => {
+    const channel = supabase
+      .channel(`comments:${entryId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'time_entry_comments',
+          filter: `time_entry_id=eq.${entryId}`,
+        },
+        () => callback()
+      )
+      .subscribe();
+    return channel;
+  },
 };
 
 /**

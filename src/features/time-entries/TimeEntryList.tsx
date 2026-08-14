@@ -7,6 +7,8 @@ import { useAuthContext } from '@/features/auth/useAuthContext';
 import { mapDatabaseError } from '@/lib/errors';
 import { Modal } from '@/components/Modal';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
+import { CommentsPanel } from '@/features/time-entries/CommentsPanel';
+import { AttachmentsPanel } from '@/features/time-entries/AttachmentsPanel';
 import { timeEntrySchema, type TimeEntryInput } from '@/schemas/time-entry';
 
 interface TimeEntry {
@@ -36,7 +38,7 @@ type DialogState =
   | null;
 
 export function TimeEntryList() {
-  const { user } = useAuthContext();
+  const { user, isAdmin } = useAuthContext();
   const [entries, setEntries] = useState<TimeEntry[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
@@ -254,7 +256,7 @@ export function TimeEntryList() {
       </div>
 
       {dialog?.kind === 'details' && (
-        <DetailsModal entry={dialog.entry} onClose={() => setDialog(null)} formatDuration={formatDuration} formatDate={formatDate} formatDateTime={formatDateTime} />
+        <DetailsModal entry={dialog.entry} onClose={() => setDialog(null)} formatDuration={formatDuration} formatDate={formatDate} formatDateTime={formatDateTime} isAdmin={isAdmin} />
       )}
 
       {dialog?.kind === 'edit' && (
@@ -323,9 +325,10 @@ interface DetailsModalProps {
   formatDuration: (m: number) => string;
   formatDate: (d: string) => string;
   formatDateTime: (d: string) => string;
+  isAdmin: boolean;
 }
 
-function DetailsModal({ entry, onClose, formatDuration, formatDate, formatDateTime }: DetailsModalProps) {
+function DetailsModal({ entry, onClose, formatDuration, formatDate, formatDateTime, isAdmin }: DetailsModalProps) {
   return (
     <Modal open onClose={onClose} title="Detalhes do Apontamento" maxWidth="max-w-2xl">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -369,6 +372,12 @@ function DetailsModal({ entry, onClose, formatDuration, formatDate, formatDateTi
           )}
         </div>
       )}
+
+      {/* Comments and Attachments */}
+      <div className="mt-6 border-t border-slate-200 dark:border-slate-700 pt-6 space-y-6">
+        <CommentsPanel entryId={entry.id} isAdmin={isAdmin} />
+        <AttachmentsPanel entryId={entry.id} />
+      </div>
     </Modal>
   );
 }
