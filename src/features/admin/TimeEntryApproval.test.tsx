@@ -1,5 +1,4 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import * as usePendingTimeEntriesModule from '@/hooks/usePendingTimeEntries';
 
 /**
  * Tests for TimeEntryApproval component behavior

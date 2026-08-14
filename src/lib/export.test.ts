@@ -1,5 +1,5 @@
-import { describe, it, expect, vi } from 'vitest';
-import { escapeCSVCell, escapeHTML, exportToCSV, exportToHTML } from './export';
+import { describe, it, expect } from 'vitest';
+import { escapeCSVCell, escapeHTML, exportToHTML } from './export';
 
 /**
  * Tests for export utilities - testing real functions from src/lib/export.ts
