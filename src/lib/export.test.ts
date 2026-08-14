@@ -114,13 +114,30 @@ describe('Export utilities', () => {
       expect(html).toContain('</html>');
     });
 
-    it('should escape dangerous content in HTML', () => {
-      // Test that escapeHTML is used in exportToHTML
-      const dangerous = '<script>alert("XSS")</script>';
-      const escaped = escapeHTML(dangerous);
+    it('should escape script tags in exported HTML', () => {
+      // Create a mock entry with dangerous content
+      const mockEntry = {
+        id: 'entry-1',
+        professional_id: 'prof-1',
+        project_id: 'proj-1',
+        entry_date: '2024-01-15',
+        duration_minutes: 120,
+        description: '<script>alert("XSS")</script>',
+        approval_status: 'approved',
+        applied_hourly_rate: 100,
+        created_at: '2024-01-15T10:00:00Z',
+        updated_at: '2024-01-15T10:00:00Z',
+        professional: { id: 'prof-1', full_name: 'John Doe', role: 'member' },
+        project: { id: 'proj-1', name: 'Project A' },
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      } as any;
 
-      expect(escaped).toContain('&lt;script&gt;');
-      expect(escaped).not.toContain('<script>');
+      const html = exportToHTML([mockEntry]);
+
+      // Should NOT contain executable script tag
+      expect(html).not.toContain('<script>alert');
+      // Should contain escaped version
+      expect(html).toContain('&lt;script&gt;');
     });
   });
 
