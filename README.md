@@ -1,21 +1,21 @@
 # FoconFlow
 
-Controle de Produção e Rentabilidade por Projeto - MVP Foundation
+Controle de Produção e Rentabilidade por Projeto - MVP Core Flows
 
 ## Objetivo
 
-Desenvolver o recorte "Controle de Produção e Rentabilidade por Projeto" da plataforma conceitual FoconFlow, com suporte para dois perfis: administrador e membro comum.
+Implementar o MVP funcional do FoconFlow com autenticação real, fluxos de usuário comum e administrativo, aprovação de apontamentos, dashboard financeiro e relatório para impressão/PDF.
 
 ## Stack
 
 - **Frontend**: React 19 + TypeScript + Vite
-- **Styling**: Tailwind CSS
+- **Styling**: Tailwind CSS v4
 - **Forms**: React Hook Form + Zod
 - **Backend**: Supabase (PostgreSQL + Auth)
 - **Security**: Row Level Security (RLS)
-- **Testing**: Vitest + Testing Library
+- **Runtime**: Node.js 24
 - **Code Quality**: ESLint + Prettier + TypeScript strict mode
-- **CI/CD**: GitHub Actions
+- **CI/CD**: GitHub Actions com Supabase CLI v2
 
 ## Arquitetura
 
@@ -121,39 +121,114 @@ Somente apontamentos `approved` entram nos cálculos.
 
 ### Pré-requisitos
 
-- Node.js 20+
-- npm ou yarn
-- Supabase CLI (para desenvolvimento local)
+- Node.js 24+
+- npm
+- Supabase CLI v2 (para desenvolvimento local)
 - Docker (para Supabase local)
 
-### Setup Local
+### Setup Local em 5 Comandos
 
 ```bash
-# Clonar repositório
-git clone https://github.com/LeonardoRFragoso/desafio-focon.git
-cd desafio-focon
+# 1. Instalar dependências
+npm ci
 
-# Instalar dependências
-npm install
+# 2. Iniciar Supabase local
+supabase start
 
-# Configurar variáveis de ambiente
-cp .env.example .env.local
-# Editar .env.local com suas credenciais Supabase
+# 3. Aplicar migrations e seed
+supabase db reset
 
-# Iniciar servidor de desenvolvimento
+# 4. Iniciar servidor de desenvolvimento
 npm run dev
+
+# 5. Abrir http://localhost:5173
 ```
 
-## Variáveis de Ambiente
+## Configuração de Ambiente
 
-Criar arquivo `.env.local`:
+### Arquivo `.env.local`
 
+Copiar de `.env.example` e preencher com credenciais do Supabase local:
+
+```env
+VITE_SUPABASE_URL=http://127.0.0.1:54321
+VITE_SUPABASE_ANON_KEY=<sua-chave-anon-local>
 ```
-VITE_SUPABASE_URL=https://your-project.supabase.co
-VITE_SUPABASE_ANON_KEY=your-anon-key-here
-```
 
-**Nunca commitar**: `.env`, `SUPABASE_SERVICE_ROLE_KEY`, `DATABASE_URL`, senhas ou tokens pessoais.
+**Importante:**
+- `VITE_SUPABASE_URL`: Project URL (não é a senha do banco)
+- `VITE_SUPABASE_ANON_KEY`: Publishable Key/anon key (não é a senha do banco)
+- Nunca colocar senha do PostgreSQL em variáveis de ambiente do frontend
+- Arquivo `.env.local` é ignorado pelo Git (segurança)
+
+## Usuários de Demonstração
+
+Após `supabase db reset`, os seguintes usuários estão disponíveis:
+
+### Usuário Comum (Member)
+- **Email**: `ana@example.com`
+- **Senha**: `password123`
+- **Acesso**: Página de apontamentos (`/time-entries`)
+
+### Administrador
+- **Email**: `admin@example.com`
+- **Senha**: `password123`
+- **Acesso**: Dashboard (`/dashboard`) e Relatório (`/report`)
+
+## Fluxos Implementados
+
+### Fluxo do Usuário Comum
+1. Login com email/senha
+2. Redirecionamento automático para `/time-entries`
+3. Registrar novo apontamento (projeto, data, duração, descrição)
+4. Visualizar histórico de apontamentos com status
+5. Logout
+
+### Fluxo do Administrador
+1. Login com email/senha
+2. Redirecionamento automático para `/dashboard`
+3. Visualizar indicadores financeiros (receita, mão de obra, resultado, margem)
+4. Aplicar filtros (projeto, profissional, período)
+5. Visualizar tabela de profissionais com custos
+6. Aprovar/rejeitar apontamentos pendentes
+7. Visualizar detalhamento de apontamentos aprovados
+8. Navegar para `/report` para gerar relatório
+9. Imprimir/salvar em PDF
+10. Logout
+
+## Aprovação de Apontamentos
+
+- Somente administradores podem aprovar/rejeitar
+- Apontamentos pendentes aparecem em seção dedicada no dashboard
+- Após aprovação, apontamentos entram nos cálculos financeiros
+- Indicadores são atualizados após aprovação
+
+## Dashboard Administrativo
+
+**Indicadores Financeiros:**
+- Receita: Valor total contratado
+- Mão de Obra: Soma de (horas × custo-hora) dos apontamentos aprovados
+- Resultado: Receita - Mão de Obra - Imposto (8%) - Custo Indireto
+- Margem: (Resultado ÷ Receita) × 100%
+
+**Filtros Funcionais:**
+- Projeto
+- Profissional
+- Data inicial
+- Data final
+
+**Tabelas:**
+- Resumo por Profissional (total de horas, custo-hora, custo total)
+- Detalhamento de Apontamentos (projeto, profissional, data, duração, custo)
+
+## Relatório para Impressão
+
+- Exibe filtros aplicados
+- Mostra indicadores financeiros
+- Composição do resultado
+- Resumo por projeto
+- Estilos otimizados para impressão/PDF
+- Botão "Imprimir / Salvar em PDF" visível na tela, oculto na impressão
 
 ## Supabase Local
 
@@ -203,12 +278,24 @@ O deploy automático ocorre via integração GitHub–Supabase quando há merge 
 
 ## Seed
 
-O arquivo `supabase/migrations/20240814090400_seed_demo_data.sql` contém dados de demonstração:
+Os arquivos `supabase/seed-auth.sql` e `supabase/seed.sql` contêm dados de demonstração:
 
+- **Usuários de Auth**: Ana, Bruno, Carla (members) e Admin
 - **Residencial Aurora**: R$ 120.000 de receita
 - **Edifício Horizonte**: R$ 80.000 de receita
+- **Custos-hora**: Ana (R$ 120/h), Bruno (R$ 150/h), Carla (R$ 100/h)
+- **Apontamentos aprovados**: Pré-populados para demonstração
 
-Os dados são idempotentes e não sobrescrevem usuários reais.
+Os dados são idempotentes e executados automaticamente via `supabase db reset`.
+
+## Limitações Atuais
+
+- ❌ Gerenciamento de projetos (criar, editar, deletar)
+- ❌ Gerenciamento de custos-hora (criar, editar, deletar)
+- ❌ Edição de apontamentos após criação
+- ❌ Atualização em tempo real (Supabase Realtime não implementado)
+- ❌ Testes automatizados completos (estrutura criada, implementação pendente)
+- ❌ Validação de migrations em banco real (pendente)
 
 ## Testes
 

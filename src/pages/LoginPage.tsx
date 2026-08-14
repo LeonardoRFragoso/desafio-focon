@@ -7,7 +7,7 @@ import { useAuthContext } from '@/features/auth/useAuthContext';
 
 export function LoginPage() {
   const navigate = useNavigate();
-  const { login, loading, error } = useAuthContext();
+  const { login, loading, error, profile } = useAuthContext();
   const [submitError, setSubmitError] = useState<string | null>(null);
 
   const {
@@ -22,81 +22,162 @@ export function LoginPage() {
     try {
       setSubmitError(null);
       await login(data.email, data.password);
-      navigate('/dashboard');
+      
+      // Redirect based on role after profile is loaded
+      // The profile should be available after login completes
+      setTimeout(() => {
+        if (profile?.role === 'admin') {
+          navigate('/dashboard');
+        } else {
+          navigate('/time-entries');
+        }
+      }, 100);
     } catch (err) {
       const message =
-        err instanceof Error ? err.message : 'Login failed. Please try again.';
+        err instanceof Error ? err.message : 'Falha no login. Tente novamente.';
       setSubmitError(message);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8">
-        <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            FoconFlow
-          </h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
-            Controle de Produção e Rentabilidade
-          </p>
-        </div>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-950 via-teal-950 to-slate-950 py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
+      {/* Animated gradient background */}
+      <div className="absolute inset-0 overflow-hidden">
+        <div className="absolute top-0 right-0 w-96 h-96 bg-teal-500 rounded-full mix-blend-screen filter blur-3xl opacity-30 animate-pulse"></div>
+        <div className="absolute bottom-0 left-0 w-96 h-96 bg-cyan-400 rounded-full mix-blend-screen filter blur-3xl opacity-20 animate-pulse" style={{ animationDelay: '2s' }}></div>
+        <div className="absolute top-1/2 left-1/2 w-96 h-96 bg-teal-400 rounded-full mix-blend-screen filter blur-3xl opacity-10 animate-pulse" style={{ animationDelay: '4s' }}></div>
+      </div>
 
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit(onSubmit)}>
-          {(submitError || error) && (
-            <div className="rounded-md bg-red-50 p-4">
-              <p className="text-sm font-medium text-red-800">
-                {submitError || error?.message}
+      <div className="max-w-md w-full space-y-8 relative z-10">
+        {/* Main card container with enhanced styling */}
+        <div className="group relative">
+          {/* Glow effect */}
+          <div className="absolute -inset-0.5 bg-gradient-to-r from-teal-600 to-cyan-600 rounded-3xl blur opacity-20 group-hover:opacity-40 transition duration-500"></div>
+          
+          {/* Card */}
+          <div className="relative bg-gradient-to-br from-slate-800/40 to-slate-900/40 backdrop-blur-xl rounded-3xl shadow-2xl p-8 border border-white/10 group-hover:border-white/20 transition">
+            {/* Header with enhanced styling */}
+            <div className="text-center mb-8">
+              {/* Logo container with glow */}
+              <div className="inline-flex items-center justify-center w-24 h-24 bg-gradient-to-br from-teal-400 via-teal-500 to-cyan-600 rounded-2xl shadow-2xl mb-6 transform hover:scale-110 transition duration-300 relative group/logo">
+                <div className="absolute inset-0 bg-gradient-to-br from-teal-300 to-cyan-400 rounded-2xl blur opacity-0 group-hover/logo:opacity-50 transition duration-300"></div>
+                <img
+                  src="/brand/focon-colorida.jpeg"
+                  alt="Fócon Engenharia"
+                  className="h-20 w-20 object-contain relative z-10"
+                />
+              </div>
+              
+              <h1 className="text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-white via-teal-100 to-cyan-100 mb-2">
+                FoconFlow
+              </h1>
+              <p className="text-teal-200/80 text-sm font-medium tracking-wide">
+                Controle de Produção e Rentabilidade
               </p>
             </div>
-          )}
 
-          <div className="rounded-md shadow-sm -space-y-px">
-            <div>
-              <label htmlFor="email" className="sr-only">
-                Email address
-              </label>
-              <input
-                {...register('email')}
-                id="email"
-                type="email"
-                autoComplete="email"
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                placeholder="Email address"
-              />
-              {errors.email && (
-                <p className="mt-1 text-sm text-red-600">{errors.email.message}</p>
+            {/* Form with enhanced styling */}
+            <form className="space-y-6" onSubmit={handleSubmit(onSubmit)}>
+              {(submitError || error) && (
+                <div className="rounded-xl bg-red-500/20 border border-red-400/50 p-4 backdrop-blur-sm animate-shake">
+                  <div className="flex items-start gap-3">
+                    <div className="text-red-400 mt-0.5">⚠</div>
+                    <p className="text-sm font-medium text-red-100">
+                      {submitError || error?.message}
+                    </p>
+                  </div>
+                </div>
               )}
-            </div>
 
-            <div>
-              <label htmlFor="password" className="sr-only">
-                Password
-              </label>
-              <input
-                {...register('password')}
-                id="password"
-                type="password"
-                autoComplete="current-password"
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                placeholder="Password"
-              />
-              {errors.password && (
-                <p className="mt-1 text-sm text-red-600">{errors.password.message}</p>
-              )}
-            </div>
-          </div>
+              <div className="space-y-5">
+                {/* Email field */}
+                <div className="group/field">
+                  <label htmlFor="email" className="block text-sm font-semibold text-white mb-2.5 flex items-center gap-2">
+                    <span className="text-teal-400">✉</span>
+                    E-mail
+                  </label>
+                  <div className="relative">
+                    <input
+                      {...register('email')}
+                      id="email"
+                      type="email"
+                      autoComplete="email"
+                      className="w-full px-4 py-3.5 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-teal-400/50 focus:border-teal-400/50 transition backdrop-blur-sm group-hover/field:bg-white/10 group-hover/field:border-white/20"
+                      placeholder="seu@email.com"
+                    />
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2 text-teal-400/0 group-focus-within/field:text-teal-400 transition">→</div>
+                  </div>
+                  {errors.email && (
+                    <p className="mt-2 text-sm text-red-300 flex items-center gap-1">
+                      <span>✕</span> {errors.email.message}
+                    </p>
+                  )}
+                </div>
 
-          <div>
-            <button
-              type="submit"
-              disabled={loading}
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {loading ? 'Signing in...' : 'Sign in'}
-            </button>
+                {/* Password field */}
+                <div className="group/field">
+                  <label htmlFor="password" className="block text-sm font-semibold text-white mb-2.5 flex items-center gap-2">
+                    <span className="text-teal-400">🔒</span>
+                    Senha
+                  </label>
+                  <div className="relative">
+                    <input
+                      {...register('password')}
+                      id="password"
+                      type="password"
+                      autoComplete="current-password"
+                      className="w-full px-4 py-3.5 bg-white/5 border border-white/10 rounded-xl text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-teal-400/50 focus:border-teal-400/50 transition backdrop-blur-sm group-hover/field:bg-white/10 group-hover/field:border-white/20"
+                      placeholder="••••••••"
+                    />
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2 text-teal-400/0 group-focus-within/field:text-teal-400 transition">→</div>
+                  </div>
+                  {errors.password && (
+                    <p className="mt-2 text-sm text-red-300 flex items-center gap-1">
+                      <span>✕</span> {errors.password.message}
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              {/* Submit button with enhanced styling */}
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full py-3.5 px-4 bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600 text-white font-bold rounded-xl transition transform hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 shadow-xl hover:shadow-2xl focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-400 focus:ring-offset-slate-950 relative overflow-hidden group/btn"
+              >
+                <div className="absolute inset-0 bg-white/20 opacity-0 group-hover/btn:opacity-100 transition"></div>
+                <span className="relative flex items-center justify-center gap-2">
+                  {loading ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                      Entrando...
+                    </>
+                  ) : (
+                    <>
+                      Entrar
+                      <span className="group-hover/btn:translate-x-1 transition">→</span>
+                    </>
+                  )}
+                </span>
+              </button>
+            </form>
           </div>
-        </form>
+        </div>
+
+        {/* Enhanced footer */}
+        <div className="text-center space-y-2">
+          <p className="text-white/50 text-xs font-medium">
+            Desenvolvido para Fócon Engenharia
+          </p>
+          <p className="text-white/30 text-xs">
+            © 2026 FoconFlow. Todos os direitos reservados.
+          </p>
+          <div className="flex items-center justify-center gap-1 text-white/20 text-xs mt-3">
+            <span className="w-1 h-1 bg-teal-400 rounded-full"></span>
+            <span>Seguro e confiável</span>
+            <span className="w-1 h-1 bg-teal-400 rounded-full"></span>
+          </div>
+        </div>
       </div>
     </div>
   );
