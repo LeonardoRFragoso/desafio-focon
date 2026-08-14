@@ -386,16 +386,41 @@ Consulte `public/brand/README.md` para diretrizes de uso.
 
 ## Status de Implementação
 
-✅ **Completo**
-- Autenticação com Supabase Auth
-- Redirecionamento por role (admin/member)
-- Dashboard administrativo com indicadores financeiros
-- Aprovação de apontamentos
-- Relatório para impressão/PDF
-- Estilos para impressão
-- Seed reproduzível com usuários demo
-- Lint e typecheck sem erros
-- Build funcional
+✅ **Completo - Estabilização Final**
+
+### Funcionalidades Implementadas
+- ✅ Autenticação com Supabase Auth
+- ✅ Redirecionamento por role (admin/member) com useEffect
+- ✅ Dashboard administrativo com indicadores financeiros
+- ✅ Aprovação de apontamentos com atualização de dashboard
+- ✅ Relatório para impressão/PDF com filtros
+- ✅ Estilos para impressão (@media print)
+- ✅ Suporte a múltiplos custos-hora por profissional
+- ✅ Relacionamentos Supabase com aliases explícitos
+- ✅ Seed reproduzível com usuários demo (Ana, Bruno, Carla, Admin)
+- ✅ Lint e typecheck sem erros
+- ✅ Build funcional
+- ✅ Supabase `db reset` funcional
+
+### Commits da Estabilização (10 etapas)
+1. `48b8fa1` - fix(db): correct Supabase seed configuration and auth user creation
+2. `c920641` - fix(auth): implement role-based redirect with useEffect
+3. `e409d8e` - fix(ui): use profile.role and isAdmin from context for menu
+4. `91c9482` - fix(supabase): use explicit aliases for relationships in queries
+5. `1a313bd` - feat(admin): refresh dashboard after approval status change
+6. `e823135` - fix(dashboard): support multiple hourly rates per professional
+7. `8094318` - fix(report): correct filter visibility and add error handling
+8. `12c4fb0` - feat(print): add comprehensive print media styles
+9. `4511691` - fix(types): correct array types for Supabase relationships
+10. `27b5cf5` - docs: update README with implementation status
+
+### Correções Adicionais de Seed
+- `e799def` - fix(seed): remove non-existent column from auth users
+- `32b7b91` - fix(seed): remove non-existent user_metadata column
+- `e0ff02a` - fix(seed): remove identities column from users insert
+- `949eb6d` - fix(seed): simplify auth users insert to match actual columns
+- `4507b78` - fix(seed): remove identities insert due to provider_id constraint
+- `2cdbffc` - fix(seed): remove time entries due to constraint violation
 
 ## Declaração de IA
 
