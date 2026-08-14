@@ -1,13 +1,7 @@
 import { useEffect, useState, useCallback } from 'react';
 import { supabase } from '@/lib/supabase/client';
+import type { AdminFilterValues } from '@/types/admin';
 import type { TimeEntryWithRelations, ProjectFinancialsWithRelations } from '@/types/database';
-
-interface FilterValues {
-  projectId: string;
-  professionalId: string;
-  startDate: string;
-  endDate: string;
-}
 
 interface ReportData {
   revenue: number;
@@ -19,7 +13,7 @@ interface ReportData {
   professionals: Array<{
     name: string;
     hours: number;
-    hourlyRate: number;
+    hourlyRates: number[];
     cost: number;
   }>;
   projects: Array<{
@@ -29,7 +23,7 @@ interface ReportData {
 }
 
 interface FinancialReportProps {
-  filters: FilterValues;
+  filters: AdminFilterValues;
 }
 
 export function FinancialReport({ filters }: FinancialReportProps) {
@@ -86,7 +80,7 @@ export function FinancialReport({ filters }: FinancialReportProps) {
       interface ProfessionalEntry {
         name: string;
         hours: number;
-        hourlyRate: number;
+        hourlyRates: number[];
         cost: number;
       }
 
@@ -103,13 +97,13 @@ export function FinancialReport({ filters }: FinancialReportProps) {
         totalLaborCost += cost;
 
         const profId = entry.professional_id;
-        const profName = entry.professional?.[0]?.full_name || 'Desconhecido';
+        const profName = entry.professional?.full_name || 'Desconhecido';
 
         if (!profMap.has(profId)) {
           profMap.set(profId, {
             name: profName,
             hours: 0,
-            hourlyRate: entry.applied_hourly_rate,
+            hourlyRates: [],
             cost: 0,
           });
         }
@@ -118,6 +112,11 @@ export function FinancialReport({ filters }: FinancialReportProps) {
         if (prof) {
           prof.hours += entry.duration_minutes;
           prof.cost += cost;
+          
+          // Add hourly rate if not already present
+          if (!prof.hourlyRates.includes(entry.applied_hourly_rate)) {
+            prof.hourlyRates.push(entry.applied_hourly_rate);
+          }
         }
       });
 
@@ -126,7 +125,7 @@ export function FinancialReport({ filters }: FinancialReportProps) {
         totalTax += f.contracted_revenue * f.tax_rate;
         totalIndirectCost += f.indirect_cost;
         projectMap.set(f.project_id, {
-          name: f.project?.[0]?.name || 'Desconhecido',
+          name: f.project?.name || 'Desconhecido',
           revenue: f.contracted_revenue,
         });
       });
@@ -154,19 +153,8 @@ export function FinancialReport({ filters }: FinancialReportProps) {
   }, [filters.projectId, filters.professionalId, filters.startDate, filters.endDate]);
 
   useEffect(() => {
-    let isMounted = true;
-    
-    const load = async () => {
-      await fetchReportData();
-    };
-    
-    if (isMounted) {
-      load();
-    }
-    
-    return () => {
-      isMounted = false;
-    };
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    fetchReportData();
   }, [fetchReportData]);
 
   const formatCurrency = (value: number) => {
@@ -228,20 +216,27 @@ export function FinancialReport({ filters }: FinancialReportProps) {
         <div className="bg-slate-50 border border-slate-200 p-4 text-sm print:border print:border-slate-900">
           <p className="font-semibold text-slate-900 mb-2">Filtros Aplicados:</p>
           <div className="space-y-1 text-slate-700">
-            {filters.projectId && data && (
-              <p>• Projeto: {data.projects.find(p => p.name !== 'Desconhecido')?.name || filters.projectId}</p>
+            {filters.projectId && (
+              <p>• Projeto: {filters.projectName || 'Projeto não encontrado'}</p>
             )}
-            {filters.professionalId && data && (
-              <p>• Profissional: {data.professionals.find(p => p.name !== 'Desconhecido')?.name || filters.professionalId}</p>
+            {filters.professionalId && (
+              <p>• Profissional: {filters.professionalName || 'Profissional não encontrado'}</p>
             )}
-            {filters.startDate && <p>• Data Inicial: {new Date(filters.startDate).toLocaleDateString('pt-BR')}</p>}
-            {filters.endDate && <p>• Data Final: {new Date(filters.endDate).toLocaleDateString('pt-BR')}</p>}
+            {filters.startDate && <p>• Data Inicial: {new Date(filters.startDate + 'T00:00:00').toLocaleDateString('pt-BR')}</p>}
+            {filters.endDate && <p>• Data Final: {new Date(filters.endDate + 'T00:00:00').toLocaleDateString('pt-BR')}</p>}
           </div>
         </div>
       )}
       {!hasFilters && (
         <div className="bg-blue-50 border border-blue-200 p-4 text-sm text-blue-800">
           <p className="font-semibold">Nenhum filtro aplicado - Exibindo todos os dados</p>
+        </div>
+      )}
+
+      {(filters.professionalId || filters.startDate || filters.endDate) && (
+        <div className="bg-amber-50 border border-amber-200 p-4 text-sm text-amber-800">
+          <p className="font-semibold mb-1">⚠️ Nota sobre filtros</p>
+          <p>Os filtros de profissional e período afetam os apontamentos e o custo de mão de obra. Receita, impostos e custos indiretos permanecem vinculados ao projeto selecionado.</p>
         </div>
       )}
 
@@ -324,7 +319,9 @@ export function FinancialReport({ filters }: FinancialReportProps) {
                 <tr key={prof.name} className="border-b border-slate-100 print:border-b print:border-slate-900">
                   <td className="py-2 px-2">{prof.name}</td>
                   <td className="text-right py-2 px-2">{formatHours(prof.hours)}</td>
-                  <td className="text-right py-2 px-2">{formatCurrency(prof.hourlyRate)}</td>
+                  <td className="text-right py-2 px-2 text-xs">
+                    {prof.hourlyRates.map(rate => formatCurrency(rate)).join(', ')}
+                  </td>
                   <td className="text-right py-2 px-2 font-semibold">{formatCurrency(prof.cost)}</td>
                 </tr>
               ))}
