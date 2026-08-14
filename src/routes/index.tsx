@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { LoginPage } from '@/pages/LoginPage';
 import { DashboardPage } from '@/pages/DashboardPage';
 import { TimeEntriesPage } from '@/pages/TimeEntriesPage';
+import { ReportPage } from '@/pages/ReportPage';
 import { NotFoundPage } from '@/pages/NotFoundPage';
 import { AccessDeniedPage } from '@/pages/AccessDeniedPage';
 import { ProtectedRoute } from './ProtectedRoute';
@@ -24,6 +25,14 @@ export function AppRoutes() {
           element={
             <ProtectedRoute requiredRole="member">
               <TimeEntriesPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/report"
+          element={
+            <ProtectedRoute requiredRole="admin">
+              <ReportPage />
             </ProtectedRoute>
           }
         />
