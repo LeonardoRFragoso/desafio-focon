@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { timeEntriesAPI } from '@/lib/supabase/api';
 import { mapDatabaseError, logError } from '@/lib/errors';
-import type { TimeEntryWithRelations } from '@/types/database';
+import type { TimeEntryWithRelations, BatchApprovalResult } from '@/types/database';
 
 interface UsePendingTimeEntriesReturn {
   entries: TimeEntryWithRelations[];
@@ -10,12 +10,14 @@ interface UsePendingTimeEntriesReturn {
   actionLoading: string | null;
   successMessage: string | null;
   approve: (entryId: string) => Promise<boolean>;
-  reject: (entryId: string) => Promise<boolean>;
+  reject: (entryId: string, reason: string) => Promise<boolean>;
+  batchApprove: (entryIds: string[]) => Promise<BatchApprovalResult[] | null>;
+  batchReject: (entryIds: string[], reason: string) => Promise<BatchApprovalResult[] | null>;
   refetch: () => Promise<void>;
 }
 
 /**
- * Custom hook for managing pending time entries
+ * Custom hook for managing pending time entries (admin approval area).
  */
 export function usePendingTimeEntries(): UsePendingTimeEntriesReturn {
   const [entries, setEntries] = useState<TimeEntryWithRelations[]>([]);
@@ -57,7 +59,7 @@ export function usePendingTimeEntries(): UsePendingTimeEntriesReturn {
         const { data, error: err } = await timeEntriesAPI.approve(entryId);
         if (err) throw err;
 
-        if (!data) {
+        if (!data || (Array.isArray(data) && data.length === 0)) {
           setError('Este apontamento já foi processado ou não está mais disponível.');
           setActionLoading(null);
           return false;
@@ -79,16 +81,16 @@ export function usePendingTimeEntries(): UsePendingTimeEntriesReturn {
   );
 
   const reject = useCallback(
-    async (entryId: string): Promise<boolean> => {
+    async (entryId: string, reason: string): Promise<boolean> => {
       try {
         setActionLoading(entryId);
         setSuccessMessage(null);
         setError(null);
 
-        const { data, error: err } = await timeEntriesAPI.reject(entryId);
+        const { data, error: err } = await timeEntriesAPI.reject(entryId, reason);
         if (err) throw err;
 
-        if (!data) {
+        if (!data || (Array.isArray(data) && data.length === 0)) {
           setError('Este apontamento já foi processado ou não está mais disponível.');
           setActionLoading(null);
           return false;
@@ -109,6 +111,64 @@ export function usePendingTimeEntries(): UsePendingTimeEntriesReturn {
     [fetchPendingEntries]
   );
 
+  const batchApprove = useCallback(
+    async (entryIds: string[]): Promise<BatchApprovalResult[] | null> => {
+      if (entryIds.length === 0) return [];
+      try {
+        setActionLoading('batch');
+        setSuccessMessage(null);
+        setError(null);
+
+        const { data, error: err } = await timeEntriesAPI.batchApprove(entryIds);
+        if (err) throw err;
+
+        const results = (data as BatchApprovalResult[]) || [];
+        const ok = results.filter((r) => r.status === 'approved').length;
+        const failed = results.filter((r) => r.status === 'failed').length;
+        setSuccessMessage(`${ok} apontamento(s) aprovado(s)${failed ? `, ${failed} falhou/falharam` : ''}.`);
+        await fetchPendingEntries();
+        return results;
+      } catch (err) {
+        const message = err instanceof Error ? mapDatabaseError(err) : 'Erro na aprovação em lote';
+        setError(message);
+        logError(err, 'usePendingTimeEntries.batchApprove');
+        return null;
+      } finally {
+        setActionLoading(null);
+      }
+    },
+    [fetchPendingEntries]
+  );
+
+  const batchReject = useCallback(
+    async (entryIds: string[], reason: string): Promise<BatchApprovalResult[] | null> => {
+      if (entryIds.length === 0) return [];
+      try {
+        setActionLoading('batch');
+        setSuccessMessage(null);
+        setError(null);
+
+        const { data, error: err } = await timeEntriesAPI.batchReject(entryIds, reason);
+        if (err) throw err;
+
+        const results = (data as BatchApprovalResult[]) || [];
+        const ok = results.filter((r) => r.status === 'rejected').length;
+        const failed = results.filter((r) => r.status === 'failed').length;
+        setSuccessMessage(`${ok} apontamento(s) rejeitado(s)${failed ? `, ${failed} falhou/falharam` : ''}.`);
+        await fetchPendingEntries();
+        return results;
+      } catch (err) {
+        const message = err instanceof Error ? mapDatabaseError(err) : 'Erro na rejeição em lote';
+        setError(message);
+        logError(err, 'usePendingTimeEntries.batchReject');
+        return null;
+      } finally {
+        setActionLoading(null);
+      }
+    },
+    [fetchPendingEntries]
+  );
+
   return {
     entries,
     loading,
@@ -117,6 +177,8 @@ export function usePendingTimeEntries(): UsePendingTimeEntriesReturn {
     successMessage,
     approve,
     reject,
+    batchApprove,
+    batchReject,
     refetch: fetchPendingEntries,
   };
 }

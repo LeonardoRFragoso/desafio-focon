@@ -150,6 +150,9 @@ export type Database = {
           id: string
           professional_id: string
           project_id: string
+          rejection_reason: string | null
+          rejected_at: string | null
+          rejected_by: string | null
           updated_at: string
         }
         Insert: {
@@ -162,6 +165,9 @@ export type Database = {
           id?: string
           professional_id: string
           project_id: string
+          rejection_reason?: string | null
+          rejected_at?: string | null
+          rejected_by?: string | null
           updated_at?: string
         }
         Update: {
@@ -174,6 +180,9 @@ export type Database = {
           id?: string
           professional_id?: string
           project_id?: string
+          rejection_reason?: string | null
+          rejected_at?: string | null
+          rejected_by?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -189,6 +198,461 @@ export type Database = {
             columns: ["project_id"]
             isOneToOne: false
             referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "time_entries_rejected_by_fkey"
+            columns: ["rejected_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      time_entry_approval_history: {
+        Row: {
+          id: string
+          time_entry_id: string
+          previous_status: string
+          new_status: string
+          reason: string | null
+          changed_by: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          time_entry_id: string
+          previous_status: string
+          new_status: string
+          reason?: string | null
+          changed_by: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          time_entry_id?: string
+          previous_status?: string
+          new_status?: string
+          reason?: string | null
+          changed_by?: string
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "time_entry_approval_history_time_entry_id_fkey"
+            columns: ["time_entry_id"]
+            isOneToOne: false
+            referencedRelation: "time_entries"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "time_entry_approval_history_changed_by_fkey"
+            columns: ["changed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      audit_logs: {
+        Row: {
+          id: string
+          actor_id: string | null
+          action: string
+          entity_type: string
+          entity_id: string | null
+          before_data: Json | null
+          after_data: Json | null
+          metadata: Json | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          actor_id?: string | null
+          action: string
+          entity_type: string
+          entity_id?: string | null
+          before_data?: Json | null
+          after_data?: Json | null
+          metadata?: Json | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          actor_id?: string | null
+          action?: string
+          entity_type?: string
+          entity_id?: string | null
+          before_data?: Json | null
+          after_data?: Json | null
+          metadata?: Json | null
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "audit_logs_actor_id_fkey"
+            columns: ["actor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      accounting_periods: {
+        Row: {
+          id: string
+          period_key: string
+          status: string
+          closed_at: string | null
+          closed_by: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          period_key: string
+          status?: string
+          closed_at?: string | null
+          closed_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          period_key?: string
+          status?: string
+          closed_at?: string | null
+          closed_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "accounting_periods_closed_by_fkey"
+            columns: ["closed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      notifications: {
+        Row: {
+          id: string
+          user_id: string
+          type: string
+          title: string
+          body: string | null
+          entity_type: string | null
+          entity_id: string | null
+          read_at: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          type: string
+          title: string
+          body?: string | null
+          entity_type?: string | null
+          entity_id?: string | null
+          read_at?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          type?: string
+          title?: string
+          body?: string | null
+          entity_type?: string | null
+          entity_id?: string | null
+          read_at?: string | null
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notifications_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      time_entry_comments: {
+        Row: {
+          id: string
+          time_entry_id: string
+          author_id: string
+          body: string
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          time_entry_id: string
+          author_id: string
+          body: string
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          time_entry_id?: string
+          author_id?: string
+          body?: string
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "time_entry_comments_time_entry_id_fkey"
+            columns: ["time_entry_id"]
+            isOneToOne: false
+            referencedRelation: "time_entries"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "time_entry_comments_author_id_fkey"
+            columns: ["author_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      time_entry_attachments: {
+        Row: {
+          id: string
+          time_entry_id: string
+          uploaded_by: string
+          file_name: string
+          file_size: number
+          content_type: string
+          storage_path: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          time_entry_id: string
+          uploaded_by: string
+          file_name: string
+          file_size: number
+          content_type: string
+          storage_path: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          time_entry_id?: string
+          uploaded_by?: string
+          file_name?: string
+          file_size?: number
+          content_type?: string
+          storage_path?: string
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "time_entry_attachments_time_entry_id_fkey"
+            columns: ["time_entry_id"]
+            isOneToOne: false
+            referencedRelation: "time_entries"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "time_entry_attachments_uploaded_by_fkey"
+            columns: ["uploaded_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      recurring_time_entry_rules: {
+        Row: {
+          id: string
+          professional_id: string
+          project_id: string
+          description: string
+          duration_minutes: number
+          frequency: string
+          day_of_week: number | null
+          day_of_month: number | null
+          start_date: string
+          end_date: string | null
+          is_active: boolean
+          last_run_date: string | null
+          next_run_date: string
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          professional_id: string
+          project_id: string
+          description: string
+          duration_minutes: number
+          frequency: string
+          day_of_week?: number | null
+          day_of_month?: number | null
+          start_date: string
+          end_date?: string | null
+          is_active?: boolean
+          last_run_date?: string | null
+          next_run_date: string
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          professional_id?: string
+          project_id?: string
+          description?: string
+          duration_minutes?: number
+          frequency?: string
+          day_of_week?: number | null
+          day_of_month?: number | null
+          start_date?: string
+          end_date?: string | null
+          is_active?: boolean
+          last_run_date?: string | null
+          next_run_date?: string
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "recurring_time_entry_rules_professional_id_fkey"
+            columns: ["professional_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "recurring_time_entry_rules_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      project_budgets: {
+        Row: {
+          id: string
+          project_id: string
+          budget_type: string
+          budget_value: number
+          fiscal_year: number
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          project_id: string
+          budget_type: string
+          budget_value: number
+          fiscal_year: number
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          project_id?: string
+          budget_type?: string
+          budget_value?: number
+          fiscal_year?: number
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_budgets_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profitability_alerts: {
+        Row: {
+          id: string
+          project_id: string
+          threshold: number
+          metric: string
+          triggered_at: string | null
+          acknowledged_by: string | null
+          acknowledged_at: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          project_id: string
+          threshold: number
+          metric: string
+          triggered_at?: string | null
+          acknowledged_by?: string | null
+          acknowledged_at?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          project_id?: string
+          threshold?: number
+          metric?: string
+          triggered_at?: string | null
+          acknowledged_by?: string | null
+          acknowledged_at?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profitability_alerts_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profitability_alerts_acknowledged_by_fkey"
+            columns: ["acknowledged_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_preferences: {
+        Row: {
+          user_id: string
+          pref_key: string
+          pref_value: Json
+          updated_at: string
+        }
+        Insert: {
+          user_id: string
+          pref_key: string
+          pref_value?: Json
+          updated_at?: string
+        }
+        Update: {
+          user_id?: string
+          pref_key?: string
+          pref_value?: Json
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_preferences_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -252,6 +716,63 @@ export type Database = {
         }[]
       }
       is_admin: { Args: { user_id: string }; Returns: boolean }
+      approve_time_entry: {
+        Args: { p_entry_id: string }
+        Returns: { id: string; approval_status: string }[]
+      }
+      reject_time_entry: {
+        Args: { p_entry_id: string; p_reason: string }
+        Returns: { id: string; approval_status: string }[]
+      }
+      batch_approve_time_entries: {
+        Args: { p_entry_ids: string[] }
+        Returns: { entry_id: string; status: string; error: string | null }[]
+      }
+      batch_reject_time_entries: {
+        Args: { p_entry_ids: string[]; p_reason: string }
+        Returns: { entry_id: string; status: string; error: string | null }[]
+      }
+      close_accounting_period: {
+        Args: { p_period_key: string }
+        Returns: { period_key: string; status: string }[]
+      }
+      reopen_accounting_period: {
+        Args: { p_period_key: string }
+        Returns: { period_key: string; status: string }[]
+      }
+      is_period_closed: { Args: { p_date: string }; Returns: boolean }
+      write_audit_log: {
+        Args: {
+          p_action: string
+          p_entity_type: string
+          p_entity_id?: string | null
+          p_before_data?: Json | null
+          p_after_data?: Json | null
+          p_metadata?: Json | null
+        }
+        Returns: undefined
+      }
+      create_notification: {
+        Args: {
+          p_user_id: string
+          p_type: string
+          p_title: string
+          p_body?: string | null
+          p_entity_type?: string | null
+          p_entity_id?: string | null
+        }
+        Returns: string
+      }
+      process_recurring_time_entries: {
+        Args: { p_run_date?: string }
+        Returns: {
+          rule_id: string
+          entry_id: string | null
+          status: string
+          error: string | null
+        }[]
+      }
+      touch_updated_at: { Args: Record<string, never>; Returns: never }
     }
     Enums: {
       [_ in never]: never
