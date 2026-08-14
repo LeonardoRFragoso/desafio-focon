@@ -11,7 +11,6 @@ interface TimeEntry {
   description: string;
   approval_status: string;
   created_at: string;
-  applied_hourly_rate: number;
 }
 
 export function TimeEntryList() {
@@ -40,8 +39,7 @@ export function TimeEntryList() {
             duration_minutes,
             description,
             approval_status,
-            created_at,
-            applied_hourly_rate
+            created_at
           `
           )
           .eq('professional_id', user.id)
@@ -58,7 +56,6 @@ export function TimeEntryList() {
           description: string;
           approval_status: string;
           created_at: string;
-          applied_hourly_rate: number;
         }
 
         const formattedData = ((data as unknown as RawTimeEntry[]) || []).map((entry) => ({
@@ -70,7 +67,6 @@ export function TimeEntryList() {
           description: entry.description,
           approval_status: entry.approval_status,
           created_at: entry.created_at,
-          applied_hourly_rate: entry.applied_hourly_rate,
         }));
 
         setEntries(formattedData);
@@ -85,13 +81,6 @@ export function TimeEntryList() {
 
     fetchEntries();
   }, [user]);
-
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'BRL',
-    }).format(value);
-  };
 
   const formatDuration = (minutes: number) => {
     const hours = Math.floor(minutes / 60);
@@ -266,26 +255,6 @@ export function TimeEntryList() {
                   </label>
                   <p className="text-lg font-semibold text-slate-900">
                     {formatDuration(selectedEntry.duration_minutes)}
-                  </p>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-slate-600 mb-2">
-                    Custo/Hora
-                  </label>
-                  <p className="text-lg font-semibold text-slate-900">
-                    {formatCurrency(selectedEntry.applied_hourly_rate)}
-                  </p>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-slate-600 mb-2">
-                    Custo Total
-                  </label>
-                  <p className="text-lg font-semibold text-green-700">
-                    {formatCurrency(
-                      (selectedEntry.duration_minutes / 60) * selectedEntry.applied_hourly_rate
-                    )}
                   </p>
                 </div>
 

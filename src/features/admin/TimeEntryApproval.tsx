@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { usePendingTimeEntries } from '@/hooks/usePendingTimeEntries';
 import type { TimeEntryWithRelations } from '@/types/database';
 
@@ -7,13 +7,24 @@ interface TimeEntryApprovalProps {
 }
 
 export function TimeEntryApproval({ onStatusChanged }: TimeEntryApprovalProps) {
-  const { entries, loading, error, actionLoading, successMessage, approve, reject } =
+  const { entries, loading, error, actionLoading, successMessage, approve: apiApprove, reject: apiReject } =
     usePendingTimeEntries();
   const [selectedEntry, setSelectedEntry] = useState<TimeEntryWithRelations | null>(null);
 
-  useEffect(() => {
-    onStatusChanged?.();
-  }, [entries, onStatusChanged]);
+  // Wrapper functions that call onStatusChanged only after successful mutation
+  const approve = async (entryId: string) => {
+    const succeeded = await apiApprove(entryId);
+    if (succeeded) {
+      onStatusChanged?.();
+    }
+  };
+
+  const reject = async (entryId: string) => {
+    const succeeded = await apiReject(entryId);
+    if (succeeded) {
+      onStatusChanged?.();
+    }
+  };
 
   const formatDuration = (minutes: number) => {
     const hours = Math.floor(minutes / 60);

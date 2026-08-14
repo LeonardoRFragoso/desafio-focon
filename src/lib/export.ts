@@ -27,6 +27,18 @@ function formatDuration(minutes: number): string {
 }
 
 /**
+ * Escape CSV cell to prevent formula injection
+ * Prepend single quote to cells starting with =, +, -, or @
+ */
+export function escapeCSVCell(value: string): string {
+  const trimmed = value.trim();
+  if (trimmed.startsWith('=') || trimmed.startsWith('+') || trimmed.startsWith('-') || trimmed.startsWith('@')) {
+    return `'${value}`;
+  }
+  return value;
+}
+
+/**
  * Export time entries to CSV format
  */
 export function exportToCSV(entries: TimeEntryWithRelations[], filename = 'apontamentos.csv'): void {
@@ -58,8 +70,11 @@ export function exportToCSV(entries: TimeEntryWithRelations[], filename = 'apont
     ...rows.map((row) =>
       row
         .map((cell) => {
+          const cellStr = String(cell);
+          // Prevent formula injection
+          const safeCell = escapeCSVCell(cellStr);
           // Escape quotes and wrap in quotes if contains comma
-          const escaped = String(cell).replace(/"/g, '""');
+          const escaped = safeCell.replace(/"/g, '""');
           return escaped.includes(',') ? `"${escaped}"` : escaped;
         })
         .join(',')
@@ -69,6 +84,21 @@ export function exportToCSV(entries: TimeEntryWithRelations[], filename = 'apont
   // Create blob and download
   const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
   downloadFile(blob, filename);
+}
+
+/**
+ * Escape HTML special characters to prevent XSS
+ */
+export function escapeHTML(text: string | undefined): string {
+  if (!text) return '';
+  const map: Record<string, string> = {
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#39;',
+  };
+  return text.replace(/[&<>"']/g, (char) => map[char] || char);
 }
 
 /**
@@ -82,26 +112,27 @@ export function exportToHTML(
     .map(
       (entry) => `
     <tr>
-      <td>${entry.professional?.full_name || 'Desconhecido'}</td>
-      <td>${entry.project?.name || 'Desconhecido'}</td>
+      <td>${escapeHTML(entry.professional?.full_name || 'Desconhecido')}</td>
+      <td>${escapeHTML(entry.project?.name || 'Desconhecido')}</td>
       <td>${formatDate(entry.entry_date)}</td>
       <td>${formatDuration(entry.duration_minutes)}</td>
-      <td>${entry.description}</td>
+      <td>${escapeHTML(entry.description)}</td>
       <td>${formatCurrency(entry.applied_hourly_rate)}</td>
       <td>${formatCurrency((entry.duration_minutes / 60) * entry.applied_hourly_rate)}</td>
-      <td>${entry.approval_status}</td>
+      <td>${escapeHTML(entry.approval_status)}</td>
     </tr>
   `
     )
     .join('');
 
+  const escapedTitle = escapeHTML(title);
   const html = `
     <!DOCTYPE html>
     <html lang="pt-BR">
     <head>
       <meta charset="UTF-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>${title}</title>
+      <title>${escapedTitle}</title>
       <style>
         body {
           font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
@@ -149,9 +180,9 @@ export function exportToHTML(
       </style>
     </head>
     <body>
-      <h1>${title}</h1>
+      <h1>${escapedTitle}</h1>
       <div class="metadata">
-        <p>Gerado em: ${new Date().toLocaleString('pt-BR')}</p>
+        <p>Gerado em: ${escapeHTML(new Date().toLocaleString('pt-BR'))}</p>
         <p>Total de registros: ${entries.length}</p>
       </div>
       <table>

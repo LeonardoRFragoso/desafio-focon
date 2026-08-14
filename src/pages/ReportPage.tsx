@@ -43,7 +43,7 @@ export function ReportPage() {
         </div>
 
         <div className="print:hidden">
-          <AdminFilters onFilterChange={handleFilterChange} />
+          <AdminFilters filters={filters} onFilterChange={handleFilterChange} />
         </div>
 
         <FinancialReport filters={filters} />

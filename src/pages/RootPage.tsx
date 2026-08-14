@@ -17,7 +17,7 @@ export function RootPage() {
     if (profile?.role === 'admin') {
       navigate('/dashboard', { replace: true });
     } else {
-      navigate('/time-entries', { replace: true });
+      navigate('/my-dashboard', { replace: true });
     }
   }, [user, profile, loading, navigate]);
 

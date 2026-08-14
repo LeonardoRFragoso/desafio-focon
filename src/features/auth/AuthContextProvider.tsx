@@ -1,8 +1,22 @@
 import { type ReactNode, useEffect, useState, useCallback } from 'react';
-import type { User } from '@supabase/supabase-js';
+import type { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase/client';
 import type { Profile } from '@/types/database';
 import { AuthContext } from './AuthContext';
+
+/**
+ * Load profile for a given user ID
+ */
+async function loadProfile(userId: string): Promise<Profile | null> {
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('*')
+    .eq('id', userId)
+    .single();
+
+  if (error) throw error;
+  return data as Profile;
+}
 
 interface AuthState {
   user: User | null;
@@ -19,90 +33,93 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     error: null,
   });
 
+  // Effect 1: Initialize session and listen for auth state changes
   useEffect(() => {
-    // Check current session
+    // Check current session on mount
     const checkSession = async () => {
       try {
         const {
           data: { session },
         } = await supabase.auth.getSession();
 
-        if (session?.user) {
-          const { data: profile, error } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('id', session.user.id)
-            .single();
-
-          if (error) throw error;
-
-          setState({
-            user: session.user,
-            profile: profile as Profile,
-            loading: false,
-            error: null,
-          });
-        } else {
-          setState({
-            user: null,
-            profile: null,
-            loading: false,
-            error: null,
-          });
-        }
+        setState((prev) => ({
+          ...prev,
+          user: session?.user || null,
+          loading: session ? true : false, // Keep loading if user exists (profile will load separately)
+        }));
       } catch (err) {
-        setState({
+        setState((prev) => ({
+          ...prev,
           user: null,
-          profile: null,
           loading: false,
           error: err instanceof Error ? err : new Error('Unknown error'),
-        });
+        }));
       }
     };
 
     checkSession();
 
-    // Listen for auth changes
+    // Listen for auth state changes - only update session, not profile
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (_event: unknown, session: unknown) => {
-      const typedSession = session as { user?: { id: string } } | null;
-      if (typedSession?.user) {
-        const { data: profile, error } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', typedSession.user.id)
-          .single();
-
-        if (error) {
-          setState({
-            user: typedSession.user as User,
-            profile: null,
-            loading: false,
-            error,
-          });
-        } else {
-          setState({
-            user: typedSession.user as User,
-            profile: profile as Profile,
-            loading: false,
-            error: null,
-          });
-        }
-      } else {
-        setState({
-          user: null,
-          profile: null,
-          loading: false,
-          error: null,
-        });
-      }
+    } = supabase.auth.onAuthStateChange((_event, session: Session | null) => {
+      // Just update user, profile will be loaded in separate effect
+      setState((prev) => ({
+        ...prev,
+        user: session?.user || null,
+        loading: session ? true : false,
+      }));
     });
 
     return () => {
       subscription?.unsubscribe();
     };
   }, []);
+
+  // Effect 2: Load profile when user changes (protected against unmount)
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadUserProfile = async () => {
+      if (!state.user) {
+        if (isMounted) {
+          setState((prev) => ({
+            ...prev,
+            profile: null,
+            loading: false,
+          }));
+        }
+        return;
+      }
+
+      try {
+        const profile = await loadProfile(state.user.id);
+        if (isMounted) {
+          setState((prev) => ({
+            ...prev,
+            profile,
+            loading: false,
+            error: null,
+          }));
+        }
+      } catch (err) {
+        if (isMounted) {
+          setState((prev) => ({
+            ...prev,
+            profile: null,
+            loading: false,
+            error: err instanceof Error ? err : new Error('Failed to load profile'),
+          }));
+        }
+      }
+    };
+
+    loadUserProfile();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [state.user]);
 
   const login = useCallback(async (email: string, password: string) => {
     try {

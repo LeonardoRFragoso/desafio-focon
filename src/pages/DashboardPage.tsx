@@ -11,7 +11,7 @@ import type { AdminFilterValues } from '@/types/admin';
 
 export function DashboardPage() {
   const { filters, setFilters, clearFilters } = usePersistedFilters();
-  const { revenue, laborCost, result, margin, professionalData, loading, refetch } =
+  const { revenue, laborCost, result, margin, professionalData, loading, error, refetch } =
     useFinancialData(filters);
   const [dataRevision, setDataRevision] = useState(0);
 
@@ -38,20 +38,28 @@ export function DashboardPage() {
           </p>
         </div>
 
-        <div className="space-y-4">
-          <AdminFilters onFilterChange={handleFilterChange} />
-          {(filters.projectId ||
-            filters.professionalId ||
-            filters.startDate ||
-            filters.endDate) && (
-            <button
-              onClick={handleClearFilters}
-              className="px-4 py-2 text-sm font-medium text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg transition"
-            >
-              Limpar Filtros
-            </button>
-          )}
-        </div>
+        <AdminFilters 
+          filters={filters}
+          onFilterChange={handleFilterChange}
+          onClearFilters={handleClearFilters}
+        />
+
+        {error && (
+          <div 
+            className="rounded-lg bg-red-50 border border-red-200 p-4"
+            role="alert"
+          >
+            <div className="flex items-center justify-between">
+              <p className="text-sm font-medium text-red-800">{error}</p>
+              <button
+                onClick={refetch}
+                className="ml-4 px-3 py-1.5 text-sm font-medium text-red-700 bg-red-100 hover:bg-red-200 rounded transition"
+              >
+                Tentar novamente
+              </button>
+            </div>
+          </div>
+        )}
 
         <FinancialIndicators
           revenue={revenue}
