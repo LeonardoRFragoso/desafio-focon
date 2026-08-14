@@ -270,3 +270,61 @@ Margem (%),${data.margin.toFixed(2)}`;
   const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
   downloadFile(blob, filename);
 }
+
+/**
+ * Export personal time entries to CSV (includes rejection reason).
+ * Used by professionals to export their own entries.
+ */
+export function exportPersonalEntriesCSV(
+  entries: TimeEntryWithRelations[],
+  professionalName: string,
+  filename?: string
+): void {
+  const headers = [
+    'Data',
+    'Projeto',
+    'Duração',
+    'Descrição',
+    'Valor/Hora',
+    'Custo Total',
+    'Status',
+    'Motivo Rejeição',
+    'Rejeitado em',
+  ];
+
+  const statusLabels: Record<string, string> = {
+    pending: 'Pendente',
+    approved: 'Aprovado',
+    rejected: 'Rejeitado',
+  };
+
+  const rows = entries.map((entry) => [
+    formatDate(entry.entry_date),
+    entry.project?.name || 'Desconhecido',
+    formatDuration(entry.duration_minutes),
+    entry.description,
+    formatCurrency(entry.applied_hourly_rate),
+    formatCurrency((entry.duration_minutes / 60) * entry.applied_hourly_rate),
+    statusLabels[entry.approval_status] || entry.approval_status,
+    entry.rejection_reason || '',
+    entry.rejected_at ? new Date(entry.rejected_at).toLocaleString('pt-BR') : '',
+  ]);
+
+  const csvContent = [
+    headers.join(','),
+    ...rows.map((row) =>
+      row
+        .map((cell) => {
+          const cellStr = String(cell);
+          const safeCell = escapeCSVCell(cellStr);
+          const escaped = safeCell.replace(/"/g, '""');
+          return escaped.includes(',') ? `"${escaped}"` : escaped;
+        })
+        .join(',')
+    ),
+  ].join('\n');
+
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const fname = filename || `meus-apontamentos-${professionalName.toLowerCase().replace(/\s+/g, '-')}-${new Date().toISOString().slice(0, 10)}.csv`;
+  downloadFile(blob, fname);
+}

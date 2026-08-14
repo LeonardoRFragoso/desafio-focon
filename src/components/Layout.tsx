@@ -1,6 +1,8 @@
 import { type ReactNode, useState } from 'react';
 import { useNavigate, NavLink } from 'react-router-dom';
 import { useAuthContext } from '@/features/auth/useAuthContext';
+import { NotificationBell } from '@/components/NotificationBell';
+import { DarkThemeToggle } from '@/components/DarkThemeToggle';
 
 interface LayoutProps {
   children: ReactNode;
@@ -179,6 +181,19 @@ export function Layout({ children }: LayoutProps) {
               >
                 Meus Apontamentos
               </NavLink>
+              <NavLink
+                to="/recurring"
+                onClick={closeSidebar}
+                className={({ isActive }) =>
+                  `block px-4 py-3 rounded-lg font-medium transition ${
+                    isActive
+                      ? 'bg-focon-600 text-white'
+                      : 'text-slate-300 hover:bg-focon-800'
+                  }`
+                }
+              >
+                Regras Recorrentes
+              </NavLink>
             </>
           )}
         </nav>
@@ -220,7 +235,9 @@ export function Layout({ children }: LayoutProps) {
                 />
               </svg>
             </button>
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-3">
+              <NotificationBell />
+              <DarkThemeToggle />
               <span className="text-sm text-slate-600">
                 {isAdmin ? 'Administrador' : 'Profissional'}
               </span>

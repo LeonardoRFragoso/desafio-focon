@@ -13,6 +13,7 @@ import { HourlyRatesPage } from '@/pages/admin/HourlyRatesPage';
 import { FinancialManagementPage } from '@/pages/admin/FinancialManagementPage';
 import { AccountingPeriodsPage } from '@/pages/admin/AccountingPeriodsPage';
 import { AuditLogPage } from '@/pages/admin/AuditLogPage';
+import { RecurringRulesPage } from '@/pages/RecurringRulesPage';
 import { ProtectedRoute } from './ProtectedRoute';
 
 export function AppRoutes() {
@@ -98,6 +99,14 @@ export function AppRoutes() {
           element={
             <ProtectedRoute requiredRole="admin">
               <AuditLogPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/recurring"
+          element={
+            <ProtectedRoute requiredRole="member">
+              <RecurringRulesPage />
             </ProtectedRoute>
           }
         />

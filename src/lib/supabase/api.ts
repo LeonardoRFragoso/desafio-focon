@@ -417,3 +417,167 @@ export const accountingPeriodsAPI = {
     return supabase.rpc('reopen_accounting_period', { p_period_key: periodKey });
   },
 };
+
+/**
+ * Notifications API
+ */
+export const notificationsAPI = {
+  list: async (unreadOnly = false) => {
+    let query = supabase
+      .from('notifications')
+      .select('id, user_id, type, title, body, entity_type, entity_id, read_at, created_at')
+      .order('created_at', { ascending: false })
+      .limit(50);
+    if (unreadOnly) query = query.is('read_at', null);
+    return query;
+  },
+  markRead: async (id: string) => {
+    return supabase
+      .from('notifications')
+      .update({ read_at: new Date().toISOString() })
+      .eq('id', id);
+  },
+  markAllRead: async (userId: string) => {
+    return supabase
+      .from('notifications')
+      .update({ read_at: new Date().toISOString() })
+      .eq('user_id', userId)
+      .is('read_at', null);
+  },
+  remove: async (id: string) => {
+    return supabase.from('notifications').delete().eq('id', id);
+  },
+  subscribeToUnread: (userId: string, callback: (count: number) => void) => {
+    const channel = supabase
+      .channel(`notifications:${userId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'notifications',
+          filter: `user_id=eq.${userId}`,
+        },
+        () => {
+          notificationsAPI.list(true).then(({ data }) => {
+            callback((data as unknown[] | null)?.length ?? 0);
+          });
+        }
+      )
+      .subscribe();
+    return channel;
+  },
+};
+
+/**
+ * Comments API (on time entries)
+ */
+export const commentsAPI = {
+  list: async (entryId: string) => {
+    return supabase
+      .from('time_entry_comments')
+      .select(
+        'id, time_entry_id, author_id, body, created_at, updated_at, author:profiles!time_entry_comments_author_id_fkey(full_name)'
+      )
+      .eq('time_entry_id', entryId)
+      .order('created_at', { ascending: true });
+  },
+  create: async (entryId: string, authorId: string, body: string) => {
+    return supabase
+      .from('time_entry_comments')
+      .insert([{ time_entry_id: entryId, author_id: authorId, body }])
+      .select('*')
+      .single();
+  },
+  remove: async (id: string) => {
+    return supabase.from('time_entry_comments').delete().eq('id', id);
+  },
+};
+
+/**
+ * Recurring rules API (own CRUD)
+ */
+export const recurringRulesAPI = {
+  list: async () => {
+    return supabase
+      .from('recurring_time_entry_rules')
+      .select(
+        'id, professional_id, project_id, description, duration_minutes, frequency, day_of_week, day_of_month, start_date, end_date, is_active, last_run_date, next_run_date, created_at, updated_at, project:projects!recurring_time_entry_rules_project_id_fkey(name)'
+      )
+      .order('created_at', { ascending: false });
+  },
+  create: async (data: {
+    professional_id: string;
+    project_id: string;
+    description: string;
+    duration_minutes: number;
+    frequency: 'daily' | 'weekly' | 'monthly';
+    day_of_week?: number | null;
+    day_of_month?: number | null;
+    start_date: string;
+    end_date?: string | null;
+    next_run_date: string;
+  }) => {
+    return supabase.from('recurring_time_entry_rules').insert([data]).select('*').single();
+  },
+  update: async (
+    id: string,
+    data: Partial<{
+      description: string;
+      duration_minutes: number;
+      is_active: boolean;
+      end_date: string | null;
+    }>
+  ) => {
+    return supabase.from('recurring_time_entry_rules').update(data).eq('id', id).select('*').single();
+  },
+  remove: async (id: string) => {
+    return supabase.from('recurring_time_entry_rules').delete().eq('id', id);
+  },
+};
+
+/**
+ * User preferences API (own key-value store)
+ */
+export const userPreferencesAPI = {
+  get: async (userId: string, key: string) => {
+    return supabase
+      .from('user_preferences')
+      .select('pref_value')
+      .eq('user_id', userId)
+      .eq('pref_key', key)
+      .maybeSingle();
+  },
+  set: async (userId: string, key: string, value: unknown) => {
+    return supabase
+      .from('user_preferences')
+      .upsert([{ user_id: userId, pref_key: key, pref_value: value as never }])
+      .select('*')
+      .single();
+  },
+};
+
+/**
+ * Project budgets API (admin CRUD, all read)
+ */
+export const projectBudgetsAPI = {
+  list: async () => {
+    return supabase
+      .from('project_budgets')
+      .select(
+        'id, project_id, budget_type, budget_value, fiscal_year, created_at, updated_at, project:projects!project_budgets_project_id_fkey(name)'
+      )
+      .order('fiscal_year', { ascending: false });
+  },
+  create: async (data: {
+    project_id: string;
+    budget_type: string;
+    budget_value: number;
+    fiscal_year: number;
+  }) => {
+    return supabase.from('project_budgets').insert([data]).select('*').single();
+  },
+  remove: async (id: string) => {
+    return supabase.from('project_budgets').delete().eq('id', id);
+  },
+};
