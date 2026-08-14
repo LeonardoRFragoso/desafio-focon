@@ -11,8 +11,8 @@ interface TimeEntryForApproval {
   description: string;
   approval_status: string;
   applied_hourly_rate: number;
-  profiles?: { full_name: string };
-  projects?: { name: string };
+  profiles?: Array<{ full_name: string }>;
+  projects?: Array<{ name: string }>;
 }
 
 export function TimeEntryApproval() {
@@ -25,7 +25,6 @@ export function TimeEntryApproval() {
 
   const fetchPendingEntries = useCallback(async () => {
     try {
-      setLoading(true);
       setError(null);
 
       const { data, error: err } = await supabase
@@ -62,7 +61,7 @@ export function TimeEntryApproval() {
     fetchPendingEntries();
   }, [fetchPendingEntries]);
 
-  const handleApprove = async (entryId: string) => {
+  const handleApprove = useCallback(async (entryId: string) => {
     if (!user) return;
 
     try {
@@ -84,9 +83,9 @@ export function TimeEntryApproval() {
     } finally {
       setActionLoading(null);
     }
-  };
+  }, [user, fetchPendingEntries]);
 
-  const handleReject = async (entryId: string) => {
+  const handleReject = useCallback(async (entryId: string) => {
     if (!user) return;
 
     try {
@@ -108,7 +107,7 @@ export function TimeEntryApproval() {
     } finally {
       setActionLoading(null);
     }
-  };
+  }, [user, fetchPendingEntries]);
 
   const formatDuration = (minutes: number) => {
     const hours = Math.floor(minutes / 60);
@@ -176,10 +175,10 @@ export function TimeEntryApproval() {
               {entries.map((entry) => (
                 <tr key={entry.id} className="hover:bg-slate-50 transition">
                   <td className="px-6 py-4 text-sm text-slate-900">
-                    {entry.profiles?.full_name || 'Desconhecido'}
+                    {entry.profiles?.[0]?.full_name || 'Desconhecido'}
                   </td>
                   <td className="px-6 py-4 text-sm text-slate-900">
-                    {entry.projects?.name || 'Desconhecido'}
+                    {entry.projects?.[0]?.name || 'Desconhecido'}
                   </td>
                   <td className="px-6 py-4 text-sm text-slate-900">
                     {formatDate(entry.entry_date)}

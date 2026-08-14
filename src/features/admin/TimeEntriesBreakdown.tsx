@@ -22,6 +22,15 @@ interface TimeEntriesBreakdownProps {
   filters: FilterValues;
 }
 
+interface RawEntry {
+  id: string;
+  entry_date: string;
+  duration_minutes: number;
+  applied_hourly_rate: number;
+  profiles?: Array<{ full_name: string }>;
+  projects?: Array<{ name: string }>;
+}
+
 export function TimeEntriesBreakdown({ filters }: TimeEntriesBreakdownProps) {
   const [entries, setEntries] = useState<TimeEntryRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -29,7 +38,6 @@ export function TimeEntriesBreakdown({ filters }: TimeEntriesBreakdownProps) {
 
   const fetchEntries = useCallback(async () => {
     try {
-      setLoading(true);
       setError(null);
 
       let query = supabase
@@ -66,10 +74,10 @@ export function TimeEntriesBreakdown({ filters }: TimeEntriesBreakdownProps) {
 
       if (err) throw err;
 
-      const formatted = (data || []).map((entry: any) => ({
+      const formatted = ((data as RawEntry[]) || []).map((entry) => ({
         id: entry.id,
-        professional_name: entry.profiles?.full_name || 'Desconhecido',
-        project_name: entry.projects?.name || 'Desconhecido',
+        professional_name: entry.profiles?.[0]?.full_name || 'Desconhecido',
+        project_name: entry.projects?.[0]?.name || 'Desconhecido',
         entry_date: entry.entry_date,
         duration_minutes: entry.duration_minutes,
         applied_hourly_rate: entry.applied_hourly_rate,

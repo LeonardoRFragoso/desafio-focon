@@ -37,8 +37,6 @@ export function FinancialReport({ filters }: FinancialReportProps) {
 
   const fetchReportData = useCallback(async () => {
     try {
-      setLoading(true);
-
       // Fetch time entries
       let query = supabase
         .from('time_entries')
@@ -90,10 +88,25 @@ export function FinancialReport({ filters }: FinancialReportProps) {
         revenue: number;
       }
 
+      interface TimeEntryData {
+        professional_id: string;
+        duration_minutes: number;
+        applied_hourly_rate: number;
+        profiles?: Array<{ full_name: string }>;
+      }
+
+      interface FinancialData {
+        project_id: string;
+        contracted_revenue: number;
+        tax_rate: number;
+        indirect_cost: number;
+        projects?: Array<{ name: string }>;
+      }
+
       const profMap = new Map<string, ProfessionalEntry>();
       const projectMap = new Map<string, ProjectEntry>();
 
-      entries?.forEach((entry: any) => {
+      (entries as TimeEntryData[] | undefined)?.forEach((entry) => {
         const cost = (entry.duration_minutes / 60) * entry.applied_hourly_rate;
         totalLaborCost += cost;
 
@@ -116,7 +129,7 @@ export function FinancialReport({ filters }: FinancialReportProps) {
         }
       });
 
-      financials?.forEach((f: any) => {
+      (financials as FinancialData[] | undefined)?.forEach((f) => {
         totalRevenue += f.contracted_revenue;
         totalTax += f.contracted_revenue * f.tax_rate;
         totalIndirectCost += f.indirect_cost;
