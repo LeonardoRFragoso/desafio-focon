@@ -102,8 +102,55 @@ const TIME_ENTRIES = [
   { email: 'carla@example.com', project: 'Edifício Horizonte', date: '2024-08-24', hours: 5, description: 'Aprovação de conformidade' },
 ];
 
+async function findUserByEmail(email) {
+  const perPage = 100;
+  let page = 1;
+
+  while (true) {
+    const { data, error } = await supabase.auth.admin.listUsers({
+      page,
+      perPage,
+    });
+
+    if (error) {
+      throw new Error(`Failed to list users: ${error.message}`);
+    }
+
+    const user = data.users.find(
+      candidate => candidate.email?.toLowerCase() === email.toLowerCase()
+    );
+
+    if (user) return user;
+    if (data.users.length < perPage) return null;
+
+    page += 1;
+  }
+}
+
 async function findOrCreateUser(email, fullName) {
-  // Try to create user
+  // First, try to find existing user
+  let user = await findUserByEmail(email);
+
+  if (user) {
+    // User exists - update to ensure password, confirmation, and metadata
+    const { data: updatedUser, error: updateError } = await supabase.auth.admin.updateUserById(user.id, {
+      password: demoPassword,
+      email_confirm: true,
+      user_metadata: { full_name: fullName },
+    });
+
+    if (updateError) {
+      throw new Error(`Failed to update user ${email}: ${updateError.message}`);
+    }
+
+    if (!updatedUser || !updatedUser.user) {
+      throw new Error(`No user returned after update for ${email}`);
+    }
+
+    return updatedUser.user;
+  }
+
+  // User doesn't exist - create it
   const { data: newUser, error: createError } = await supabase.auth.admin.createUser({
     email,
     password: demoPassword,
@@ -112,8 +159,7 @@ async function findOrCreateUser(email, fullName) {
   });
 
   if (createError) {
-    console.error(`  Create error for ${email}:`, createError.message);
-    throw createError;
+    throw new Error(`Failed to create user ${email}: ${createError.message}`);
   }
 
   if (!newUser || !newUser.user) {
