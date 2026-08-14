@@ -1,23 +1,15 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabase/client';
 import { useAuthContext } from '@/features/auth/useAuthContext';
+import type { TimeEntryWithRelations } from '@/types/database';
 
-interface TimeEntryForApproval {
-  id: string;
-  professional_id: string;
-  project_id: string;
-  entry_date: string;
-  duration_minutes: number;
-  description: string;
-  approval_status: string;
-  applied_hourly_rate: number;
-  professional: Array<{ full_name: string }>;
-  project: Array<{ name: string }>;
+interface TimeEntryApprovalProps {
+  onStatusChanged?: () => void;
 }
 
-export function TimeEntryApproval() {
+export function TimeEntryApproval({ onStatusChanged }: TimeEntryApprovalProps) {
   const { user } = useAuthContext();
-  const [entries, setEntries] = useState<TimeEntryForApproval[]>([]);
+  const [entries, setEntries] = useState<TimeEntryWithRelations[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [actionLoading, setActionLoading] = useState<string | null>(null);
@@ -49,7 +41,7 @@ export function TimeEntryApproval() {
 
       if (err) throw err;
 
-      setEntries((data as TimeEntryForApproval[]) || []);
+      setEntries((data as TimeEntryWithRelations[]) || []);
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Erro ao carregar apontamentos';
       setError(message);
@@ -80,23 +72,29 @@ export function TimeEntryApproval() {
     try {
       setActionLoading(entryId);
       setSuccessMessage(null);
+      setError(null);
 
-      const { error: err } = await supabase
+      const { data, error: err } = await supabase
         .from('time_entries')
         .update({ approval_status: 'approved' })
-        .eq('id', entryId);
+        .eq('id', entryId)
+        .select();
 
       if (err) throw err;
+      if (!data || data.length === 0) {
+        throw new Error('Nenhuma linha foi alterada. O apontamento pode ter sido modificado.');
+      }
 
       setSuccessMessage('Apontamento aprovado com sucesso!');
       await fetchPendingEntries();
+      onStatusChanged?.();
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Erro ao aprovar';
       setError(message);
     } finally {
       setActionLoading(null);
     }
-  }, [user, fetchPendingEntries]);
+  }, [user, fetchPendingEntries, onStatusChanged]);
 
   const handleReject = useCallback(async (entryId: string) => {
     if (!user) return;
@@ -104,23 +102,29 @@ export function TimeEntryApproval() {
     try {
       setActionLoading(entryId);
       setSuccessMessage(null);
+      setError(null);
 
-      const { error: err } = await supabase
+      const { data, error: err } = await supabase
         .from('time_entries')
         .update({ approval_status: 'rejected' })
-        .eq('id', entryId);
+        .eq('id', entryId)
+        .select();
 
       if (err) throw err;
+      if (!data || data.length === 0) {
+        throw new Error('Nenhuma linha foi alterada. O apontamento pode ter sido modificado.');
+      }
 
       setSuccessMessage('Apontamento rejeitado com sucesso!');
       await fetchPendingEntries();
+      onStatusChanged?.();
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Erro ao rejeitar';
       setError(message);
     } finally {
       setActionLoading(null);
     }
-  }, [user, fetchPendingEntries]);
+  }, [user, fetchPendingEntries, onStatusChanged]);
 
   const formatDuration = (minutes: number) => {
     const hours = Math.floor(minutes / 60);

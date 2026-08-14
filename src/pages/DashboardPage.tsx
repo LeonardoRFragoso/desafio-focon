@@ -6,6 +6,7 @@ import { ProfessionalSummary } from '@/features/admin/ProfessionalSummary';
 import { TimeEntryApproval } from '@/features/admin/TimeEntryApproval';
 import { TimeEntriesBreakdown } from '@/features/admin/TimeEntriesBreakdown';
 import { supabase } from '@/lib/supabase/client';
+import type { TimeEntryWithRelations } from '@/types/database';
 
 interface FilterValues {
   projectId: string;
@@ -98,14 +99,7 @@ export function DashboardPage() {
       // Calculate labor cost and group by professional
       const profMap = new Map<string, ProfessionalData>();
 
-      interface TimeEntry {
-        professional_id: string;
-        duration_minutes: number;
-        applied_hourly_rate: number;
-        professional?: Array<{ full_name: string }>;
-      }
-
-      (entries as TimeEntry[] | undefined)?.forEach((entry) => {
+      (entries as TimeEntryWithRelations[] | undefined)?.forEach((entry) => {
         const cost = (entry.duration_minutes / 60) * entry.applied_hourly_rate;
         totalLaborCost += cost;
 
@@ -174,6 +168,10 @@ export function DashboardPage() {
     setFilters(newFilters);
   };
 
+  const handleStatusChanged = useCallback(async () => {
+    await fetchFinancialData();
+  }, [fetchFinancialData]);
+
   return (
     <Layout>
       <div className="max-w-7xl mx-auto space-y-8">
@@ -202,7 +200,7 @@ export function DashboardPage() {
         </div>
 
         <div className="bg-white rounded-lg border border-slate-200 p-6">
-          <TimeEntryApproval />
+          <TimeEntryApproval onStatusChanged={handleStatusChanged} />
         </div>
 
         <div className="bg-white rounded-lg border border-slate-200 p-6">
