@@ -40,24 +40,14 @@ export function TimeEntryList() {
             duration_minutes,
             description,
             approval_status,
-            created_at
+            created_at,
+            applied_hourly_rate
           `
           )
           .eq('professional_id', user.id)
           .order('entry_date', { ascending: false });
 
         if (err) throw err;
-
-        interface RawTimeEntry {
-          id: string;
-          project_id: string;
-          projects: { name: string } | null;
-          entry_date: string;
-          duration_minutes: number;
-          description: string;
-          approval_status: string;
-          created_at: string;
-        }
 
         interface RawTimeEntry {
           id: string;
