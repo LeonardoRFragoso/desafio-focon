@@ -1,8 +1,10 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { renderHook, act } from '@testing-library/react';
+import { usePersistedFilters } from './usePersistedFilters';
 import type { AdminFilterValues } from '@/types/admin';
 
 /**
- * Tests for usePersistedFilters hook
+ * Tests for usePersistedFilters hook with real implementation
  */
 
 describe('usePersistedFilters', () => {
@@ -10,28 +12,26 @@ describe('usePersistedFilters', () => {
 
   beforeEach(() => {
     localStorage.clear();
+    vi.clearAllMocks();
   });
 
   afterEach(() => {
     localStorage.clear();
   });
 
-  it('should initialize with empty filters', () => {
-    const emptyFilters: AdminFilterValues = {
-      projectId: '',
-      projectName: '',
-      professionalId: '',
-      professionalName: '',
-      startDate: '',
-      endDate: '',
-    };
+  it('should initialize with empty filters from localStorage', () => {
+    const { result } = renderHook(() => usePersistedFilters());
 
-    expect(emptyFilters.projectId).toBe('');
-    expect(emptyFilters.professionalId).toBe('');
+    expect(result.current.filters.projectId).toBe('');
+    expect(result.current.filters.professionalId).toBe('');
+    expect(result.current.filters.startDate).toBe('');
+    expect(result.current.filters.endDate).toBe('');
   });
 
-  it('should persist filters to localStorage', () => {
-    const filters: AdminFilterValues = {
+  it('should persist filters to localStorage when setFilters is called', () => {
+    const { result } = renderHook(() => usePersistedFilters());
+
+    const newFilters: AdminFilterValues = {
       projectId: 'proj-123',
       projectName: 'Project A',
       professionalId: 'prof-456',
@@ -40,55 +40,85 @@ describe('usePersistedFilters', () => {
       endDate: '2024-12-31',
     };
 
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(filters));
-    const stored = localStorage.getItem(STORAGE_KEY);
-    const parsed = stored ? JSON.parse(stored) : null;
-
-    expect(parsed).toEqual(filters);
-  });
-
-  it('should clear filters from localStorage', () => {
-    const filters: AdminFilterValues = {
-      projectId: 'proj-123',
-      projectName: 'Project A',
-      professionalId: 'prof-456',
-      professionalName: 'John Doe',
-      startDate: '2024-01-01',
-      endDate: '2024-12-31',
-    };
-
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(filters));
-    expect(localStorage.getItem(STORAGE_KEY)).not.toBeNull();
-
-    localStorage.removeItem(STORAGE_KEY);
-    expect(localStorage.getItem(STORAGE_KEY)).toBeNull();
-  });
-
-  it('should handle invalid JSON gracefully', () => {
-    localStorage.setItem(STORAGE_KEY, 'invalid json');
-    
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      if (stored) {
-        JSON.parse(stored);
-      }
-      // Should throw
-      expect(true).toBe(false);
-    } catch (err) {
-      expect(err).toBeDefined();
-    }
-  });
-
-  it('should not break with old invalid filters', () => {
-    const invalidFilters = { projectId: 'proj-123' }; // Missing required fields
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(invalidFilters));
+    act(() => {
+      result.current.setFilters(newFilters);
+    });
 
     const stored = localStorage.getItem(STORAGE_KEY);
-    const parsed = stored ? JSON.parse(stored) : null;
+    expect(stored).toBeTruthy();
 
-    // Should load but be incomplete
-    expect(parsed).toBeDefined();
+    const parsed = JSON.parse(stored!);
     expect(parsed.projectId).toBe('proj-123');
-    expect(parsed.professionalId).toBeUndefined();
+    expect(parsed.professionalId).toBe('prof-456');
+  });
+
+  it('should restore filters from localStorage on mount', () => {
+    const savedFilters: AdminFilterValues = {
+      projectId: 'proj-789',
+      projectName: 'Project B',
+      professionalId: 'prof-999',
+      professionalName: 'Jane Smith',
+      startDate: '2024-06-01',
+      endDate: '2024-06-30',
+    };
+
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(savedFilters));
+
+    const { result } = renderHook(() => usePersistedFilters());
+
+    expect(result.current.filters.projectId).toBe('proj-789');
+    expect(result.current.filters.professionalId).toBe('prof-999');
+    expect(result.current.filters.startDate).toBe('2024-06-01');
+  });
+
+  it('should clear filters from localStorage when clearFilters is called', () => {
+    const { result } = renderHook(() => usePersistedFilters());
+
+    const newFilters: AdminFilterValues = {
+      projectId: 'proj-123',
+      projectName: 'Project A',
+      professionalId: 'prof-456',
+      professionalName: 'John Doe',
+      startDate: '2024-01-01',
+      endDate: '2024-12-31',
+    };
+
+    act(() => {
+      result.current.setFilters(newFilters);
+    });
+
+    expect(localStorage.getItem(STORAGE_KEY)).toBeTruthy();
+
+    act(() => {
+      result.current.clearFilters();
+    });
+
+    const stored = localStorage.getItem(STORAGE_KEY);
+    const parsed = stored ? JSON.parse(stored) : null;
+
+    expect(parsed.projectId).toBe('');
+    expect(parsed.professionalId).toBe('');
+  });
+
+  it('should handle invalid JSON gracefully and use defaults', () => {
+    localStorage.setItem(STORAGE_KEY, 'invalid json');
+
+    const { result } = renderHook(() => usePersistedFilters());
+
+    // Should fall back to empty filters
+    expect(result.current.filters.projectId).toBe('');
+    expect(result.current.filters.professionalId).toBe('');
+  });
+
+  it('should handle incomplete filters from old versions', () => {
+    const incompleteFilters = { projectId: 'proj-123' };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(incompleteFilters));
+
+    const { result } = renderHook(() => usePersistedFilters());
+
+    // Should merge with defaults
+    expect(result.current.filters.projectId).toBe('proj-123');
+    expect(result.current.filters.professionalId).toBe('');
+    expect(result.current.filters.startDate).toBe('');
   });
 });

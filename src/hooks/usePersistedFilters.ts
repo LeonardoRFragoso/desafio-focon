@@ -3,30 +3,36 @@ import type { AdminFilterValues } from '@/types/admin';
 
 const STORAGE_KEY = 'foconflow_admin_filters';
 
+const DEFAULT_FILTERS: AdminFilterValues = {
+  projectId: '',
+  projectName: '',
+  professionalId: '',
+  professionalName: '',
+  startDate: '',
+  endDate: '',
+};
+
 /**
  * Custom hook for persisting admin filters to localStorage
  */
 export function usePersistedFilters() {
-  const [filters, setFiltersState] = useState<AdminFilterValues>({
-    projectId: '',
-    projectName: '',
-    professionalId: '',
-    professionalName: '',
-    startDate: '',
-    endDate: '',
-  });
+  const [filters, setFiltersState] = useState<AdminFilterValues>(DEFAULT_FILTERS);
 
   // Load filters from localStorage on mount
   useEffect(() => {
     try {
       const stored = localStorage.getItem(STORAGE_KEY);
       if (stored) {
-        const parsed = JSON.parse(stored) as AdminFilterValues;
+        const parsed = JSON.parse(stored) as Partial<AdminFilterValues>;
+        // Merge with defaults to handle incomplete data from old versions
+        const merged = { ...DEFAULT_FILTERS, ...parsed };
         // eslint-disable-next-line react-hooks/set-state-in-effect
-        setFiltersState(parsed);
+        setFiltersState(merged);
       }
     } catch (err) {
       console.error('Failed to load persisted filters:', err);
+      // Fall back to defaults on parse error
+      setFiltersState(DEFAULT_FILTERS);
     }
   }, []);
 
