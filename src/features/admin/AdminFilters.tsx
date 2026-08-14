@@ -78,19 +78,19 @@ export function AdminFilters({ onFilterChange }: AdminFiltersProps) {
   };
 
   return (
-    <div className="bg-white rounded-lg border border-slate-200 p-6 space-y-4">
-      <h3 className="text-lg font-semibold text-slate-900">Filtros</h3>
+    <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm space-y-6">
+      <h3 className="text-xl font-semibold text-slate-900">Filtros</h3>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div>
-          <label htmlFor="project" className="block text-sm font-medium text-slate-700 mb-1">
+          <label htmlFor="project" className="block text-sm font-medium text-slate-700 mb-2">
             Projeto
           </label>
           <select
             id="project"
             value={filters.projectId}
             onChange={(e) => handleProjectChange(e.target.value)}
-            className="w-full px-3 py-2 border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition"
+            className="w-full px-3 py-2.5 border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-focon-600 focus:border-transparent transition"
           >
             <option value="">Todos os projetos</option>
             {projects.map((project) => (
@@ -102,14 +102,14 @@ export function AdminFilters({ onFilterChange }: AdminFiltersProps) {
         </div>
 
         <div>
-          <label htmlFor="professional" className="block text-sm font-medium text-slate-700 mb-1">
+          <label htmlFor="professional" className="block text-sm font-medium text-slate-700 mb-2">
             Profissional
           </label>
           <select
             id="professional"
             value={filters.professionalId}
             onChange={(e) => handleProfessionalChange(e.target.value)}
-            className="w-full px-3 py-2 border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition"
+            className="w-full px-3 py-2.5 border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-focon-600 focus:border-transparent transition"
           >
             <option value="">Todos os profissionais</option>
             {professionals.map((prof) => (
@@ -121,7 +121,7 @@ export function AdminFilters({ onFilterChange }: AdminFiltersProps) {
         </div>
 
         <div>
-          <label htmlFor="startDate" className="block text-sm font-medium text-slate-700 mb-1">
+          <label htmlFor="startDate" className="block text-sm font-medium text-slate-700 mb-2">
             Data Inicial
           </label>
           <input
@@ -129,12 +129,12 @@ export function AdminFilters({ onFilterChange }: AdminFiltersProps) {
             type="date"
             value={filters.startDate}
             onChange={(e) => handleDateChange('startDate', e.target.value)}
-            className="w-full px-3 py-2 border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition"
+            className="w-full px-3 py-2.5 border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-focon-600 focus:border-transparent transition"
           />
         </div>
 
         <div>
-          <label htmlFor="endDate" className="block text-sm font-medium text-slate-700 mb-1">
+          <label htmlFor="endDate" className="block text-sm font-medium text-slate-700 mb-2">
             Data Final
           </label>
           <input
@@ -142,7 +142,7 @@ export function AdminFilters({ onFilterChange }: AdminFiltersProps) {
             type="date"
             value={filters.endDate}
             onChange={(e) => handleDateChange('endDate', e.target.value)}
-            className="w-full px-3 py-2 border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition"
+            className="w-full px-3 py-2.5 border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-focon-600 focus:border-transparent transition"
           />
         </div>
       </div>

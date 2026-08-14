@@ -172,9 +172,9 @@ export function TimeEntryApproval({ onStatusChanged }: TimeEntryApprovalProps) {
           <p className="text-slate-600">Nenhum apontamento pendente de aprovação</p>
         </div>
       ) : (
-        <div className="overflow-x-auto rounded-lg border border-slate-200">
+        <div className="overflow-x-auto rounded-xl border border-slate-200 shadow-sm">
           <table className="w-full">
-            <thead className="bg-slate-50 border-b border-slate-200">
+            <thead className="bg-slate-100 border-b border-slate-200">
               <tr>
                 <th className="px-6 py-3 text-left text-sm font-semibold text-slate-900">Profissional</th>
                 <th className="px-6 py-3 text-left text-sm font-semibold text-slate-900">Projeto</th>

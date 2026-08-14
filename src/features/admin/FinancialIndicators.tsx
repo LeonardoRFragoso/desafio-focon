@@ -57,9 +57,9 @@ export function FinancialIndicators({
 
   if (loading) {
     return (
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6">
         {[...Array(4)].map((_, i) => (
-          <div key={i} className="bg-white rounded-lg border border-slate-200 p-6">
+          <div key={i} className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
             <div className="h-4 bg-slate-200 rounded w-24 mb-4"></div>
             <div className="h-8 bg-slate-200 rounded w-32"></div>
           </div>
@@ -69,16 +69,16 @@ export function FinancialIndicators({
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6">
       {indicators.map((indicator) => (
         <div
           key={indicator.label}
-          className={`rounded-lg border ${indicator.color} p-6`}
+          className={`rounded-xl border ${indicator.color} p-6 shadow-sm`}
         >
-          <p className="text-sm font-medium text-slate-600 mb-2">
+          <p className="text-sm font-medium text-slate-600 mb-3">
             {indicator.label}
           </p>
-          <p className={`text-2xl font-bold ${indicator.textColor}`}>
+          <p className={`text-3xl font-bold ${indicator.textColor}`}>
             {indicator.format(indicator.value)}
           </p>
         </div>

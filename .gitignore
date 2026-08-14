@@ -46,3 +46,5 @@ Desafio_Tecnico_*.pdf
 .env.production.local
 .env.provision.local
 SUPABASE_SERVICE_ROLE_KEY
+.vercel
+.env*
