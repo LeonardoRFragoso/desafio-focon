@@ -5,7 +5,22 @@ import process from 'process';
 
 const isDryRun = process.argv.includes('--dry-run');
 
-// Validate environment variables
+// Dry-run mode: no environment validation needed
+if (isDryRun) {
+  console.log('🔍 DRY RUN MODE - No changes will be made');
+  console.log('\n📋 Planned operations:');
+  console.log('  1. Create/locate users: ana, bruno, carla, admin');
+  console.log('  2. Ensure profiles with correct roles');
+  console.log('  3. Create projects: Residencial Aurora, Edifício Horizonte');
+  console.log('  4. Create project financials');
+  console.log('  5. Create hourly rates');
+  console.log('  6. Create time entries (pending)');
+  console.log('  7. Approve time entries');
+  console.log('\n✅ Dry run validation passed');
+  process.exit(0);
+}
+
+// Real execution: validate environment variables
 const requiredEnvVars = [
   'SUPABASE_URL',
   'SUPABASE_SERVICE_ROLE_KEY',
@@ -16,28 +31,13 @@ const missingVars = requiredEnvVars.filter(v => !process.env[v]);
 if (missingVars.length > 0) {
   console.error(`❌ Missing required environment variables: ${missingVars.join(', ')}`);
   console.error('Please set them in .env.provision.local');
+  console.error('\nUsage: node --env-file=.env.provision.local scripts/provision-remote-demo.mjs');
   process.exit(1);
 }
 
 const supabaseUrl = process.env.SUPABASE_URL;
 const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const demoPassword = process.env.DEMO_USER_PASSWORD;
-
-if (isDryRun) {
-  console.log('🔍 DRY RUN MODE - No changes will be made');
-  console.log(`📍 Supabase URL: ${supabaseUrl}`);
-  console.log('✓ Service role key is set');
-  console.log('✓ Demo password is set');
-  console.log('\n📋 Planned operations:');
-  console.log('  1. Create/locate users: ana, bruno, carla, admin');
-  console.log('  2. Create projects: Residencial Aurora, Edifício Horizonte');
-  console.log('  3. Create project financials');
-  console.log('  4. Create hourly rates');
-  console.log('  5. Create time entries (pending)');
-  console.log('  6. Approve time entries');
-  console.log('\n✅ Dry run validation passed');
-  process.exit(0);
-}
 
 const supabase = createClient(supabaseUrl, serviceRoleKey);
 
@@ -102,64 +102,66 @@ const TIME_ENTRIES = [
   { email: 'carla@example.com', project: 'Edifício Horizonte', date: '2024-08-24', hours: 5, description: 'Aprovação de conformidade' },
 ];
 
+async function findOrCreateUser(email, fullName) {
+  // Try to create user
+  const { data: newUser, error: createError } = await supabase.auth.admin.createUser({
+    email,
+    password: demoPassword,
+    email_confirm: true,
+    user_metadata: { full_name: fullName },
+  });
+
+  if (createError) {
+    console.error(`  Create error for ${email}:`, createError.message);
+    throw createError;
+  }
+
+  if (!newUser || !newUser.user) {
+    throw new Error(`No user returned after creation for ${email}`);
+  }
+
+  return newUser.user;
+}
+
 async function provision() {
   try {
     console.log('🚀 Starting demo provisioning...\n');
 
-    // Step 1: Create/locate users
+    // Step 1: Process users
     console.log('📝 Processing users...');
     const userMap = new Map();
 
     for (const user of USERS) {
       try {
-        // Try to get existing user
-        const { data: existingUser } = await supabase.auth.admin.getUserById(
-          // We'll use email lookup instead
-        );
+        const authUser = await findOrCreateUser(user.email, user.fullName);
 
-        // Create user if doesn't exist
-        const { data: authUser, error: authError } = await supabase.auth.admin.createUser({
-          email: user.email,
-          password: demoPassword,
-          email_confirm: true,
-          user_metadata: { full_name: user.fullName },
-        });
-
-        if (authError && !authError.message.includes('already exists')) {
-          throw authError;
+        if (!authUser.id) {
+          throw new Error(`Failed to get user ID for ${user.email}`);
         }
 
-        if (authUser) {
-          userMap.set(user.email, authUser.user.id);
-          console.log(`  ✓ User created: ${user.email}`);
-        } else {
-          // User already exists, fetch by email
-          const { data: users } = await supabase.auth.admin.listUsers();
-          const existingUser = users.users.find(u => u.email === user.email);
-          if (existingUser) {
-            userMap.set(user.email, existingUser.id);
-            console.log(`  ✓ User exists: ${user.email}`);
-          }
-        }
+        userMap.set(user.email, { id: authUser.id, ...user });
+        console.log(`  ✓ User processed: ${user.email}`);
       } catch (error) {
-        console.error(`  ❌ Error with user ${user.email}:`, error.message);
-        throw error;
+        throw new Error(`Failed to process user ${user.email}: ${error.message}`);
       }
     }
 
-    // Step 2: Update profiles with correct roles
-    console.log('\n📋 Updating profiles...');
-    for (const user of USERS) {
-      const userId = userMap.get(user.email);
-      if (userId) {
-        const { error } = await supabase
-          .from('profiles')
-          .update({ full_name: user.fullName, role: user.role })
-          .eq('id', userId);
+    // Step 2: Ensure profiles
+    console.log('\n📋 Ensuring profiles...');
+    for (const [email, userData] of userMap) {
+      const { error: upsertError } = await supabase
+        .from('profiles')
+        .upsert(
+          {
+            id: userData.id,
+            full_name: userData.fullName,
+            role: userData.role,
+          },
+          { onConflict: 'id' }
+        );
 
-        if (error) throw error;
-        console.log(`  ✓ Profile updated: ${user.email} (${user.role})`);
-      }
+      if (upsertError) throw new Error(`Failed to upsert profile for ${email}: ${upsertError.message}`);
+      console.log(`  ✓ Profile ensured: ${email} (${userData.role})`);
     }
 
     // Step 3: Create projects
@@ -167,18 +169,20 @@ async function provision() {
     const projectMap = new Map();
 
     for (const project of PROJECTS) {
-      const { data: existingProject } = await supabase
+      const { data: existingProject, error: selectError } = await supabase
         .from('projects')
         .select('id')
         .eq('name', project.name)
-        .single();
+        .maybeSingle();
+
+      if (selectError) throw new Error(`Failed to query project ${project.name}: ${selectError.message}`);
 
       let projectId;
       if (existingProject) {
         projectId = existingProject.id;
         console.log(`  ✓ Project exists: ${project.name}`);
       } else {
-        const { data: newProject, error } = await supabase
+        const { data: newProject, error: insertError } = await supabase
           .from('projects')
           .insert([
             {
@@ -192,7 +196,7 @@ async function provision() {
           .select('id')
           .single();
 
-        if (error) throw error;
+        if (insertError) throw new Error(`Failed to create project ${project.name}: ${insertError.message}`);
         projectId = newProject.id;
         console.log(`  ✓ Project created: ${project.name}`);
       }
@@ -203,14 +207,16 @@ async function provision() {
     // Step 4: Create project financials
     console.log('\n💰 Creating project financials...');
     for (const [projectName, projectData] of projectMap) {
-      const { data: existingFinancial } = await supabase
+      const { data: existingFinancial, error: selectError } = await supabase
         .from('project_financials')
         .select('project_id')
         .eq('project_id', projectData.id)
-        .single();
+        .maybeSingle();
+
+      if (selectError) throw new Error(`Failed to query financials for ${projectName}: ${selectError.message}`);
 
       if (!existingFinancial) {
-        const { error } = await supabase
+        const { error: insertError } = await supabase
           .from('project_financials')
           .insert([
             {
@@ -221,7 +227,7 @@ async function provision() {
             },
           ]);
 
-        if (error) throw error;
+        if (insertError) throw new Error(`Failed to create financials for ${projectName}: ${insertError.message}`);
         console.log(`  ✓ Financial data created: ${projectName}`);
       } else {
         console.log(`  ✓ Financial data exists: ${projectName}`);
@@ -231,82 +237,126 @@ async function provision() {
     // Step 5: Create hourly rates
     console.log('\n💵 Creating hourly rates...');
     for (const rate of HOURLY_RATES) {
-      const userId = userMap.get(rate.email);
-      if (userId) {
-        const { data: existingRate } = await supabase
+      const userData = userMap.get(rate.email);
+      if (!userData) {
+        throw new Error(`User ${rate.email} not found in userMap`);
+      }
+
+      const { data: existingRate, error: selectError } = await supabase
+        .from('hourly_rates')
+        .select('id')
+        .eq('professional_id', userData.id)
+        .eq('valid_from', rate.validFrom)
+        .maybeSingle();
+
+      if (selectError) throw new Error(`Failed to query hourly rate for ${rate.email}: ${selectError.message}`);
+
+      if (!existingRate) {
+        const { error: insertError } = await supabase
           .from('hourly_rates')
-          .select('id')
-          .eq('professional_id', userId)
-          .eq('valid_from', rate.validFrom)
-          .single();
+          .insert([
+            {
+              professional_id: userData.id,
+              hourly_rate: rate.rate,
+              valid_from: rate.validFrom,
+              valid_until: rate.validUntil,
+            },
+          ]);
 
-        if (!existingRate) {
-          const { error } = await supabase
-            .from('hourly_rates')
-            .insert([
-              {
-                professional_id: userId,
-                hourly_rate: rate.rate,
-                valid_from: rate.validFrom,
-                valid_until: rate.validUntil,
-              },
-            ]);
-
-          if (error) throw error;
-          console.log(`  ✓ Hourly rate created: ${rate.email} (R$ ${rate.rate}/h)`);
-        } else {
-          console.log(`  ✓ Hourly rate exists: ${rate.email}`);
-        }
+        if (insertError) throw new Error(`Failed to create hourly rate for ${rate.email}: ${insertError.message}`);
+        console.log(`  ✓ Hourly rate created: ${rate.email} (R$ ${rate.rate}/h)`);
+      } else {
+        console.log(`  ✓ Hourly rate exists: ${rate.email}`);
       }
     }
 
     // Step 6: Create time entries
     console.log('\n⏱️  Creating time entries...');
     for (const entry of TIME_ENTRIES) {
-      const userId = userMap.get(entry.email);
-      const projectId = projectMap.get(entry.project)?.id;
+      const userData = userMap.get(entry.email);
+      const projectData = projectMap.get(entry.project);
 
-      if (userId && projectId) {
-        const { data: existingEntry } = await supabase
-          .from('time_entries')
-          .select('id')
-          .eq('professional_id', userId)
-          .eq('project_id', projectId)
-          .eq('entry_date', entry.date)
-          .eq('description', entry.description)
-          .single();
+      if (!userData) {
+        throw new Error(`User ${entry.email} not found in userMap`);
+      }
+      if (!projectData) {
+        throw new Error(`Project ${entry.project} not found in projectMap`);
+      }
 
-        if (!existingEntry) {
-          const { data: newEntry, error } = await supabase
-            .from('time_entries')
-            .insert([
-              {
-                professional_id: userId,
-                project_id: projectId,
-                entry_date: entry.date,
-                duration_minutes: entry.hours * 60,
-                description: entry.description,
-                approval_status: 'pending',
-                applied_hourly_rate: 0, // Will be set by trigger
-              },
-            ])
-            .select('id, applied_hourly_rate')
-            .single();
+      // Check if entry already exists
+      const { data: existingEntry, error: selectError } = await supabase
+        .from('time_entries')
+        .select('id, approval_status, applied_hourly_rate')
+        .eq('professional_id', userData.id)
+        .eq('project_id', projectData.id)
+        .eq('entry_date', entry.date)
+        .eq('description', entry.description)
+        .maybeSingle();
 
-          if (error) throw error;
+      if (selectError) throw new Error(`Failed to query time entry: ${selectError.message}`);
 
-          // Approve the entry
-          const { error: approveError } = await supabase
+      if (existingEntry) {
+        // Entry exists - ensure it's approved and has a rate
+        if (existingEntry.approval_status !== 'approved') {
+          const { error: updateError } = await supabase
             .from('time_entries')
             .update({ approval_status: 'approved' })
-            .eq('id', newEntry.id);
+            .eq('id', existingEntry.id);
 
-          if (approveError) throw approveError;
-
-          console.log(`  ✓ Time entry created & approved: ${entry.email} - ${entry.project} (${entry.hours}h)`);
+          if (updateError) throw new Error(`Failed to approve existing entry: ${updateError.message}`);
+          console.log(`  ✓ Time entry approved: ${entry.email} - ${entry.project} (${entry.hours}h)`);
         } else {
-          console.log(`  ✓ Time entry exists: ${entry.email} - ${entry.project}`);
+          console.log(`  ✓ Time entry exists (approved): ${entry.email} - ${entry.project}`);
         }
+
+        if (!existingEntry.applied_hourly_rate || existingEntry.applied_hourly_rate <= 0) {
+          throw new Error(`Entry exists but has no valid hourly rate: ${existingEntry.id}`);
+        }
+      } else {
+        // Create new entry
+        const { data: newEntry, error: insertError } = await supabase
+          .from('time_entries')
+          .insert([
+            {
+              professional_id: userData.id,
+              project_id: projectData.id,
+              entry_date: entry.date,
+              duration_minutes: entry.hours * 60,
+              description: entry.description,
+              approval_status: 'pending',
+              applied_hourly_rate: 0, // Will be set by trigger
+            },
+          ])
+          .select('id, applied_hourly_rate')
+          .single();
+
+        if (insertError) throw new Error(`Failed to create time entry: ${insertError.message}`);
+
+        if (!newEntry.id) {
+          throw new Error('Failed to get ID of newly created time entry');
+        }
+
+        // Approve the entry
+        const { error: approveError } = await supabase
+          .from('time_entries')
+          .update({ approval_status: 'approved' })
+          .eq('id', newEntry.id);
+
+        if (approveError) throw new Error(`Failed to approve time entry: ${approveError.message}`);
+
+        // Fetch to verify rate was set
+        const { data: verifyEntry, error: verifyError } = await supabase
+          .from('time_entries')
+          .select('applied_hourly_rate')
+          .eq('id', newEntry.id)
+          .single();
+
+        if (verifyError) throw new Error(`Failed to verify time entry: ${verifyError.message}`);
+        if (!verifyEntry.applied_hourly_rate || verifyEntry.applied_hourly_rate <= 0) {
+          throw new Error(`Time entry created but hourly rate not set: ${newEntry.id}`);
+        }
+
+        console.log(`  ✓ Time entry created & approved: ${entry.email} - ${entry.project} (${entry.hours}h, R$ ${verifyEntry.applied_hourly_rate}/h)`);
       }
     }
 
