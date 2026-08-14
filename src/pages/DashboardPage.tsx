@@ -29,12 +29,17 @@ export function DashboardPage() {
   const [margin, setMargin] = useState(0);
   const [professionalData, setProfessionalData] = useState<ProfessionalData[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshKey, setRefreshKey] = useState(0);
   const [filters, setFilters] = useState<FilterValues>({
     projectId: '',
     professionalId: '',
     startDate: '',
     endDate: '',
   });
+
+  const handleApprovalStatusChanged = useCallback(() => {
+    setRefreshKey((prev) => prev + 1);
+  }, []);
 
   const fetchFinancialData = useCallback(async () => {
     try {
@@ -148,7 +153,7 @@ export function DashboardPage() {
     } finally {
       setLoading(false);
     }
-  }, [filters.projectId, filters.professionalId, filters.startDate, filters.endDate]);
+  }, [filters.projectId, filters.professionalId, filters.startDate, filters.endDate, refreshKey]);
 
   useEffect(() => {
     fetchFinancialData();
@@ -186,7 +191,7 @@ export function DashboardPage() {
         </div>
 
         <div className="bg-white rounded-lg border border-slate-200 p-6">
-          <TimeEntryApproval />
+          <TimeEntryApproval onStatusChanged={handleApprovalStatusChanged} />
         </div>
 
         <div className="bg-white rounded-lg border border-slate-200 p-6">

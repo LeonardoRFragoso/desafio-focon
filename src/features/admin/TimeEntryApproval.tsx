@@ -15,7 +15,11 @@ interface TimeEntryForApproval {
   project: { name: string };
 }
 
-export function TimeEntryApproval() {
+interface TimeEntryApprovalProps {
+  onStatusChanged?: () => void;
+}
+
+export function TimeEntryApproval({ onStatusChanged }: TimeEntryApprovalProps) {
   const { user } = useAuthContext();
   const [entries, setEntries] = useState<TimeEntryForApproval[]>([]);
   const [loading, setLoading] = useState(true);
@@ -77,13 +81,14 @@ export function TimeEntryApproval() {
 
       setSuccessMessage('Apontamento aprovado com sucesso!');
       await fetchPendingEntries();
+      onStatusChanged?.();
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Erro ao aprovar';
       setError(message);
     } finally {
       setActionLoading(null);
     }
-  }, [user, fetchPendingEntries]);
+  }, [user, fetchPendingEntries, onStatusChanged]);
 
   const handleReject = useCallback(async (entryId: string) => {
     if (!user) return;
@@ -101,13 +106,14 @@ export function TimeEntryApproval() {
 
       setSuccessMessage('Apontamento rejeitado!');
       await fetchPendingEntries();
+      onStatusChanged?.();
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Erro ao rejeitar';
       setError(message);
     } finally {
       setActionLoading(null);
     }
-  }, [user, fetchPendingEntries]);
+  }, [user, fetchPendingEntries, onStatusChanged]);
 
   const formatDuration = (minutes: number) => {
     const hours = Math.floor(minutes / 60);
