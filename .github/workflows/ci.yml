@@ -6,9 +6,20 @@ on:
   pull_request:
     branches: [main]
 
+# Cancel obsolete runs on the same PR/feature branch to save runner time.
+# Main pushes are never cancelled (they don't match the PR/feat patterns).
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+# Least privilege — the workflow only reads code and runs checks.
+permissions:
+  contents: read
+
 jobs:
   frontend:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
 
     strategy:
       matrix:
@@ -32,11 +43,18 @@ jobs:
       - name: Run type check
         run: npm run typecheck
 
+      - name: Run frontend tests
+        run: npm run test
+
       - name: Build
         run: npm run build
 
+      - name: Audit (high severity only)
+        run: npm audit --audit-level=high
+
   database:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
 
     steps:
       - uses: actions/checkout@v5
@@ -58,6 +76,9 @@ jobs:
 
       - name: Verify migrations applied
         run: supabase migration list --local
+
+      - name: Run database/RLS tests
+        run: bash scripts/test-database.sh
 
       - name: Stop Supabase
         if: always()
