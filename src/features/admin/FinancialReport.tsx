@@ -228,7 +228,7 @@ export function FinancialReport({ filters }: FinancialReportProps) {
         </div>
       )}
       {!hasFilters && (
-        <div className="bg-focon-50 border border-focon-200 p-4 text-sm text-focon-800">
+        <div className="bg-focon-50 dark:bg-focon-900/30 border border-focon-200 dark:border-focon-800 p-4 text-sm text-focon-800 dark:text-focon-200">
           <p className="font-semibold">Nenhum filtro aplicado - Exibindo todos os dados</p>
         </div>
       )}
@@ -242,11 +242,11 @@ export function FinancialReport({ filters }: FinancialReportProps) {
 
       {/* Indicators */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 print:gap-2">
-        <div className="bg-white dark:bg-slate-900 border border-focon-200 p-4 print:border print:border-slate-900">
+        <div className="bg-white dark:bg-slate-900 border border-focon-200 dark:border-focon-800 p-4 print:border print:border-slate-900">
           <p className="text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase">Receita</p>
-          <p className="text-xl font-bold text-focon-900 mt-2">{formatCurrency(data.revenue)}</p>
+          <p className="text-xl font-bold text-focon-700 dark:text-focon-300 mt-2 print:text-focon-900">{formatCurrency(data.revenue)}</p>
         </div>
-        <div className="bg-white dark:bg-slate-900 border border-focon-200 p-4 print:border print:border-slate-900">
+        <div className="bg-white dark:bg-slate-900 border border-focon-200 dark:border-focon-800 p-4 print:border print:border-slate-900">
           <p className="text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase">Mão de Obra</p>
           <p className="text-xl font-bold text-slate-900 dark:text-slate-100 mt-2">{formatCurrency(data.laborCost)}</p>
         </div>
@@ -254,9 +254,9 @@ export function FinancialReport({ filters }: FinancialReportProps) {
           <p className="text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase">Resultado</p>
           <p className="text-xl font-bold text-green-700 dark:text-green-400 mt-2">{formatCurrency(data.result)}</p>
         </div>
-        <div className="bg-white dark:bg-slate-900 border border-focon-200 p-4 print:border print:border-slate-900">
+        <div className="bg-white dark:bg-slate-900 border border-focon-200 dark:border-focon-800 p-4 print:border print:border-slate-900">
           <p className="text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase">Margem</p>
-          <p className="text-xl font-bold text-focon-900 mt-2">{data.margin.toFixed(2)}%</p>
+          <p className="text-xl font-bold text-focon-700 dark:text-focon-300 mt-2 print:text-focon-900">{data.margin.toFixed(2)}%</p>
         </div>
       </div>
 
@@ -264,7 +264,7 @@ export function FinancialReport({ filters }: FinancialReportProps) {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 print:gap-4">
         <div className="space-y-2">
           <h3 className="font-semibold text-slate-900 dark:text-slate-100">Composição do Resultado</h3>
-          <div className="space-y-1 text-sm">
+          <div className="space-y-1 text-sm text-slate-700 dark:text-slate-300">
             <div className="flex justify-between">
               <span>Receita</span>
               <span className="font-semibold">{formatCurrency(data.revenue)}</span>
@@ -290,7 +290,7 @@ export function FinancialReport({ filters }: FinancialReportProps) {
 
         <div className="space-y-2">
           <h3 className="font-semibold text-slate-900 dark:text-slate-100">Projetos</h3>
-          <div className="space-y-1 text-sm">
+          <div className="space-y-1 text-sm text-slate-700 dark:text-slate-300">
             {data.projects.map((project) => (
               <div key={project.name} className="flex justify-between">
                 <span>{project.name}</span>
@@ -305,13 +305,13 @@ export function FinancialReport({ filters }: FinancialReportProps) {
       <div className="space-y-2">
         <h3 className="font-semibold text-slate-900 dark:text-slate-100">Resumo por Profissional</h3>
         <div className="overflow-x-auto">
-          <table className="w-full text-sm border-collapse print:text-xs">
+          <table className="w-full text-sm border-collapse print:text-xs text-slate-700 dark:text-slate-300">
             <thead>
               <tr className="border-b border-slate-200 dark:border-slate-700 print:border-b-2 print:border-slate-900">
-                <th className="text-left py-2 px-2 font-semibold">Profissional</th>
-                <th className="text-right py-2 px-2 font-semibold">Horas</th>
-                <th className="text-right py-2 px-2 font-semibold">Custo/h</th>
-                <th className="text-right py-2 px-2 font-semibold">Custo Total</th>
+                <th className="text-left py-2 px-2 font-semibold text-slate-900 dark:text-slate-100 print:text-slate-900">Profissional</th>
+                <th className="text-right py-2 px-2 font-semibold text-slate-900 dark:text-slate-100 print:text-slate-900">Horas</th>
+                <th className="text-right py-2 px-2 font-semibold text-slate-900 dark:text-slate-100 print:text-slate-900">Custo/h</th>
+                <th className="text-right py-2 px-2 font-semibold text-slate-900 dark:text-slate-100 print:text-slate-900">Custo Total</th>
               </tr>
             </thead>
             <tbody>

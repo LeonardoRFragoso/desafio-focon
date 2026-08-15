@@ -78,4 +78,62 @@ describe('Layout', () => {
     renderLayout();
     expect(screen.getByText('Sair')).toBeInTheDocument();
   });
+
+  it('aligns header controls to the right via ml-auto', () => {
+    const { container } = renderLayout();
+    const header = container.querySelector('header');
+    expect(header).not.toBeNull();
+    const controlsDiv = header?.querySelector('.ml-auto');
+    expect(controlsDiv).not.toBeNull();
+    // The controls group should contain the bell, theme toggle and role label
+    expect(controlsDiv?.querySelector('[data-testid="notification-bell"]')).not.toBeNull();
+    expect(controlsDiv?.querySelector('[data-testid="theme-toggle"]')).not.toBeNull();
+  });
+
+  it('uses a coherent z-index hierarchy (header below sidebar)', () => {
+    const { container } = renderLayout();
+    const header = container.querySelector('header');
+    const aside = container.querySelector('aside');
+    expect(header?.className).toContain('z-30');
+    expect(aside?.className).toContain('z-[60]');
+  });
+
+  it('sidebar nav has the sidebar-scrollbar class', () => {
+    const { container } = renderLayout();
+    const nav = container.querySelector('aside nav');
+    expect(nav?.className).toContain('sidebar-scrollbar');
+  });
+
+  it('sidebar uses flex-col structure with shrink-0 brand and footer', () => {
+    const { container } = renderLayout();
+    const aside = container.querySelector('aside');
+    expect(aside?.className).toContain('flex flex-col');
+    // Brand area (first child) should be shrink-0
+    const brandArea = aside?.children[0];
+    expect(brandArea?.className).toContain('shrink-0');
+    // Footer (last child) should be shrink-0 and NOT absolute
+    const footer = aside?.lastElementChild;
+    expect(footer?.className).toContain('shrink-0');
+    expect(footer?.className).not.toContain('absolute');
+  });
+
+  it('sidebar nav is the scrollable flex-1 region', () => {
+    const { container } = renderLayout();
+    const nav = container.querySelector('aside nav');
+    expect(nav?.className).toContain('flex-1');
+    expect(nav?.className).toContain('min-h-0');
+    expect(nav?.className).toContain('overflow-y-auto');
+  });
+
+  it('footer remains outside the scrollable navigation', () => {
+    const { container } = renderLayout();
+    const aside = container.querySelector('aside');
+    const nav = aside?.querySelector('nav');
+    const footer = aside?.lastElementChild;
+    // The footer should NOT be inside the nav
+    expect(nav?.contains(footer ?? null)).toBe(false);
+    // The footer should contain the user email and logout button
+    expect(footer?.textContent).toContain('user@focon.com');
+    expect(footer?.textContent).toContain('Sair');
+  });
 });

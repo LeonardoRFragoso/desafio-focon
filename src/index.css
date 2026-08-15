@@ -61,6 +61,9 @@
   --table-row: #ffffff; /* white */
   --table-row-hover: #f8fafc; /* slate-50 */
   --table-divider: #e2e8f0; /* slate-200 */
+
+  --app-scrollbar-thumb: #cbd5e1; /* slate-300 */
+  --app-scrollbar-thumb-hover: #94a3b8; /* slate-400 */
 }
 
 .dark {
@@ -89,6 +92,9 @@
   --table-row: #0f172a; /* slate-900 */
   --table-row-hover: #1e293b; /* slate-800 */
   --table-divider: #334155; /* slate-700 */
+
+  --app-scrollbar-thumb: #475569; /* slate-600 */
+  --app-scrollbar-thumb-hover: #64748b; /* slate-500 */
 }
 
 /*
@@ -164,6 +170,60 @@
 
   .placeholder-input::placeholder {
     color: var(--input-placeholder);
+  }
+
+  /*
+   * Semantic scrollbar utilities.
+   *
+   * Applied explicitly to scrollable containers (sidebar nav, notification
+   * panel, etc.) so we never style every scrollbar globally — tables, modals
+   * and print keep their native behavior unless they opt in.
+   *
+   * Two variants:
+   *   .sidebar-scrollbar  — always-dark surface (sidebar is focon-950 in both
+   *                         themes), so the thumb uses focon tones on a
+   *                         transparent track.
+   *   .app-scrollbar      — theme-aware surface (notification panel, cards),
+   *                         follows the active theme via the semantic tokens.
+   */
+  .sidebar-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-focon-800) transparent;
+    scrollbar-gutter: stable;
+  }
+  .sidebar-scrollbar::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  .sidebar-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .sidebar-scrollbar::-webkit-scrollbar-thumb {
+    background-color: var(--color-focon-800);
+    border-radius: 999px;
+  }
+  .sidebar-scrollbar::-webkit-scrollbar-thumb:hover {
+    background-color: var(--color-focon-600);
+  }
+
+  .app-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: var(--app-scrollbar-thumb) transparent;
+    scrollbar-gutter: stable;
+  }
+  .app-scrollbar::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  .app-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .app-scrollbar::-webkit-scrollbar-thumb {
+    background-color: var(--app-scrollbar-thumb);
+    border-radius: 999px;
+  }
+  .app-scrollbar::-webkit-scrollbar-thumb:hover {
+    background-color: var(--app-scrollbar-thumb-hover);
   }
 }
 

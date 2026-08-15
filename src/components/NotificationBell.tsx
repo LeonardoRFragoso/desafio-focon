@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect, useRef } from 'react';
 import { useNotifications } from '@/hooks/useNotifications';
 import type { Notification } from '@/types/database';
 
@@ -36,18 +36,38 @@ export function NotificationBell() {
   const { notifications, unreadCount, loading, open, setOpen, markRead, markAllRead, remove } =
     useNotifications();
   const [typeFilter, setTypeFilter] = useState('');
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const panelId = 'notification-panel';
 
   const filteredNotifications = useMemo(() => {
     if (!typeFilter) return notifications;
     return notifications.filter((n) => n.type === typeFilter);
   }, [notifications, typeFilter]);
 
+  // Escape closes the panel and restores focus to the bell.
+  useEffect(() => {
+    if (!open) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.stopPropagation();
+        setOpen(false);
+        buttonRef.current?.focus();
+      }
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [open, setOpen]);
+
   return (
     <div className="relative">
       <button
+        ref={buttonRef}
         onClick={() => setOpen(!open)}
         className="relative p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition"
         aria-label={`Notificações${unreadCount > 0 ? ` (${unreadCount} não lidas)` : ''}`}
+        aria-expanded={open}
+        aria-haspopup="dialog"
+        aria-controls={open ? panelId : undefined}
       >
         <svg className="w-5 h-5 text-slate-600 dark:text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
@@ -61,14 +81,19 @@ export function NotificationBell() {
 
       {open && (
         <>
-          <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
-          <div className="absolute right-0 mt-2 w-80 sm:w-96 bg-white dark:bg-slate-900 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 z-50 max-h-96 overflow-y-auto">
-            <div className="sticky top-0 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700 p-3 flex justify-between items-center">
+          <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} aria-hidden="true" />
+          <div
+            id={panelId}
+            role="dialog"
+            aria-label="Notificações"
+            className="absolute right-0 mt-2 w-[min(24rem,calc(100vw-2rem))] bg-white dark:bg-slate-900 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 z-50 flex flex-col max-h-[min(24rem,70vh)]"
+          >
+            <div className="shrink-0 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700 p-3 flex justify-between items-center rounded-t-xl">
               <h3 className="font-semibold text-slate-900 dark:text-slate-100">Notificações</h3>
               {unreadCount > 0 && (
                 <button
                   onClick={markAllRead}
-                  className="text-xs text-focon-600 hover:text-focon-700 font-medium"
+                  className="text-xs text-focon-600 hover:text-focon-700 dark:text-focon-400 dark:hover:text-focon-300 font-medium"
                 >
                   Marcar todas como lidas
                 </button>
@@ -76,7 +101,7 @@ export function NotificationBell() {
             </div>
 
             {notifications.length > 0 && (
-              <div className="px-3 py-2 border-b border-slate-100 dark:border-slate-800">
+              <div className="shrink-0 px-3 py-2 border-b border-slate-100 dark:border-slate-800">
                 <select
                   value={typeFilter}
                   onChange={(e) => setTypeFilter(e.target.value)}
@@ -94,54 +119,56 @@ export function NotificationBell() {
               </div>
             )}
 
-            {loading ? (
-              <div className="p-8 text-center text-sm text-slate-500 dark:text-slate-400">Carregando...</div>
-            ) : filteredNotifications.length === 0 ? (
-              <div className="p-8 text-center text-sm text-slate-500 dark:text-slate-400">
-                {notifications.length === 0 ? 'Nenhuma notificação' : 'Nenhuma notificação deste tipo'}
-              </div>
-            ) : (
-              <ul className="divide-y divide-slate-100 dark:divide-slate-800">
-                {filteredNotifications.map((n: Notification) => (
-                  <li
-                    key={n.id}
-                    className={`p-3 hover:bg-slate-50 dark:hover:bg-slate-800 transition ${!n.read_at ? 'bg-focon-50 dark:bg-slate-800/50' : ''}`}
-                  >
-                    <div className="flex gap-3">
-                      <span className={`text-lg flex-shrink-0 ${typeColors[n.type] || typeColors['system']}`}>
-                        {typeIcons[n.type] || 'ℹ'}
-                      </span>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-slate-900 dark:text-slate-100">{n.title}</p>
-                        {n.body && (
-                          <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5 break-words">{n.body}</p>
-                        )}
-                        <div className="flex items-center justify-between mt-1">
-                          <span className="text-xs text-slate-400">{formatTimeAgo(n.created_at)}</span>
-                          <div className="flex gap-2">
-                            {!n.read_at && (
+            <div className="flex-1 min-h-0 overflow-y-auto app-scrollbar">
+              {loading ? (
+                <div className="p-8 text-center text-sm text-slate-500 dark:text-slate-400">Carregando...</div>
+              ) : filteredNotifications.length === 0 ? (
+                <div className="p-8 text-center text-sm text-slate-500 dark:text-slate-400">
+                  {notifications.length === 0 ? 'Nenhuma notificação' : 'Nenhuma notificação deste tipo'}
+                </div>
+              ) : (
+                <ul className="divide-y divide-slate-100 dark:divide-slate-800">
+                  {filteredNotifications.map((n: Notification) => (
+                    <li
+                      key={n.id}
+                      className={`p-3 hover:bg-slate-50 dark:hover:bg-slate-800 transition ${!n.read_at ? 'bg-focon-50 dark:bg-slate-800/50' : ''}`}
+                    >
+                      <div className="flex gap-3">
+                        <span className={`text-lg flex-shrink-0 ${typeColors[n.type] || typeColors['system']}`}>
+                          {typeIcons[n.type] || 'ℹ'}
+                        </span>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-slate-900 dark:text-slate-100">{n.title}</p>
+                          {n.body && (
+                            <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5 break-words">{n.body}</p>
+                          )}
+                          <div className="flex items-center justify-between mt-1">
+                            <span className="text-xs text-slate-400">{formatTimeAgo(n.created_at)}</span>
+                            <div className="flex gap-2">
+                              {!n.read_at && (
+                                <button
+                                  onClick={() => markRead(n.id)}
+                                  className="text-xs text-focon-600 hover:text-focon-700 dark:text-focon-400 dark:hover:text-focon-300 font-medium"
+                                >
+                                  Ler
+                                </button>
+                              )}
                               <button
-                                onClick={() => markRead(n.id)}
-                                className="text-xs text-focon-600 hover:text-focon-700 font-medium"
+                                onClick={() => remove(n.id)}
+                                className="text-xs text-slate-400 hover:text-red-600"
+                                aria-label="Excluir notificação"
                               >
-                                Ler
+                                ×
                               </button>
-                            )}
-                            <button
-                              onClick={() => remove(n.id)}
-                              className="text-xs text-slate-400 hover:text-red-600"
-                              aria-label="Excluir notificação"
-                            >
-                              ×
-                            </button>
+                            </div>
                           </div>
                         </div>
                       </div>
-                    </div>
-                  </li>
-                ))}
-              </ul>
-            )}
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
           </div>
         </>
       )}
