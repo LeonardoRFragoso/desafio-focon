@@ -15,8 +15,8 @@
 //     that queried full_name and ignored the result).
 //   - Removed @ts-nocheck; types are explicit.
 
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-import type { SupabaseClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { createClient } from '@supabase/supabase-js';
+import type { SupabaseClient } from '@supabase/supabase-js';
 
 // ---------------------------------------------------------------------------
 // Configuration

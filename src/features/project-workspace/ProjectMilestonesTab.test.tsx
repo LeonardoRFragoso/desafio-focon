@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, waitFor, fireEvent } from '@testing-library/react';
+import { render, screen, waitFor, fireEvent, act } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { ProjectMilestonesTab } from '@/features/project-workspace/ProjectMilestonesTab';
 import { projectMilestonesAPI, profilesAPI } from '@/lib/supabase/api';
@@ -70,9 +70,11 @@ describe('ProjectMilestonesTab', () => {
     vi.spyOn(profilesAPI, 'list').mockResolvedValue({ data: mockProfessionals as any, error: null } as any);
   });
 
-  it('renders loading state initially', () => {
+  it('renders loading state initially', async () => {
     vi.spyOn(projectMilestonesAPI, 'listByProject').mockReturnValue(new Promise(() => {}) as any);
-    renderTab();
+    await act(async () => {
+      renderTab();
+    });
     expect(document.querySelector('.animate-spin')).toBeInTheDocument();
   });
 
