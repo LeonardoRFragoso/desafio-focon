@@ -210,3 +210,75 @@ export interface UserPreference {
   pref_value: unknown;
   updated_at: string;
 }
+
+// ============================================================================
+// Project Workspace: phases, tasks, members
+// ============================================================================
+
+export type PhaseStatus = 'planned' | 'active' | 'completed' | 'cancelled';
+
+export interface ProjectPhase {
+  id: string;
+  project_id: string;
+  name: string;
+  description: string | null;
+  status: PhaseStatus;
+  position: number;
+  planned_minutes: number | null;
+  planned_cost: number | null;
+  start_date: string | null;
+  due_date: string | null;
+  completed_at: string | null;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export type TaskStatus = 'todo' | 'in_progress' | 'blocked' | 'done' | 'cancelled';
+export type TaskPriority = 'low' | 'medium' | 'high' | 'critical';
+
+export interface ProjectTask {
+  id: string;
+  project_id: string;
+  phase_id: string | null;
+  title: string;
+  description: string | null;
+  status: TaskStatus;
+  priority: TaskPriority;
+  assignee_id: string | null;
+  planned_minutes: number | null;
+  start_date: string | null;
+  due_date: string | null;
+  completed_at: string | null;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+  assignee?: { full_name: string } | null;
+  phase?: { name: string } | null;
+}
+
+export type ProjectRole = 'manager' | 'technical_lead' | 'professional' | 'observer';
+
+export interface ProjectMember {
+  id: string;
+  project_id: string;
+  professional_id: string;
+  project_role: ProjectRole;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+  professional?: { full_name: string; role: string } | null;
+}
+
+export interface ProjectWorkspaceSummary {
+  total_phases: number;
+  active_phases: number;
+  completed_phases: number;
+  total_tasks: number;
+  open_tasks: number;
+  done_tasks: number;
+  overdue_tasks: number;
+  team_size: number;
+  planned_minutes: number;
+  logged_minutes: number;
+}

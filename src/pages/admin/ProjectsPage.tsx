@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { projectsAPI } from '@/lib/supabase/api';
 import { mapDatabaseError } from '@/lib/errors';
 import { Modal } from '@/components/Modal';
@@ -7,6 +8,7 @@ import { useDebounce } from '@/hooks/usePagination';
 import type { Project, ProjectStatus } from '@/types/database';
 
 export function ProjectsPage() {
+  const navigate = useNavigate();
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -158,6 +160,12 @@ export function ProjectsPage() {
                   <td className="px-4 py-3 text-sm text-slate-700 dark:text-slate-300">{formatDate(p.start_date)}</td>
                   <td className="px-4 py-3 text-sm text-slate-700 dark:text-slate-300">{formatDate(p.end_date)}</td>
                   <td className="px-4 py-3 text-sm space-x-2">
+                    <button
+                      onClick={() => navigate(`/projects/${p.id}`)}
+                      className="px-2.5 py-1 rounded-md text-xs font-medium bg-focon-600 hover:bg-focon-700 text-white transition"
+                    >
+                      Ver
+                    </button>
                     <button
                       onClick={() => setEditTarget(p)}
                       className="px-2.5 py-1 rounded-md text-xs font-medium border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition"

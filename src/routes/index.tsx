@@ -22,6 +22,7 @@ import { BudgetVsActualPage } from '@/pages/admin/BudgetVsActualPage';
 import { ChartsPage } from '@/pages/admin/ChartsPage';
 import { ProfitabilityAlertsPage } from '@/pages/admin/ProfitabilityAlertsPage';
 import { SystemStatusPage } from '@/pages/admin/SystemStatusPage';
+import { ProjectWorkspacePage } from '@/pages/admin/ProjectWorkspacePage';
 import { ProtectedRoute } from './ProtectedRoute';
 
 /**
@@ -91,6 +92,14 @@ export function AppRoutes() {
             element={
               <ProtectedRoute requiredRole="admin">
                 <ProjectsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/projects/:projectId"
+            element={
+              <ProtectedRoute requiredRole="member">
+                <ProjectWorkspacePage />
               </ProtectedRoute>
             }
           />

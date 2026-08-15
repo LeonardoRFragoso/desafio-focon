@@ -597,3 +597,145 @@ export const projectBudgetsAPI = {
     return supabase.from('project_budgets').delete().eq('id', id);
   },
 };
+
+/**
+ * Project Phases API
+ */
+export const projectPhasesAPI = {
+  listByProject: async (projectId: string) => {
+    return supabase
+      .from('project_phases')
+      .select(
+        'id, project_id, name, description, status, position, planned_minutes, planned_cost, start_date, due_date, completed_at, created_by, created_at, updated_at'
+      )
+      .eq('project_id', projectId)
+      .order('position', { ascending: true });
+  },
+  create: async (data: {
+    project_id: string;
+    name: string;
+    description?: string | null;
+    status?: string;
+    position?: number;
+    planned_minutes?: number | null;
+    planned_cost?: number | null;
+    start_date?: string | null;
+    due_date?: string | null;
+  }) => {
+    return supabase.from('project_phases').insert([data]).select('*').single();
+  },
+  update: async (
+    id: string,
+    data: Partial<{
+      name: string;
+      description: string | null;
+      status: string;
+      position: number;
+      planned_minutes: number | null;
+      planned_cost: number | null;
+      start_date: string | null;
+      due_date: string | null;
+      completed_at: string | null;
+    }>
+  ) => {
+    return supabase.from('project_phases').update(data).eq('id', id).select('*').single();
+  },
+  remove: async (id: string) => {
+    return supabase.from('project_phases').delete().eq('id', id);
+  },
+};
+
+/**
+ * Project Tasks API
+ */
+export const projectTasksAPI = {
+  listByProject: async (projectId: string) => {
+    return supabase
+      .from('project_tasks')
+      .select(
+        `
+        id, project_id, phase_id, title, description, status, priority,
+        assignee_id, planned_minutes, start_date, due_date, completed_at,
+        created_by, created_at, updated_at,
+        assignee:profiles!project_tasks_assignee_id_fkey(full_name),
+        phase:project_phases!project_tasks_phase_id_fkey(name)
+        `
+      )
+      .eq('project_id', projectId)
+      .order('created_at', { ascending: false });
+  },
+  create: async (data: {
+    project_id: string;
+    phase_id?: string | null;
+    title: string;
+    description?: string | null;
+    status?: string;
+    priority?: string;
+    assignee_id?: string | null;
+    planned_minutes?: number | null;
+    start_date?: string | null;
+    due_date?: string | null;
+  }) => {
+    return supabase.from('project_tasks').insert([data]).select('*').single();
+  },
+  update: async (
+    id: string,
+    data: Partial<{
+      phase_id: string | null;
+      title: string;
+      description: string | null;
+      status: string;
+      priority: string;
+      assignee_id: string | null;
+      planned_minutes: number | null;
+      start_date: string | null;
+      due_date: string | null;
+      completed_at: string | null;
+    }>
+  ) => {
+    return supabase.from('project_tasks').update(data).eq('id', id).select('*').single();
+  },
+  remove: async (id: string) => {
+    return supabase.from('project_tasks').delete().eq('id', id);
+  },
+};
+
+/**
+ * Project Members API
+ */
+export const projectMembersAPI = {
+  listByProject: async (projectId: string) => {
+    return supabase
+      .from('project_members')
+      .select(
+        `
+        id, project_id, professional_id, project_role, created_by, created_at, updated_at,
+        professional:profiles!project_members_professional_id_fkey(full_name, role)
+        `
+      )
+      .eq('project_id', projectId)
+      .order('created_at', { ascending: true });
+  },
+  create: async (data: {
+    project_id: string;
+    professional_id: string;
+    project_role?: string;
+  }) => {
+    return supabase.from('project_members').insert([data]).select('*').single();
+  },
+  update: async (id: string, data: { project_role: string }) => {
+    return supabase.from('project_members').update(data).eq('id', id).select('*').single();
+  },
+  remove: async (id: string) => {
+    return supabase.from('project_members').delete().eq('id', id);
+  },
+};
+
+/**
+ * Project Workspace Summary API (admin RPC)
+ */
+export const projectWorkspaceAPI = {
+  getSummary: async (projectId: string) => {
+    return supabase.rpc('get_project_workspace_summary', { p_project_id: projectId });
+  },
+};
