@@ -93,8 +93,8 @@ export function AuditLogPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Auditoria</h2>
-        <p className="text-slate-600 dark:text-slate-400">Registro de alterações em apontamentos e períodos</p>
+        <h2 className="text-2xl font-bold text-app-primary">Auditoria</h2>
+        <p className="text-app-muted">Registro de alterações em apontamentos e períodos</p>
       </div>
 
       {/* Search and filter */}
@@ -104,12 +104,12 @@ export function AuditLogPage() {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Buscar por ação, entidade ou ator..."
-          className="flex-1 min-w-[200px] px-3 py-2 border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-focon-600"
+          className="flex-1 min-w-[200px] px-3 py-2 border border-app-strong bg-surface-secondary text-app-primary rounded-lg focus:outline-none focus:ring-2 focus:ring-focon-600"
         />
         <select
           value={actionFilter}
           onChange={(e) => setActionFilter(e.target.value)}
-          className="px-3 py-2 border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-focon-600"
+          className="px-3 py-2 border border-app-strong bg-surface-secondary text-app-primary rounded-lg focus:outline-none focus:ring-2 focus:ring-focon-600"
         >
           <option value="">Todas as ações</option>
           {uniqueActions.map((a) => (
@@ -125,35 +125,35 @@ export function AuditLogPage() {
       )}
 
       {filteredLogs.length === 0 ? (
-        <div className="rounded-xl border border-slate-200 dark:border-slate-700 p-12 text-center bg-slate-50 dark:bg-slate-900">
-          <p className="text-slate-600 dark:text-slate-400">Nenhum registro de auditoria</p>
+        <div className="rounded-xl border border-app-primary p-12 text-center bg-surface-primary">
+          <p className="text-app-muted">Nenhum registro de auditoria</p>
         </div>
       ) : (
         <>
-          <div className="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
+          <div className="overflow-x-auto rounded-xl border border-app-primary shadow-sm">
             <table className="w-full">
-              <thead className="bg-slate-100 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700">
+              <thead className="bg-surface-secondary border-b border-app-primary">
                 <tr>
-                  <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900 dark:text-slate-100">Data/Hora</th>
-                  <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900 dark:text-slate-100">Ação</th>
-                  <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900 dark:text-slate-100">Entidade</th>
-                  <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900 dark:text-slate-100">Ator</th>
-                  <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900 dark:text-slate-100">Ações</th>
+                  <th className="px-4 py-3 text-left text-sm font-semibold text-app-primary">Data/Hora</th>
+                  <th className="px-4 py-3 text-left text-sm font-semibold text-app-primary">Ação</th>
+                  <th className="px-4 py-3 text-left text-sm font-semibold text-app-primary">Entidade</th>
+                  <th className="px-4 py-3 text-left text-sm font-semibold text-app-primary">Ator</th>
+                  <th className="px-4 py-3 text-left text-sm font-semibold text-app-primary">Ações</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
+              <tbody className="divide-y divide-table-divider">
                 {paginatedLogs.map((log) => (
-                  <tr key={log.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition">
-                    <td className="px-4 py-3 text-sm text-slate-700 dark:text-slate-300 whitespace-nowrap">{formatDateTime(log.created_at)}</td>
-                    <td className="px-4 py-3 text-sm text-slate-900 dark:text-slate-100 font-medium font-mono">{log.action}</td>
-                    <td className="px-4 py-3 text-sm text-slate-700 dark:text-slate-300">{log.entity_type}</td>
-                    <td className="px-4 py-3 text-sm text-slate-700 dark:text-slate-300">
+                  <tr key={log.id} className="hover:bg-hover-surface/50 transition">
+                    <td className="px-4 py-3 text-sm text-app-secondary whitespace-nowrap">{formatDateTime(log.created_at)}</td>
+                    <td className="px-4 py-3 text-sm text-app-primary font-medium font-mono">{log.action}</td>
+                    <td className="px-4 py-3 text-sm text-app-secondary">{log.entity_type}</td>
+                    <td className="px-4 py-3 text-sm text-app-secondary">
                       {log.actor?.full_name || log.actor_id?.slice(0, 8) || 'Sistema'}
                     </td>
                     <td className="px-4 py-3 text-sm">
                       <button
                         onClick={() => setSelected(log)}
-                        className="px-2.5 py-1 rounded-md text-xs font-medium border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition"
+                        className="px-2.5 py-1 rounded-md text-xs font-medium border border-app-strong text-app-secondary hover:bg-hover-surface transition"
                       >
                         Detalhes
                       </button>
@@ -180,16 +180,16 @@ export function AuditLogPage() {
           aria-modal="true"
         >
           <div
-            className="bg-white dark:bg-slate-900 rounded-xl shadow-lg w-full max-w-2xl max-h-[90vh] overflow-y-auto"
+            className="bg-surface-primary rounded-xl shadow-lg w-full max-w-2xl max-h-[90vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="sticky top-0 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700 p-6 flex justify-between items-center">
-              <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100">
+            <div className="sticky top-0 bg-surface-primary border-b border-app-primary p-6 flex justify-between items-center">
+              <h2 className="text-xl font-bold text-app-primary">
                 Detalhes: {selected.action}
               </h2>
               <button
                 onClick={() => setSelected(null)}
-                className="text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 text-2xl leading-none"
+                className="text-app-muted hover:text-app-secondary text-2xl leading-none"
                 aria-label="Fechar"
               >
                 ×
@@ -198,31 +198,31 @@ export function AuditLogPage() {
             <div className="p-6 space-y-4">
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
-                  <p className="text-slate-500 dark:text-slate-400">Entidade</p>
-                  <p className="font-medium text-slate-900 dark:text-slate-100">{selected.entity_type}</p>
+                  <p className="text-app-muted">Entidade</p>
+                  <p className="font-medium text-app-primary">{selected.entity_type}</p>
                 </div>
                 <div>
-                  <p className="text-slate-500 dark:text-slate-400">ID da entidade</p>
-                  <p className="font-mono text-xs text-slate-900 dark:text-slate-100 break-all">{selected.entity_id || '—'}</p>
+                  <p className="text-app-muted">ID da entidade</p>
+                  <p className="font-mono text-xs text-app-primary break-all">{selected.entity_id || '—'}</p>
                 </div>
                 <div>
-                  <p className="text-slate-500 dark:text-slate-400">Ator</p>
-                  <p className="font-medium text-slate-900 dark:text-slate-100">{selected.actor?.full_name || 'Sistema'}</p>
+                  <p className="text-app-muted">Ator</p>
+                  <p className="font-medium text-app-primary">{selected.actor?.full_name || 'Sistema'}</p>
                 </div>
                 <div>
-                  <p className="text-slate-500 dark:text-slate-400">Data/Hora</p>
-                  <p className="font-medium text-slate-900 dark:text-slate-100">{formatDateTime(selected.created_at)}</p>
+                  <p className="text-app-muted">Data/Hora</p>
+                  <p className="font-medium text-app-primary">{formatDateTime(selected.created_at)}</p>
                 </div>
               </div>
               <div>
-                <p className="text-sm text-slate-500 dark:text-slate-400 mb-1">Antes</p>
-                <pre className="bg-slate-50 dark:bg-slate-800 rounded-lg p-3 text-xs text-slate-800 dark:text-slate-300 overflow-x-auto border border-slate-200 dark:border-slate-700">
+                <p className="text-sm text-app-muted mb-1">Antes</p>
+                <pre className="bg-surface-secondary rounded-lg p-3 text-xs text-app-secondary overflow-x-auto border border-app-primary">
                   {formatData(selected.before_data)}
                 </pre>
               </div>
               <div>
-                <p className="text-sm text-slate-500 dark:text-slate-400 mb-1">Depois</p>
-                <pre className="bg-slate-50 dark:bg-slate-800 rounded-lg p-3 text-xs text-slate-800 dark:text-slate-300 overflow-x-auto border border-slate-200 dark:border-slate-700">
+                <p className="text-sm text-app-muted mb-1">Depois</p>
+                <pre className="bg-surface-secondary rounded-lg p-3 text-xs text-app-secondary overflow-x-auto border border-app-primary">
                   {formatData(selected.after_data)}
                 </pre>
               </div>

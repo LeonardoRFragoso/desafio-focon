@@ -87,8 +87,8 @@ export function ProfitabilityAlertsPage() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Alertas de Rentabilidade</h2>
-          <p className="text-slate-600 dark:text-slate-400">Configure thresholds e acompanhe alertas</p>
+          <h2 className="text-2xl font-bold text-app-primary">Alertas de Rentabilidade</h2>
+          <p className="text-app-muted">Configure thresholds e acompanhe alertas</p>
         </div>
         <button
           onClick={() => setCreateOpen(true)}
@@ -105,9 +105,9 @@ export function ProfitabilityAlertsPage() {
       )}
 
       {alerts.length === 0 ? (
-        <div className="rounded-xl border border-slate-200 dark:border-slate-700 p-12 text-center bg-slate-50 dark:bg-slate-900">
-          <p className="text-slate-600 dark:text-slate-400">Nenhum alerta configurado</p>
-          <p className="text-sm text-slate-500 dark:text-slate-500 mt-2">Crie um alerta para monitorar a rentabilidade dos projetos</p>
+        <div className="rounded-xl border border-app-primary p-12 text-center bg-surface-primary">
+          <p className="text-app-muted">Nenhum alerta configurado</p>
+          <p className="text-sm text-app-muted mt-2">Crie um alerta para monitorar a rentabilidade dos projetos</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -131,18 +131,18 @@ export function ProfitabilityAlertsPage() {
                 className={`rounded-xl border p-5 shadow-sm ${
                   isTriggered && !isAcknowledged
                     ? 'border-red-300 dark:border-red-800 bg-red-50 dark:bg-red-900/10'
-                    : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900'
+                    : 'border-app-primary bg-surface-primary'
                 }`}
               >
                 <div className="flex justify-between items-start mb-3">
                   <div>
                     <button
                       onClick={() => navigate('/admin/budget')}
-                      className="text-lg font-semibold text-slate-900 dark:text-slate-100 hover:text-focon-600 transition"
+                      className="text-lg font-semibold text-app-primary hover:text-focon-600 transition"
                     >
                       {alert.project?.name || '—'}
                     </button>
-                    <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+                    <p className="text-sm text-app-muted mt-1">
                       {metricLabels[alert.metric] || alert.metric}: threshold {alert.threshold}%
                     </p>
                   </div>
@@ -151,7 +151,7 @@ export function ProfitabilityAlertsPage() {
                   </span>
                 </div>
                 <div className="flex items-center justify-between mt-4">
-                  <div className="text-xs text-slate-400 dark:text-slate-500">
+                  <div className="text-xs text-app-muted">
                     {alert.triggered_at && <p>Disparado em: {new Date(alert.triggered_at).toLocaleString('pt-BR')}</p>}
                     {alert.acknowledged_at && <p>Resolvido em: {new Date(alert.acknowledged_at).toLocaleString('pt-BR')}</p>}
                   </div>
@@ -159,7 +159,7 @@ export function ProfitabilityAlertsPage() {
                     {isTriggered && !isAcknowledged && (
                       <button
                         onClick={() => acknowledge(alert)}
-                        className="px-3 py-1.5 rounded-md text-xs font-medium border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition"
+                        className="px-3 py-1.5 rounded-md text-xs font-medium border border-app-strong text-app-secondary hover:bg-hover-surface transition"
                       >
                         Reconhecer
                       </button>
@@ -257,7 +257,7 @@ function AlertFormModal({ projects, onClose, onSaved, onError }: AlertFormModalP
       title="Novo Alerta"
       footer={
         <>
-          <button type="button" onClick={onClose} disabled={submitting} className="px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 transition disabled:opacity-50">
+          <button type="button" onClick={onClose} disabled={submitting} className="px-4 py-2 rounded-lg border border-app-strong text-app-secondary hover:bg-hover-surface transition disabled:opacity-50">
             Cancelar
           </button>
           <button type="submit" form="alert-form" disabled={submitting} className="px-4 py-2 rounded-lg bg-focon-600 hover:bg-focon-700 text-white transition disabled:opacity-50">
@@ -268,8 +268,8 @@ function AlertFormModal({ projects, onClose, onSaved, onError }: AlertFormModalP
     >
       <form id="alert-form" onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Projeto *</label>
-          <select value={projectId} onChange={(e) => setProjectId(e.target.value)} className="w-full px-3 py-2.5 border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-focon-600">
+          <label className="block text-sm font-medium text-app-secondary mb-1">Projeto *</label>
+          <select value={projectId} onChange={(e) => setProjectId(e.target.value)} className="w-full px-3 py-2.5 border border-app-strong bg-surface-secondary text-app-primary rounded-lg focus:outline-none focus:ring-2 focus:ring-focon-600">
             <option value="">Selecione...</option>
             {projects.map((p) => (
               <option key={p.id} value={p.id}>{p.name}</option>
@@ -278,18 +278,18 @@ function AlertFormModal({ projects, onClose, onSaved, onError }: AlertFormModalP
         </div>
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Métrica *</label>
-            <select value={metric} onChange={(e) => setMetric(e.target.value)} className="w-full px-3 py-2.5 border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-focon-600">
+            <label className="block text-sm font-medium text-app-secondary mb-1">Métrica *</label>
+            <select value={metric} onChange={(e) => setMetric(e.target.value)} className="w-full px-3 py-2.5 border border-app-strong bg-surface-secondary text-app-primary rounded-lg focus:outline-none focus:ring-2 focus:ring-focon-600">
               <option value="margin_percent">Margem (%)</option>
               <option value="budget_utilization_percent">Utilização do Orçamento (%)</option>
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Threshold (%) *</label>
-            <input type="number" step="0.1" min="0" max="100" value={threshold} onChange={(e) => setThreshold(e.target.value)} className="w-full px-3 py-2.5 border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-focon-600" />
+            <label className="block text-sm font-medium text-app-secondary mb-1">Threshold (%) *</label>
+            <input type="number" step="0.1" min="0" max="100" value={threshold} onChange={(e) => setThreshold(e.target.value)} className="w-full px-3 py-2.5 border border-app-strong bg-surface-secondary text-app-primary rounded-lg focus:outline-none focus:ring-2 focus:ring-focon-600" />
           </div>
         </div>
-        <p className="text-xs text-slate-500 dark:text-slate-400">
+        <p className="text-xs text-app-muted">
           O alerta dispara quando a métrica do projeto ficar abaixo do threshold configurado.
         </p>
       </form>

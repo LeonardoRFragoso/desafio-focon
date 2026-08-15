@@ -294,7 +294,7 @@ describe('NotificationBell', () => {
     });
     await user.click(screen.getByRole('button', { name: /Notificações/ }));
     const panel = screen.getByRole('dialog');
-    expect(panel.className).toContain('bg-white');
+    expect(panel.className).toContain('bg-surface-primary');
   });
 
   it('uses dark-safe classes when dark mode is active', async () => {
@@ -307,7 +307,8 @@ describe('NotificationBell', () => {
     });
     await user.click(screen.getByRole('button', { name: /Notificações/ }));
     const panel = screen.getByRole('dialog');
-    expect(panel.className).toContain('dark:bg-slate-900');
+    // Semantic token class handles both themes — same class in light and dark.
+    expect(panel.className).toContain('bg-surface-primary');
   });
 
   it('does not show "Marcar todas" when there are no unread notifications', async () => {

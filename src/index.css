@@ -64,37 +64,78 @@
 
   --app-scrollbar-thumb: #cbd5e1; /* slate-300 */
   --app-scrollbar-thumb-hover: #94a3b8; /* slate-400 */
+
+  /*
+   * Brand & structural tokens (theme-aware).
+   * Primary = Fócon teal. In light mode focon-600 for contrast on white;
+   * in dark mode focon-500 (brighter) for visibility on dark green surfaces.
+   */
+  --primary: #007678; /* focon-600 */
+  --primary-hover: #14898b; /* focon-500 */
+  --primary-soft: rgba(0, 118, 120, 0.10); /* focon-600 @ 10% */
+  --primary-text: #ffffff;
+
+  --modal-bg: #ffffff;
+  --popover-bg: #ffffff;
+  --skeleton-base: #f1f5f9; /* slate-100 */
+  --skeleton-shine: #e2e8f0; /* slate-200 */
 }
 
+/*
+ * Fócon Dark Theme identity.
+ *
+ * The dark palette is derived from the Fócon teal/green brand palette rather
+ * than generic navy slate. Surfaces use extremely dark green-petrol tones,
+ * borders use desaturated green-neutral, and the primary accent is the Fócon
+ * teal. Semantic colors (success/warning/danger) are preserved at the
+ * component level — only structural surfaces/borders/text change here.
+ *
+ * Palette derivation:
+ *   background  — darker than focon-950 (#022a2c), near-black green
+ *   surface     — petrol green, between focon-950 and focon-900
+ *   raised      — slightly lighter petrol green for elevated surfaces
+ *   borders     — desaturated green-neutral, derived from focon-900/800 tones
+ *   text        — warm white / green-gray for muted
+ */
 .dark {
   color-scheme: dark;
 
-  --app-canvas: #020617; /* slate-950 */
-  --surface-primary: #0f172a; /* slate-900 */
-  --surface-secondary: #1e293b; /* slate-800 */
-  --surface-elevated: #1e293b; /* slate-800 */
+  --app-canvas: #06100f; /* near-black green */
+  --surface-primary: #0b1917; /* petrol green almost black */
+  --surface-secondary: #10211f; /* slightly lighter petrol */
+  --surface-elevated: #142826; /* raised petrol surface */
 
-  --text-primary: #f1f5f9; /* slate-100 */
-  --text-secondary: #cbd5e1; /* slate-300 */
-  --text-muted: #94a3b8; /* slate-400 */
+  --text-primary: #f5f7f7; /* warm white */
+  --text-secondary: #c4d4d2; /* light green-gray */
+  --text-muted: #9fb5b2; /* muted green-gray */
 
-  --border-primary: #334155; /* slate-700 */
-  --border-strong: #475569; /* slate-600 */
+  --border-primary: #1e3a36; /* dark green-neutral */
+  --border-strong: #285048; /* stronger green border */
 
-  --input-background: #0f172a; /* slate-900 */
-  --input-border: #475569; /* slate-600 */
-  --input-text: #e2e8f0; /* slate-200 */
-  --input-placeholder: #94a3b8; /* slate-400 */
+  --input-background: #0b1917; /* matches surface */
+  --input-border: #285048; /* stronger border */
+  --input-text: #e8f0ef; /* light green-white */
+  --input-placeholder: #6b8580; /* muted green-gray */
 
-  --hover-surface: #1e293b; /* slate-800 */
+  --hover-surface: #142826; /* raised petrol for hover */
 
-  --table-header: #1e293b; /* slate-800 */
-  --table-row: #0f172a; /* slate-900 */
-  --table-row-hover: #1e293b; /* slate-800 */
-  --table-divider: #334155; /* slate-700 */
+  --table-header: #10211f; /* surface-secondary */
+  --table-row: #0b1917; /* surface-primary */
+  --table-row-hover: #142826; /* hover-surface */
+  --table-divider: #1e3a36; /* border-primary */
 
-  --app-scrollbar-thumb: #475569; /* slate-600 */
-  --app-scrollbar-thumb-hover: #64748b; /* slate-500 */
+  --app-scrollbar-thumb: #285048; /* border-strong */
+  --app-scrollbar-thumb-hover: #3a6a60; /* lighter green */
+
+  --primary: #14898b; /* focon-500 — brighter for dark */
+  --primary-hover: #38a2a4; /* focon-400 */
+  --primary-soft: rgba(20, 137, 139, 0.15); /* focon-500 @ 15% */
+  --primary-text: #f5f7f7;
+
+  --modal-bg: #10211f; /* surface-elevated */
+  --popover-bg: #10211f; /* surface-elevated */
+  --skeleton-base: #10211f; /* surface-secondary */
+  --skeleton-shine: #142826; /* surface-elevated */
 }
 
 /*
@@ -130,6 +171,18 @@
   .bg-table-row-hover {
     background-color: var(--table-row-hover);
   }
+  .bg-modal {
+    background-color: var(--modal-bg);
+  }
+  .bg-popover {
+    background-color: var(--popover-bg);
+  }
+  .bg-primary-soft {
+    background-color: var(--primary-soft);
+  }
+  .bg-skeleton {
+    background-color: var(--skeleton-base);
+  }
 
   .text-app-primary {
     color: var(--text-primary);
@@ -142,6 +195,9 @@
   }
   .text-input {
     color: var(--input-text);
+  }
+  .text-primary-brand {
+    color: var(--primary);
   }
 
   .border-app-primary {
@@ -156,6 +212,9 @@
   .border-table-divider {
     border-color: var(--table-divider);
   }
+  .border-primary-brand {
+    border-color: var(--primary);
+  }
 
   .divide-table-divider > * + * {
     border-color: var(--table-divider);
@@ -167,9 +226,31 @@
   .hover\:bg-table-row-hover:hover {
     background-color: var(--table-row-hover);
   }
+  .hover\:bg-surface-elevated:hover {
+    background-color: var(--surface-elevated);
+  }
+  .hover\:text-primary-brand:hover {
+    color: var(--primary-hover);
+  }
 
   .placeholder-input::placeholder {
     color: var(--input-placeholder);
+  }
+
+  /*
+   * Focus-visible ring using the Fócon primary token.
+   * Provides a perceptible green focus ring on all interactive controls
+   * without removing outline for keyboard users.
+   */
+  .focus-ring {
+    outline: 2px solid transparent;
+    outline-offset: 2px;
+    box-shadow: 0 0 0 2px var(--app-canvas), 0 0 0 4px var(--primary);
+  }
+  .focus-ring:focus-visible {
+    outline: 2px solid transparent;
+    outline-offset: 2px;
+    box-shadow: 0 0 0 2px var(--app-canvas), 0 0 0 4px var(--primary);
   }
 
   /*

@@ -154,7 +154,7 @@ export function WeeklyCalendar() {
         <div className="flex items-center gap-2">
           <button
             onClick={() => setWeekStart(addWeeks(weekStart, -1))}
-            className="p-2 rounded-lg border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition"
+            className="p-2 rounded-lg border border-app-strong text-app-secondary hover:bg-hover-surface transition"
             aria-label="Semana anterior"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -164,13 +164,13 @@ export function WeeklyCalendar() {
           <button
             onClick={() => setWeekStart(getWeekStart(new Date()))}
             disabled={isCurrentWeek}
-            className="px-3 py-2 rounded-lg border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-3 py-2 rounded-lg border border-app-strong text-app-secondary hover:bg-hover-surface transition text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Hoje
           </button>
           <button
             onClick={() => setWeekStart(addWeeks(weekStart, 1))}
-            className="p-2 rounded-lg border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition"
+            className="p-2 rounded-lg border border-app-strong text-app-secondary hover:bg-hover-surface transition"
             aria-label="Próxima semana"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -178,7 +178,7 @@ export function WeeklyCalendar() {
             </svg>
           </button>
         </div>
-        <div className="text-sm font-medium text-slate-700 dark:text-slate-300">{weekLabel}</div>
+        <div className="text-sm font-medium text-app-secondary">{weekLabel}</div>
         <div className="text-sm font-semibold text-focon-700 dark:text-focon-400">
           Total: {formatDuration(weekData.totalMinutes)}
         </div>
@@ -204,12 +204,12 @@ export function WeeklyCalendar() {
                 className={`rounded-lg border min-h-[200px] flex flex-col ${
                   day.date.toDateString() === new Date().toDateString()
                     ? 'border-focon-400 dark:border-focon-600 bg-focon-50 dark:bg-focon-900/10'
-                    : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900'
+                    : 'border-app-primary bg-surface-primary'
                 }`}
               >
-                <div className="p-2 border-b border-slate-200 dark:border-slate-700">
-                  <p className="text-xs font-semibold text-slate-600 dark:text-slate-400">{dayNames[i]}</p>
-                  <p className="text-lg font-bold text-slate-900 dark:text-slate-100">{day.date.getDate()}</p>
+                <div className="p-2 border-b border-app-primary">
+                  <p className="text-xs font-semibold text-app-muted">{dayNames[i]}</p>
+                  <p className="text-lg font-bold text-app-primary">{day.date.getDate()}</p>
                   {day.totalMinutes > 0 && (
                     <p className="text-xs text-focon-600 dark:text-focon-400 font-medium">
                       {formatDuration(day.totalMinutes)}
@@ -218,15 +218,15 @@ export function WeeklyCalendar() {
                 </div>
                 <div className="p-1.5 space-y-1.5 flex-1 overflow-y-auto" style={{ maxHeight: '350px' }}>
                   {day.entries.length === 0 ? (
-                    <p className="text-xs text-slate-400 dark:text-slate-600 text-center py-4">—</p>
+                    <p className="text-xs text-slate-400 text-app-muted text-center py-4">—</p>
                   ) : (
                     day.entries.map((entry) => (
                       <div
                         key={entry.id}
-                        className="rounded-md p-1.5 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700"
+                        className="rounded-md p-1.5 text-xs bg-surface-secondary border border-app-primary"
                       >
-                        <p className="font-medium text-slate-800 dark:text-slate-200 truncate">{entry.project_name}</p>
-                        <p className="text-slate-500 dark:text-slate-400">{formatDuration(entry.duration_minutes)}</p>
+                        <p className="font-medium text-app-secondary truncate">{entry.project_name}</p>
+                        <p className="text-app-muted">{formatDuration(entry.duration_minutes)}</p>
                         <span className={`inline-block px-1.5 py-0.5 rounded text-[10px] font-medium mt-0.5 ${statusColors[entry.approval_status]}`}>
                           {statusLabels[entry.approval_status]}
                         </span>
@@ -246,13 +246,13 @@ export function WeeklyCalendar() {
                 className={`rounded-lg border ${
                   day.date.toDateString() === new Date().toDateString()
                     ? 'border-focon-400 dark:border-focon-600 bg-focon-50 dark:bg-focon-900/10'
-                    : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900'
+                    : 'border-app-primary bg-surface-primary'
                 }`}
               >
-                <div className="p-3 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center">
+                <div className="p-3 border-b border-app-primary flex justify-between items-center">
                   <div>
-                    <p className="text-sm font-semibold text-slate-600 dark:text-slate-400">{dayNamesLong[i]}</p>
-                    <p className="text-xl font-bold text-slate-900 dark:text-slate-100">
+                    <p className="text-sm font-semibold text-app-muted">{dayNamesLong[i]}</p>
+                    <p className="text-xl font-bold text-app-primary">
                       {day.date.getDate()} {monthNames[day.date.getMonth()]}
                     </p>
                   </div>
@@ -264,21 +264,21 @@ export function WeeklyCalendar() {
                 </div>
                 <div className="p-2 space-y-2">
                   {day.entries.length === 0 ? (
-                    <p className="text-sm text-slate-400 dark:text-slate-600 text-center py-3">Sem apontamentos</p>
+                    <p className="text-sm text-slate-400 text-app-muted text-center py-3">Sem apontamentos</p>
                   ) : (
                     day.entries.map((entry) => (
                       <div
                         key={entry.id}
-                        className="rounded-md p-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700"
+                        className="rounded-md p-2 bg-surface-secondary border border-app-primary"
                       >
                         <div className="flex justify-between items-start gap-2">
-                          <p className="font-medium text-sm text-slate-800 dark:text-slate-200">{entry.project_name}</p>
+                          <p className="font-medium text-sm text-app-secondary">{entry.project_name}</p>
                           <span className={`inline-block px-2 py-0.5 rounded text-xs font-medium flex-shrink-0 ${statusColors[entry.approval_status]}`}>
                             {statusLabels[entry.approval_status]}
                           </span>
                         </div>
-                        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">{formatDuration(entry.duration_minutes)}</p>
-                        <p className="text-xs text-slate-400 dark:text-slate-500 mt-1 line-clamp-2">{entry.description}</p>
+                        <p className="text-sm text-app-muted mt-1">{formatDuration(entry.duration_minutes)}</p>
+                        <p className="text-xs text-app-muted mt-1 line-clamp-2">{entry.description}</p>
                       </div>
                     ))
                   )}

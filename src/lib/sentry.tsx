@@ -20,13 +20,13 @@ export function SentryErrorBoundary({ children }: ErrorBoundaryProps) {
   return (
     <Sentry.ErrorBoundary
       fallback={({ resetError }) => (
-        <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950 px-4">
-          <div className="max-w-md w-full bg-white dark:bg-slate-900 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 p-8 text-center">
+        <div className="min-h-screen flex items-center justify-center bg-app-canvas px-4">
+          <div className="max-w-md w-full bg-surface-primary rounded-xl shadow-lg border border-app-primary p-8 text-center">
             <div className="text-4xl mb-4">⚠</div>
-            <h1 className="text-xl font-bold text-slate-900 dark:text-slate-100 mb-2">
+            <h1 className="text-xl font-bold text-app-primary mb-2">
               Algo deu errado
             </h1>
-            <p className="text-sm text-slate-600 dark:text-slate-400 mb-6">
+            <p className="text-sm text-app-muted mb-6">
               Ocorreu um erro inesperado. A equipe foi notificada.
             </p>
             <button

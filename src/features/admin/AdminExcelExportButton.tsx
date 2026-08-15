@@ -77,7 +77,7 @@ export function AdminExcelExportButton({ filters }: Props) {
       <button
         onClick={handleExport}
         disabled={loading}
-        className="px-4 py-2 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 rounded-lg font-medium transition text-sm disabled:opacity-50"
+        className="px-4 py-2 bg-surface-elevated border border-app-strong text-app-secondary hover:bg-hover-surface rounded-lg font-medium transition text-sm disabled:opacity-50"
       >
         {loading ? 'Gerando Excel...' : 'Exportar Excel'}
       </button>

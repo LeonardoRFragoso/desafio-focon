@@ -71,10 +71,10 @@ export function DashboardPage() {
   return (
     <div className="space-y-8">
       {/* Header */}
-      <div className="border-b border-slate-200 dark:border-slate-700 pb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+      <div className="border-b border-app-primary pb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-4xl font-bold text-slate-900 dark:text-slate-100">Painel Administrativo</h1>
-          <p className="mt-2 text-lg text-slate-600 dark:text-slate-400">
+          <h1 className="text-4xl font-bold text-app-primary">Painel Administrativo</h1>
+          <p className="mt-2 text-lg text-app-muted">
             Centro de comando executivo
           </p>
         </div>

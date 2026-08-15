@@ -21,7 +21,7 @@ const ROLE_COLORS: Record<ProjectRole, string> = {
   manager: 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400',
   technical_lead: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400',
   professional: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400',
-  observer: 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400',
+  observer: 'bg-slate-100 text-slate-600 bg-surface-secondary text-app-muted',
 };
 
 export function ProjectTeamTab({ projectId, isAdmin }: ProjectTeamTabProps) {
@@ -68,7 +68,7 @@ export function ProjectTeamTab({ projectId, isAdmin }: ProjectTeamTabProps) {
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
-        <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Equipe do Projeto</h3>
+        <h3 className="text-lg font-semibold text-app-primary">Equipe do Projeto</h3>
         {isAdmin && (
           <button
             onClick={() => setAddOpen(true)}
@@ -91,30 +91,30 @@ export function ProjectTeamTab({ projectId, isAdmin }: ProjectTeamTabProps) {
       )}
 
       {members.length === 0 ? (
-        <div className="rounded-xl border border-slate-200 dark:border-slate-700 p-12 text-center bg-slate-50 dark:bg-slate-800/50">
-          <p className="text-slate-600 dark:text-slate-400">Nenhum membro na equipe</p>
-          <p className="text-sm text-slate-400 dark:text-slate-500 mt-1">
+        <div className="rounded-xl border border-app-primary p-12 text-center bg-surface-secondary/50">
+          <p className="text-app-muted">Nenhum membro na equipe</p>
+          <p className="text-sm text-app-muted mt-1">
             Adicione profissionais para definir responsabilidades do projeto.
           </p>
         </div>
       ) : (
-        <div className="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
+        <div className="overflow-x-auto rounded-xl border border-app-primary shadow-sm">
           <table className="w-full">
-            <thead className="bg-slate-100 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700">
+            <thead className="bg-surface-secondary border-b border-app-primary">
               <tr>
-                <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900 dark:text-slate-100">Profissional</th>
-                <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900 dark:text-slate-100">Role Global</th>
-                <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900 dark:text-slate-100">Role no Projeto</th>
-                {isAdmin && <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900 dark:text-slate-100">Ações</th>}
+                <th className="px-4 py-3 text-left text-sm font-semibold text-app-primary">Profissional</th>
+                <th className="px-4 py-3 text-left text-sm font-semibold text-app-primary">Role Global</th>
+                <th className="px-4 py-3 text-left text-sm font-semibold text-app-primary">Role no Projeto</th>
+                {isAdmin && <th className="px-4 py-3 text-left text-sm font-semibold text-app-primary">Ações</th>}
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
+            <tbody className="divide-y divide-table-divider">
               {members.map((m) => (
-                <tr key={m.id} className="hover:bg-slate-50 dark:hover:bg-slate-800 transition">
-                  <td className="px-4 py-3 text-sm text-slate-900 dark:text-slate-100 font-medium">
+                <tr key={m.id} className="hover:bg-hover-surface transition">
+                  <td className="px-4 py-3 text-sm text-app-primary font-medium">
                     {m.professional?.full_name ?? '—'}
                   </td>
-                  <td className="px-4 py-3 text-sm text-slate-700 dark:text-slate-300">
+                  <td className="px-4 py-3 text-sm text-app-secondary">
                     {m.professional?.role === 'admin' ? 'Administrador' : 'Profissional'}
                   </td>
                   <td className="px-4 py-3 text-sm">
@@ -252,7 +252,7 @@ function AddMemberModal({ projectId, professionals, existingMemberIds, onClose, 
             type="button"
             onClick={onClose}
             disabled={submitting}
-            className="px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition disabled:opacity-50"
+            className="px-4 py-2 rounded-lg border border-app-strong text-app-secondary hover:bg-hover-surface transition disabled:opacity-50"
           >
             Cancelar
           </button>
@@ -269,13 +269,13 @@ function AddMemberModal({ projectId, professionals, existingMemberIds, onClose, 
     >
       <form id="member-form" onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+          <label className="block text-sm font-medium text-app-secondary mb-1">
             Profissional *
           </label>
           <select
             value={professionalId}
             onChange={(e) => setProfessionalId(e.target.value)}
-            className="w-full px-3 py-2.5 border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-focon-600"
+            className="w-full px-3 py-2.5 border border-app-strong bg-surface-secondary text-app-primary rounded-lg focus:outline-none focus:ring-2 focus:ring-focon-600"
           >
             <option value="">Selecione...</option>
             {available.map((p) => (
@@ -285,19 +285,19 @@ function AddMemberModal({ projectId, professionals, existingMemberIds, onClose, 
             ))}
           </select>
           {available.length === 0 && (
-            <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+            <p className="mt-1 text-xs text-app-muted">
               Todos os profissionais já estão na equipe.
             </p>
           )}
         </div>
         <div>
-          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+          <label className="block text-sm font-medium text-app-secondary mb-1">
             Role no Projeto
           </label>
           <select
             value={role}
             onChange={(e) => setRole(e.target.value as ProjectRole)}
-            className="w-full px-3 py-2.5 border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-focon-600"
+            className="w-full px-3 py-2.5 border border-app-strong bg-surface-secondary text-app-primary rounded-lg focus:outline-none focus:ring-2 focus:ring-focon-600"
           >
             {Object.entries(ROLE_LABELS).map(([val, label]) => (
               <option key={val} value={val}>

@@ -33,42 +33,42 @@ export function ProjectOverview({ project, summary, isAdmin }: ProjectOverviewPr
         {cards.map((card) => (
           <div
             key={card.label}
-            className="rounded-xl border border-slate-200 dark:border-slate-700 bg-surface-primary p-4 shadow-sm"
+            className="rounded-xl border border-app-primary bg-surface-primary p-4 shadow-sm"
           >
-            <p className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wide">
+            <p className="text-xs font-medium text-app-muted uppercase tracking-wide">
               {card.label}
             </p>
-            <p className="mt-1 text-2xl font-bold text-slate-900 dark:text-slate-100">
+            <p className="mt-1 text-2xl font-bold text-app-primary">
               {card.value}
             </p>
             {card.hint && (
-              <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">{card.hint}</p>
+              <p className="mt-1 text-xs text-app-muted">{card.hint}</p>
             )}
           </div>
         ))}
       </div>
 
       {/* Project description placeholder */}
-      <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-surface-primary p-6 shadow-sm">
-        <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-3">
+      <div className="rounded-xl border border-app-primary bg-surface-primary p-6 shadow-sm">
+        <h3 className="text-lg font-semibold text-app-primary mb-3">
           Informações do Projeto
         </h3>
         <dl className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <dt className="text-sm text-slate-500 dark:text-slate-400">Nome</dt>
-            <dd className="text-sm font-medium text-slate-900 dark:text-slate-100">{project.name}</dd>
+            <dt className="text-sm text-app-muted">Nome</dt>
+            <dd className="text-sm font-medium text-app-primary">{project.name}</dd>
           </div>
           <div>
-            <dt className="text-sm text-slate-500 dark:text-slate-400">Cliente</dt>
-            <dd className="text-sm font-medium text-slate-900 dark:text-slate-100">{project.client}</dd>
+            <dt className="text-sm text-app-muted">Cliente</dt>
+            <dd className="text-sm font-medium text-app-primary">{project.client}</dd>
           </div>
           <div>
-            <dt className="text-sm text-slate-500 dark:text-slate-400">Status</dt>
-            <dd className="text-sm font-medium text-slate-900 dark:text-slate-100">{project.status}</dd>
+            <dt className="text-sm text-app-muted">Status</dt>
+            <dd className="text-sm font-medium text-app-primary">{project.status}</dd>
           </div>
           <div>
-            <dt className="text-sm text-slate-500 dark:text-slate-400">Período</dt>
-            <dd className="text-sm font-medium text-slate-900 dark:text-slate-100">
+            <dt className="text-sm text-app-muted">Período</dt>
+            <dd className="text-sm font-medium text-app-primary">
               {formatDate(project.start_date)} — {formatDate(project.end_date)}
             </dd>
           </div>

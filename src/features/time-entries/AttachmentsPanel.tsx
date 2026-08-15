@@ -170,7 +170,7 @@ export function AttachmentsPanel({ entryId }: AttachmentsPanelProps) {
 
   return (
     <div className="space-y-4">
-      <h4 className="font-semibold text-slate-900 dark:text-slate-100">Anexos</h4>
+      <h4 className="font-semibold text-app-primary">Anexos</h4>
 
       {error && (
         <div className="rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 p-3">
@@ -196,11 +196,11 @@ export function AttachmentsPanel({ entryId }: AttachmentsPanelProps) {
         />
         <label
           htmlFor="attachment-upload"
-          className="inline-block px-4 py-2 border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200 rounded-lg text-sm font-medium transition hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer disabled:opacity-50"
+          className="inline-block px-4 py-2 border border-app-strong text-app-secondary rounded-lg text-sm font-medium transition hover:bg-hover-surface cursor-pointer disabled:opacity-50"
         >
           {uploading ? 'Enviando...' : 'Adicionar Anexo'}
         </label>
-        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+        <p className="text-xs text-app-muted mt-1">
           Máx. 10 MB. Permitidos: PDF, imagens, texto, Office, ZIP.
         </p>
       </div>
@@ -211,7 +211,7 @@ export function AttachmentsPanel({ entryId }: AttachmentsPanelProps) {
           <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-focon-600"></div>
         </div>
       ) : attachments.length === 0 ? (
-        <div className="text-center py-6 text-sm text-slate-500 dark:text-slate-400">
+        <div className="text-center py-6 text-sm text-app-muted">
           Nenhum anexo. Adicione um arquivo acima.
         </div>
       ) : (
@@ -221,7 +221,7 @@ export function AttachmentsPanel({ entryId }: AttachmentsPanelProps) {
             return (
               <li
                 key={att.id}
-                className="flex items-center justify-between gap-3 rounded-lg p-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700"
+                className="flex items-center justify-between gap-3 rounded-lg p-3 bg-surface-secondary border border-app-primary"
               >
                 <div className="flex items-center gap-3 min-w-0 flex-1">
                   <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-focon-100 dark:bg-focon-900/30 flex items-center justify-center">
@@ -230,11 +230,11 @@ export function AttachmentsPanel({ entryId }: AttachmentsPanelProps) {
                     </svg>
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="text-sm font-medium text-slate-900 dark:text-slate-100 truncate">{att.file_name}</p>
-                    <p className="text-xs text-slate-500 dark:text-slate-400">
+                    <p className="text-sm font-medium text-app-primary truncate">{att.file_name}</p>
+                    <p className="text-xs text-app-muted">
                       {formatFileSize(att.file_size)} · {att.content_type} · {formatDate(att.created_at)}
                     </p>
-                    <p className="text-xs text-slate-400 dark:text-slate-500">
+                    <p className="text-xs text-app-muted">
                       por {att.uploaded_by_profile?.full_name || 'Usuário'}
                     </p>
                   </div>
@@ -242,7 +242,7 @@ export function AttachmentsPanel({ entryId }: AttachmentsPanelProps) {
                 <div className="flex items-center gap-2 flex-shrink-0">
                   <button
                     onClick={() => handleDownload(att)}
-                    className="p-2 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition"
+                    className="p-2 rounded-lg text-app-secondary hover:bg-hover-surface transition"
                     aria-label="Baixar"
                     title="Baixar"
                   >

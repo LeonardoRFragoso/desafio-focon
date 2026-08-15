@@ -49,7 +49,7 @@ export function ConfirmDialog({
             type="button"
             onClick={onClose}
             disabled={busy}
-            className="px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition disabled:opacity-50"
+            className="px-4 py-2 rounded-lg border border-app-strong text-app-secondary hover:bg-hover-surface transition disabled:opacity-50"
           >
             {cancelLabel}
           </button>
@@ -68,7 +68,7 @@ export function ConfirmDialog({
         </>
       }
     >
-      <div className="text-sm text-slate-700 dark:text-slate-300" role="alert">
+      <div className="text-sm text-app-secondary" role="alert">
         {message}
       </div>
     </Modal>

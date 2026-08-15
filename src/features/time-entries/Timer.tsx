@@ -271,7 +271,7 @@ export function Timer({ userId, onEntryCreated, isAdmin = false }: TimerProps) {
                 <button
                   type="button"
                   onClick={() => setShowStartModal(false)}
-                  className="px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition"
+                  className="px-4 py-2 rounded-lg border border-app-strong text-app-secondary hover:bg-hover-surface transition"
                 >
                   Cancelar
                 </button>
@@ -292,7 +292,7 @@ export function Timer({ userId, onEntryCreated, isAdmin = false }: TimerProps) {
                 </div>
               )}
               <div>
-                <label htmlFor="timer-project" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                <label htmlFor="timer-project" className="block text-sm font-medium text-app-secondary mb-1">
                   Projeto *
                 </label>
                 <select
@@ -300,7 +300,7 @@ export function Timer({ userId, onEntryCreated, isAdmin = false }: TimerProps) {
                   value={selProject}
                   onChange={(e) => setSelProject(e.target.value)}
                   required
-                  className="w-full px-3 py-2.5 border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-focon-600"
+                  className="w-full px-3 py-2.5 border border-app-strong bg-surface-secondary text-app-primary rounded-lg focus:outline-none focus:ring-2 focus:ring-focon-600"
                 >
                   <option value="">Selecione...</option>
                   {projects.map((p) => (
@@ -310,7 +310,7 @@ export function Timer({ userId, onEntryCreated, isAdmin = false }: TimerProps) {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label htmlFor="timer-phase" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                  <label htmlFor="timer-phase" className="block text-sm font-medium text-app-secondary mb-1">
                     Fase
                   </label>
                   <select
@@ -318,7 +318,7 @@ export function Timer({ userId, onEntryCreated, isAdmin = false }: TimerProps) {
                     value={selPhase}
                     onChange={(e) => { setSelPhase(e.target.value); setSelTask(''); }}
                     disabled={!selProject}
-                    className="w-full px-3 py-2.5 border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-focon-600 disabled:opacity-50"
+                    className="w-full px-3 py-2.5 border border-app-strong bg-surface-secondary text-app-primary rounded-lg focus:outline-none focus:ring-2 focus:ring-focon-600 disabled:opacity-50"
                   >
                     <option value="">Sem fase</option>
                     {phases.map((p) => (
@@ -326,7 +326,7 @@ export function Timer({ userId, onEntryCreated, isAdmin = false }: TimerProps) {
                     ))}
                   </select>
                   {selProject && phases.length === 0 && (
-                    <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                    <p className="mt-1 text-xs text-app-muted">
                       Este projeto ainda não possui fases cadastradas.
                       {isAdmin && (
                         <button
@@ -341,7 +341,7 @@ export function Timer({ userId, onEntryCreated, isAdmin = false }: TimerProps) {
                   )}
                 </div>
                 <div>
-                  <label htmlFor="timer-task" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+                  <label htmlFor="timer-task" className="block text-sm font-medium text-app-secondary mb-1">
                     Tarefa
                   </label>
                   <select
@@ -349,7 +349,7 @@ export function Timer({ userId, onEntryCreated, isAdmin = false }: TimerProps) {
                     value={selTask}
                     onChange={(e) => setSelTask(e.target.value)}
                     disabled={!selProject}
-                    className="w-full px-3 py-2.5 border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-focon-600 disabled:opacity-50"
+                    className="w-full px-3 py-2.5 border border-app-strong bg-surface-secondary text-app-primary rounded-lg focus:outline-none focus:ring-2 focus:ring-focon-600 disabled:opacity-50"
                   >
                     <option value="">Sem tarefa</option>
                     {filteredTasks.map((t) => (
@@ -357,7 +357,7 @@ export function Timer({ userId, onEntryCreated, isAdmin = false }: TimerProps) {
                     ))}
                   </select>
                   {selProject && filteredTasks.length === 0 && (
-                    <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                    <p className="mt-1 text-xs text-app-muted">
                       Este projeto ainda não possui tarefas disponíveis.
                       {isAdmin && (
                         <button
@@ -372,7 +372,7 @@ export function Timer({ userId, onEntryCreated, isAdmin = false }: TimerProps) {
                   )}
                 </div>
               </div>
-              <p className="text-xs text-slate-500 dark:text-slate-400">
+              <p className="text-xs text-app-muted">
                 O timer será persistido no navegador. Você pode navegar entre páginas sem perder o progresso.
               </p>
             </form>
@@ -393,7 +393,7 @@ export function Timer({ userId, onEntryCreated, isAdmin = false }: TimerProps) {
           </span>
         </div>
         <div className="text-center mb-4">
-          <p className="text-4xl font-mono font-bold text-slate-900 dark:text-slate-100 tabular-nums">
+          <p className="text-4xl font-mono font-bold text-app-primary tabular-nums">
             {formatTime(elapsed)}
           </p>
         </div>
@@ -441,7 +441,7 @@ export function Timer({ userId, onEntryCreated, isAdmin = false }: TimerProps) {
                 type="button"
                 onClick={() => setShowFinishModal(false)}
                 disabled={submitting}
-                className="px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition disabled:opacity-50"
+                className="px-4 py-2 rounded-lg border border-app-strong text-app-secondary hover:bg-hover-surface transition disabled:opacity-50"
               >
                 Voltar
               </button>
@@ -464,20 +464,20 @@ export function Timer({ userId, onEntryCreated, isAdmin = false }: TimerProps) {
             )}
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Data</label>
-                <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+                <label className="block text-xs font-medium text-app-muted mb-1">Data</label>
+                <p className="text-sm font-semibold text-app-primary">
                   {new Date().toLocaleDateString('pt-BR')}
                 </p>
               </div>
               <div>
-                <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Duração calculada</label>
-                <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+                <label className="block text-xs font-medium text-app-muted mb-1">Duração calculada</label>
+                <p className="text-sm font-semibold text-app-primary">
                   {formatTime(elapsed)} ({Math.max(1, Math.round(elapsed / 60))} min)
                 </p>
               </div>
             </div>
             <div>
-              <label htmlFor="timer-finish-desc" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+              <label htmlFor="timer-finish-desc" className="block text-sm font-medium text-app-secondary mb-1">
                 Descrição *
               </label>
               <textarea
@@ -489,7 +489,7 @@ export function Timer({ userId, onEntryCreated, isAdmin = false }: TimerProps) {
                 maxLength={500}
                 required
                 placeholder="Descreva o trabalho realizado (mínimo 10 caracteres)..."
-                className="w-full px-3 py-2.5 border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-focon-600"
+                className="w-full px-3 py-2.5 border border-app-strong bg-surface-secondary text-app-primary rounded-lg focus:outline-none focus:ring-2 focus:ring-focon-600"
               />
             </div>
           </form>

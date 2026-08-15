@@ -12,25 +12,25 @@ export function TimeEntriesPage() {
 
   return (
     <div className="space-y-8">
-      <div className="border-b border-slate-200 dark:border-slate-700 pb-6 flex justify-between items-start">
+      <div className="border-b border-app-primary pb-6 flex justify-between items-start">
         <div>
-          <h1 className="text-4xl font-bold text-slate-900 dark:text-slate-100">Meus Apontamentos</h1>
-          <p className="mt-2 text-lg text-slate-600 dark:text-slate-400">
+          <h1 className="text-4xl font-bold text-app-primary">Meus Apontamentos</h1>
+          <p className="mt-2 text-lg text-app-muted">
             Registre suas horas de trabalho por projeto
           </p>
         </div>
         <PersonalExportButton />
       </div>
 
-      <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 p-6 shadow-sm">
-        <h2 className="text-2xl font-semibold text-slate-900 dark:text-slate-100 mb-6">
+      <div className="bg-surface-primary rounded-xl border border-app-primary p-6 shadow-sm">
+        <h2 className="text-2xl font-semibold text-app-primary mb-6">
           Novo Apontamento
         </h2>
         <TimeEntryForm onSuccess={handleFormSuccess} />
       </div>
 
-      <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 p-6 shadow-sm">
-        <h2 className="text-2xl font-semibold text-slate-900 dark:text-slate-100 mb-6">
+      <div className="bg-surface-primary rounded-xl border border-app-primary p-6 shadow-sm">
+        <h2 className="text-2xl font-semibold text-app-primary mb-6">
           Histórico de Apontamentos
         </h2>
         <TimeEntryList key={refreshKey} />

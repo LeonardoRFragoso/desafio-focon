@@ -167,7 +167,7 @@ export function TimeEntryDetailsModal({
             <button
               onClick={onClose}
               disabled={actionLoading}
-              className="px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition disabled:opacity-50"
+              className="px-4 py-2 rounded-lg border border-app-strong text-app-secondary hover:bg-hover-surface transition disabled:opacity-50"
             >
               Fechar
             </button>
@@ -203,47 +203,47 @@ export function TimeEntryDetailsModal({
         {/* Core details */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Projeto</label>
-            <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+            <label className="block text-xs font-medium text-app-muted mb-1">Projeto</label>
+            <p className="text-sm font-semibold text-app-primary">
               {entry.project?.name || 'Projeto desconhecido'}
             </p>
           </div>
           <div>
-            <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Data</label>
-            <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">{formatDate(entry.entry_date)}</p>
+            <label className="block text-xs font-medium text-app-muted mb-1">Data</label>
+            <p className="text-sm font-semibold text-app-primary">{formatDate(entry.entry_date)}</p>
           </div>
           <div>
-            <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Duração</label>
-            <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">{formatDuration(entry.duration_minutes)}</p>
+            <label className="block text-xs font-medium text-app-muted mb-1">Duração</label>
+            <p className="text-sm font-semibold text-app-primary">{formatDuration(entry.duration_minutes)}</p>
           </div>
           <div>
-            <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Status</label>
+            <label className="block text-xs font-medium text-app-muted mb-1">Status</label>
             <span className={`inline-block px-2.5 py-1 rounded-full text-xs font-semibold ${STATUS_COLORS[entry.approval_status] || STATUS_COLORS['pending']}`}>
               {STATUS_LABELS[entry.approval_status] || entry.approval_status}
             </span>
           </div>
           {entry.phase?.name && (
             <div>
-              <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Fase</label>
-              <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">{entry.phase.name}</p>
+              <label className="block text-xs font-medium text-app-muted mb-1">Fase</label>
+              <p className="text-sm font-semibold text-app-primary">{entry.phase.name}</p>
             </div>
           )}
           {entry.task?.title && (
             <div>
-              <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Tarefa</label>
-              <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">{entry.task.title}</p>
+              <label className="block text-xs font-medium text-app-muted mb-1">Tarefa</label>
+              <p className="text-sm font-semibold text-app-primary">{entry.task.title}</p>
             </div>
           )}
         </div>
 
         {/* Description */}
         <div>
-          <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Descrição</label>
-          <p className="text-sm text-slate-900 dark:text-slate-100 whitespace-pre-wrap break-words">{entry.description}</p>
+          <label className="block text-xs font-medium text-app-muted mb-1">Descrição</label>
+          <p className="text-sm text-app-primary whitespace-pre-wrap break-words">{entry.description}</p>
         </div>
 
         {/* Timestamps */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs text-slate-500 dark:text-slate-400">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs text-app-muted">
           <div>
             <span className="font-medium">Criado em:</span> {formatDateTime(entry.created_at)}
           </div>
@@ -285,13 +285,13 @@ export function TimeEntryDetailsModal({
               minLength={10}
               maxLength={1000}
               placeholder="Informe o motivo (mínimo 10 caracteres)..."
-              className="w-full px-3 py-2 border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-600"
+              className="w-full px-3 py-2 border border-app-strong bg-surface-secondary text-app-primary rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-red-600"
             />
             <div className="flex gap-2 justify-end">
               <button
                 onClick={() => setShowRejectForm(false)}
                 disabled={actionLoading}
-                className="px-3 py-1.5 rounded-lg border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200 text-sm transition disabled:opacity-50"
+                className="px-3 py-1.5 rounded-lg border border-app-strong text-app-secondary text-sm transition disabled:opacity-50"
               >
                 Cancelar
               </button>
@@ -308,20 +308,20 @@ export function TimeEntryDetailsModal({
 
         {/* Admin-only: financial details */}
         {isAdmin && (
-          <div className="border-t border-slate-200 dark:border-slate-700 pt-4">
-            <h4 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-3">Detalhes Administrativos</h4>
+          <div className="border-t border-app-primary pt-4">
+            <h4 className="text-sm font-semibold text-app-secondary mb-3">Detalhes Administrativos</h4>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div>
-                <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Profissional</label>
-                <p className="text-sm text-slate-900 dark:text-slate-100">{entry.professional?.full_name || '—'}</p>
+                <label className="block text-xs font-medium text-app-muted mb-1">Profissional</label>
+                <p className="text-sm text-app-primary">{entry.professional?.full_name || '—'}</p>
               </div>
               <div>
-                <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Custo/Hora</label>
-                <p className="text-sm text-slate-900 dark:text-slate-100">{formatCurrency(entry.applied_hourly_rate)}</p>
+                <label className="block text-xs font-medium text-app-muted mb-1">Custo/Hora</label>
+                <p className="text-sm text-app-primary">{formatCurrency(entry.applied_hourly_rate)}</p>
               </div>
               <div>
-                <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Custo Total</label>
-                <p className="text-sm text-slate-900 dark:text-slate-100">{formatCurrency(computedCost)}</p>
+                <label className="block text-xs font-medium text-app-muted mb-1">Custo Total</label>
+                <p className="text-sm text-app-primary">{formatCurrency(computedCost)}</p>
               </div>
             </div>
           </div>
@@ -329,16 +329,16 @@ export function TimeEntryDetailsModal({
 
         {/* Admin-only: approval history */}
         {isAdmin && (
-          <div className="border-t border-slate-200 dark:border-slate-700 pt-4">
-            <h4 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-3">Histórico de Aprovação</h4>
+          <div className="border-t border-app-primary pt-4">
+            <h4 className="text-sm font-semibold text-app-secondary mb-3">Histórico de Aprovação</h4>
             {historyLoading ? (
-              <p className="text-sm text-slate-500 dark:text-slate-400">Carregando histórico...</p>
+              <p className="text-sm text-app-muted">Carregando histórico...</p>
             ) : history.length === 0 ? (
-              <p className="text-sm text-slate-500 dark:text-slate-400">Nenhum histórico de aprovação registrado.</p>
+              <p className="text-sm text-app-muted">Nenhum histórico de aprovação registrado.</p>
             ) : (
               <ul className="space-y-2">
                 {history.map((h) => (
-                  <li key={h.id} className="text-sm border-l-2 border-slate-300 dark:border-slate-600 pl-3">
+                  <li key={h.id} className="text-sm border-l-2 border-app-strong pl-3">
                     <div className="flex items-center gap-2">
                       <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-semibold ${STATUS_COLORS[h.new_status] || STATUS_COLORS['pending']}`}>
                         {STATUS_LABELS[h.new_status] || h.new_status}
@@ -346,12 +346,12 @@ export function TimeEntryDetailsModal({
                       <span className="text-xs text-slate-400">{formatDateTime(h.created_at)}</span>
                     </div>
                     {h.changed_by_profile?.full_name && (
-                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                      <p className="text-xs text-app-muted mt-0.5">
                         Por: {h.changed_by_profile.full_name}
                       </p>
                     )}
                     {h.reason && (
-                      <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">{h.reason}</p>
+                      <p className="text-xs text-app-muted mt-0.5">{h.reason}</p>
                     )}
                   </li>
                 ))}
@@ -361,14 +361,14 @@ export function TimeEntryDetailsModal({
         )}
 
         {/* Comments and Attachments */}
-        <div className="border-t border-slate-200 dark:border-slate-700 pt-4 space-y-6">
+        <div className="border-t border-app-primary pt-4 space-y-6">
           <CommentsPanel entryId={entry.id} isAdmin={isAdmin} />
           <AttachmentsPanel entryId={entry.id} />
         </div>
 
         {/* Admin: link to full history page */}
         {isAdmin && (
-          <div className="border-t border-slate-200 dark:border-slate-700 pt-4">
+          <div className="border-t border-app-primary pt-4">
             <button
               onClick={() => navigate(`/admin/time-entries?entry=${entry.id}`)}
               className="text-sm text-focon-600 dark:text-focon-400 hover:underline"

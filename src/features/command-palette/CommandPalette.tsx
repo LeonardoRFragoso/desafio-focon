@@ -218,11 +218,11 @@ export function CommandPalette({ open, onClose }: CommandPaletteProps) {
 
       {/* Panel */}
       <div
-        className="relative w-full max-w-2xl bg-white dark:bg-slate-900 rounded-xl shadow-2xl border border-slate-200 dark:border-slate-700 overflow-hidden"
+        className="relative w-full max-w-2xl bg-surface-primary rounded-xl shadow-2xl border border-app-primary overflow-hidden"
         onKeyDown={handleKeyDown}
       >
         {/* Search input */}
-        <div className="flex items-center gap-3 px-4 py-4 border-b border-slate-200 dark:border-slate-700">
+        <div className="flex items-center gap-3 px-4 py-4 border-b border-app-primary">
           <svg className="w-5 h-5 text-slate-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
           </svg>
@@ -232,15 +232,15 @@ export function CommandPalette({ open, onClose }: CommandPaletteProps) {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Buscar no FoconFlow..."
-            className="flex-1 bg-transparent text-slate-900 dark:text-slate-100 placeholder-slate-400 outline-none text-lg"
+            className="flex-1 bg-transparent text-app-primary placeholder-slate-400 outline-none text-lg"
             aria-label="Buscar"
             autoComplete="off"
             spellCheck={false}
           />
           {loading && (
-            <div className="w-5 h-5 border-2 border-slate-300 dark:border-slate-600 border-t-focon-600 rounded-full animate-spin shrink-0" />
+            <div className="w-5 h-5 border-2 border-app-strong border-t-focon-600 rounded-full animate-spin shrink-0" />
           )}
-          <kbd className="hidden sm:inline-block px-2 py-1 text-xs text-slate-400 bg-slate-100 dark:bg-slate-800 rounded border border-slate-200 dark:border-slate-700 shrink-0">
+          <kbd className="hidden sm:inline-block px-2 py-1 text-xs text-slate-400 bg-surface-secondary rounded border border-app-primary shrink-0">
             ESC
           </kbd>
         </div>
@@ -255,14 +255,14 @@ export function CommandPalette({ open, onClose }: CommandPaletteProps) {
 
           {showNoResults && (
             <div className="px-4 py-8 text-center">
-              <p className="text-sm text-slate-500 dark:text-slate-400">
+              <p className="text-sm text-app-muted">
                 Nenhum resultado para "{query.trim()}"
               </p>
             </div>
           )}
 
           {!loading && query.trim().length < 2 && !error && (
-            <div className="px-4 py-3 text-xs text-slate-400 dark:text-slate-500">
+            <div className="px-4 py-3 text-xs text-app-muted">
               Digite pelo menos 2 caracteres para buscar
             </div>
           )}
@@ -285,17 +285,17 @@ export function CommandPalette({ open, onClose }: CommandPaletteProps) {
                     className={`flex items-center gap-3 px-4 py-3 cursor-pointer transition ${
                       isSelected
                         ? 'bg-focon-50 dark:bg-focon-900/30'
-                        : 'hover:bg-slate-50 dark:hover:bg-slate-800'
+                        : 'hover:bg-hover-surface'
                     }`}
                   >
                     <span className="text-xl shrink-0">
                       {cmd?.icon ?? (item.type === 'project' ? '📁' : item.type === 'task' ? '✅' : item.type === 'professional' ? '👤' : '📋')}
                     </span>
                     <div className="min-w-0 flex-1">
-                      <p className="text-sm font-medium text-slate-900 dark:text-slate-100 truncate">
+                      <p className="text-sm font-medium text-app-primary truncate">
                         {item.title}
                       </p>
-                      <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
+                      <p className="text-xs text-app-muted truncate">
                         {item.subtitle}
                       </p>
                     </div>
@@ -315,14 +315,14 @@ export function CommandPalette({ open, onClose }: CommandPaletteProps) {
         </div>
 
         {/* Footer */}
-        <div className="px-4 py-2 border-t border-slate-200 dark:border-slate-700 flex items-center justify-between text-xs text-slate-400">
+        <div className="px-4 py-2 border-t border-app-primary flex items-center justify-between text-xs text-slate-400">
           <div className="flex items-center gap-3">
             <span className="flex items-center gap-1">
-              <kbd className="px-1.5 py-0.5 bg-slate-100 dark:bg-slate-800 rounded border border-slate-200 dark:border-slate-700">↑↓</kbd>
+              <kbd className="px-1.5 py-0.5 bg-surface-secondary rounded border border-app-primary">↑↓</kbd>
               navegar
             </span>
             <span className="flex items-center gap-1">
-              <kbd className="px-1.5 py-0.5 bg-slate-100 dark:bg-slate-800 rounded border border-slate-200 dark:border-slate-700">↵</kbd>
+              <kbd className="px-1.5 py-0.5 bg-surface-secondary rounded border border-app-primary">↵</kbd>
               selecionar
             </span>
           </div>

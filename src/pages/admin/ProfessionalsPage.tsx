@@ -65,8 +65,8 @@ export function ProfessionalsPage() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Profissionais</h2>
-          <p className="text-slate-600 dark:text-slate-400">Gerencie os profissionais e seus papéis</p>
+          <h2 className="text-2xl font-bold text-app-primary">Profissionais</h2>
+          <p className="text-app-muted">Gerencie os profissionais e seus papéis</p>
         </div>
         <button
           onClick={() => setInviteOpen(true)}
@@ -94,12 +94,12 @@ export function ProfessionalsPage() {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Buscar por nome ou email..."
-          className="flex-1 min-w-[180px] px-3 py-2 border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-focon-600"
+          className="flex-1 min-w-[180px] px-3 py-2 border border-app-strong bg-surface-secondary text-app-primary rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-focon-600"
         />
         <select
           value={roleFilter}
           onChange={(e) => setRoleFilter(e.target.value)}
-          className="px-3 py-2 border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-focon-600"
+          className="px-3 py-2 border border-app-strong bg-surface-secondary text-app-primary rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-focon-600"
         >
           <option value="">Todos os papéis</option>
           <option value="admin">Administrador</option>
@@ -108,37 +108,37 @@ export function ProfessionalsPage() {
       </div>
 
       {profiles.length === 0 ? (
-        <div className="rounded-xl border border-slate-200 dark:border-slate-700 p-12 text-center bg-slate-50 dark:bg-slate-800/50">
-          <p className="text-slate-600 dark:text-slate-400">Nenhum profissional cadastrado</p>
+        <div className="rounded-xl border border-app-primary p-12 text-center bg-surface-secondary/50">
+          <p className="text-app-muted">Nenhum profissional cadastrado</p>
         </div>
       ) : (
-        <div className="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
+        <div className="overflow-x-auto rounded-xl border border-app-primary shadow-sm">
           <table className="w-full">
-            <thead className="bg-slate-100 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700">
+            <thead className="bg-surface-secondary border-b border-app-primary">
               <tr>
-                <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900 dark:text-slate-100">Nome</th>
-                <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900 dark:text-slate-100">Papel</th>
-                <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900 dark:text-slate-100">Criado em</th>
-                <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900 dark:text-slate-100">Ações</th>
+                <th className="px-4 py-3 text-left text-sm font-semibold text-app-primary">Nome</th>
+                <th className="px-4 py-3 text-left text-sm font-semibold text-app-primary">Papel</th>
+                <th className="px-4 py-3 text-left text-sm font-semibold text-app-primary">Criado em</th>
+                <th className="px-4 py-3 text-left text-sm font-semibold text-app-primary">Ações</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
+            <tbody className="divide-y divide-table-divider">
               {filteredProfiles.length === 0 ? (
-                <tr><td colSpan={4} className="px-4 py-8 text-center text-sm text-slate-500 dark:text-slate-400">Nenhum profissional encontrado</td></tr>
+                <tr><td colSpan={4} className="px-4 py-8 text-center text-sm text-app-muted">Nenhum profissional encontrado</td></tr>
               ) : (
                 filteredProfiles.map((p) => (
-                <tr key={p.id} className="hover:bg-slate-50 dark:hover:bg-slate-800 transition">
-                  <td className="px-4 py-3 text-sm text-slate-900 dark:text-slate-100 font-medium">{p.full_name}</td>
+                <tr key={p.id} className="hover:bg-hover-surface transition">
+                  <td className="px-4 py-3 text-sm text-app-primary font-medium">{p.full_name}</td>
                   <td className="px-4 py-3 text-sm">
                     <span className={`inline-block px-2.5 py-1 rounded-full text-xs font-semibold ${p.role === 'admin' ? 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400' : 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400'}`}>
                       {p.role === 'admin' ? 'Administrador' : 'Profissional'}
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-sm text-slate-700 dark:text-slate-300">{formatDate(p.created_at)}</td>
+                  <td className="px-4 py-3 text-sm text-app-secondary">{formatDate(p.created_at)}</td>
                   <td className="px-4 py-3 text-sm">
                     <button
                       onClick={() => setEditTarget(p)}
-                      className="px-2.5 py-1 rounded-md text-xs font-medium border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition"
+                      className="px-2.5 py-1 rounded-md text-xs font-medium border border-app-strong text-app-secondary hover:bg-hover-surface transition"
                     >
                       Alterar papel
                     </button>
@@ -238,7 +238,7 @@ function InviteUserModal({ onClose, onSaved, onError }: InviteUserModalProps) {
       title="Convidar Profissional"
       footer={
         <>
-          <button type="button" onClick={onClose} disabled={submitting} className="px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 transition disabled:opacity-50">
+          <button type="button" onClick={onClose} disabled={submitting} className="px-4 py-2 rounded-lg border border-app-strong text-app-secondary hover:bg-hover-surface transition disabled:opacity-50">
             Cancelar
           </button>
           <button type="submit" form="invite-form" disabled={submitting} className="px-4 py-2 rounded-lg bg-focon-600 hover:bg-focon-700 text-white transition disabled:opacity-50">
@@ -249,21 +249,21 @@ function InviteUserModal({ onClose, onSaved, onError }: InviteUserModalProps) {
     >
       <form id="invite-form" onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">E-mail *</label>
-          <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} className="w-full px-3 py-2.5 border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-focon-600" placeholder="profissional@email.com" />
+          <label className="block text-sm font-medium text-app-secondary mb-1">E-mail *</label>
+          <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} className="w-full px-3 py-2.5 border border-app-strong bg-surface-secondary text-app-primary rounded-lg focus:outline-none focus:ring-2 focus:ring-focon-600" placeholder="profissional@email.com" />
         </div>
         <div>
-          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Nome Completo *</label>
-          <input type="text" required value={fullName} onChange={(e) => setFullName(e.target.value)} className="w-full px-3 py-2.5 border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-focon-600" />
+          <label className="block text-sm font-medium text-app-secondary mb-1">Nome Completo *</label>
+          <input type="text" required value={fullName} onChange={(e) => setFullName(e.target.value)} className="w-full px-3 py-2.5 border border-app-strong bg-surface-secondary text-app-primary rounded-lg focus:outline-none focus:ring-2 focus:ring-focon-600" />
         </div>
         <div>
-          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Papel *</label>
-          <select value={role} onChange={(e) => setRole(e.target.value as UserRole)} className="w-full px-3 py-2.5 border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-focon-600">
+          <label className="block text-sm font-medium text-app-secondary mb-1">Papel *</label>
+          <select value={role} onChange={(e) => setRole(e.target.value as UserRole)} className="w-full px-3 py-2.5 border border-app-strong bg-surface-secondary text-app-primary rounded-lg focus:outline-none focus:ring-2 focus:ring-focon-600">
             <option value="member">Profissional</option>
             <option value="admin">Administrador</option>
           </select>
         </div>
-        <p className="text-xs text-slate-500 dark:text-slate-400">
+        <p className="text-xs text-app-muted">
           O convite será enviado por e-mail. O usuário deverá definir sua senha ao aceitar.
         </p>
       </form>
@@ -303,7 +303,7 @@ function RoleEditModal({ profile, onClose, onSaved, onError }: RoleEditModalProp
       title="Alterar Papel"
       footer={
         <>
-          <button type="button" onClick={onClose} disabled={submitting} className="px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition disabled:opacity-50">
+          <button type="button" onClick={onClose} disabled={submitting} className="px-4 py-2 rounded-lg border border-app-strong text-app-secondary hover:bg-hover-surface transition disabled:opacity-50">
             Cancelar
           </button>
           <button type="submit" form="role-form" disabled={submitting} className="px-4 py-2 rounded-lg bg-focon-600 hover:bg-focon-700 text-white transition disabled:opacity-50">
@@ -313,17 +313,17 @@ function RoleEditModal({ profile, onClose, onSaved, onError }: RoleEditModalProp
       }
     >
       <form id="role-form" onSubmit={handleSubmit} className="space-y-4">
-        <p className="text-sm text-slate-600 dark:text-slate-400">
+        <p className="text-sm text-app-muted">
           Alterando o papel de <strong>{profile.full_name}</strong>:
         </p>
         <div>
-          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Papel *</label>
-          <select value={role} onChange={(e) => setRole(e.target.value as UserRole)} className="w-full px-3 py-2.5 border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-focon-600">
+          <label className="block text-sm font-medium text-app-secondary mb-1">Papel *</label>
+          <select value={role} onChange={(e) => setRole(e.target.value as UserRole)} className="w-full px-3 py-2.5 border border-app-strong bg-surface-secondary text-app-primary rounded-lg focus:outline-none focus:ring-2 focus:ring-focon-600">
             <option value="member">Profissional</option>
             <option value="admin">Administrador</option>
           </select>
         </div>
-        <p className="text-xs text-slate-500 dark:text-slate-400">
+        <p className="text-xs text-app-muted">
           Administradores podem aprovar/rejeitar apontamentos, gerenciar projetos,
           profissionais, valor/hora, financeiro e fechamentos.
         </p>

@@ -147,8 +147,8 @@ export function TimeEntryApproval({ onStatusChanged }: TimeEntryApprovalProps) {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-2">Aprovação de Apontamentos</h2>
-        <p className="text-slate-600 dark:text-slate-400">Revise e aprove os apontamentos pendentes</p>
+        <h2 className="text-2xl font-bold text-app-primary mb-2">Aprovação de Apontamentos</h2>
+        <p className="text-app-muted">Revise e aprove os apontamentos pendentes</p>
       </div>
 
       {error && (
@@ -170,12 +170,12 @@ export function TimeEntryApproval({ onStatusChanged }: TimeEntryApprovalProps) {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Buscar por profissional, projeto ou descrição..."
-          className="flex-1 min-w-[180px] px-3 py-2 border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-focon-600"
+          className="flex-1 min-w-[180px] px-3 py-2 border border-app-strong bg-surface-secondary text-app-primary rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-focon-600"
         />
         <select
           value={projectFilter}
           onChange={(e) => setProjectFilter(e.target.value)}
-          className="px-3 py-2 border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-focon-600"
+          className="px-3 py-2 border border-app-strong bg-surface-secondary text-app-primary rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-focon-600"
         >
           <option value="">Todos os projetos</option>
           {[...new Set(entries.map((e) => e.project?.name).filter(Boolean))].map((name) => {
@@ -186,24 +186,24 @@ export function TimeEntryApproval({ onStatusChanged }: TimeEntryApprovalProps) {
       </div>
 
       {entries.length === 0 ? (
-        <div className="rounded-lg bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 p-8 text-center">
-          <p className="text-slate-600 dark:text-slate-400">Nenhum apontamento pendente de aprovação</p>
+        <div className="rounded-lg bg-surface-secondary/50 border border-app-primary p-8 text-center">
+          <p className="text-app-muted">Nenhum apontamento pendente de aprovação</p>
         </div>
       ) : (
         <div className="space-y-4">
           {/* Batch actions bar */}
-          <div className="flex flex-wrap items-center gap-3 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 p-3">
-            <label className="flex items-center gap-2 text-sm font-medium text-slate-700 dark:text-slate-300">
+          <div className="flex flex-wrap items-center gap-3 rounded-lg border border-app-primary bg-surface-secondary/50 p-3">
+            <label className="flex items-center gap-2 text-sm font-medium text-app-secondary">
               <input
                 type="checkbox"
                 checked={allVisibleSelected}
                 onChange={toggleSelectAll}
-                className="h-4 w-4 rounded border-slate-300 dark:border-slate-600 text-focon-600 focus:ring-focon-600"
+                className="h-4 w-4 rounded border-app-strong text-focon-600 focus:ring-focon-600"
                 aria-label="Selecionar todos visíveis"
               />
               Selecionar todos
             </label>
-            <span className="text-sm text-slate-600 dark:text-slate-400">
+            <span className="text-sm text-app-muted">
               {selectedCount > 0 ? `${selectedCount} selecionado(s)` : 'Nenhum selecionado'}
             </span>
             <div className="ml-auto flex gap-2">
@@ -230,31 +230,31 @@ export function TimeEntryApproval({ onStatusChanged }: TimeEntryApprovalProps) {
             </div>
           </div>
 
-          <div className="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
+          <div className="overflow-x-auto rounded-xl border border-app-primary shadow-sm">
             <table className="w-full">
-              <thead className="bg-slate-100 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700">
+              <thead className="bg-surface-secondary border-b border-app-primary">
                 <tr>
                   <th className="px-4 py-3 w-10" scope="col">
                     <span className="sr-only">Selecionar</span>
                   </th>
-                  <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900 dark:text-slate-100">Profissional</th>
-                  <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900 dark:text-slate-100">Projeto</th>
-                  <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900 dark:text-slate-100">Data</th>
-                  <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900 dark:text-slate-100">Duração</th>
-                  <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900 dark:text-slate-100">Descrição</th>
-                  <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900 dark:text-slate-100">Custo</th>
-                  <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900 dark:text-slate-100">Ações</th>
+                  <th className="px-4 py-3 text-left text-sm font-semibold text-app-primary">Profissional</th>
+                  <th className="px-4 py-3 text-left text-sm font-semibold text-app-primary">Projeto</th>
+                  <th className="px-4 py-3 text-left text-sm font-semibold text-app-primary">Data</th>
+                  <th className="px-4 py-3 text-left text-sm font-semibold text-app-primary">Duração</th>
+                  <th className="px-4 py-3 text-left text-sm font-semibold text-app-primary">Descrição</th>
+                  <th className="px-4 py-3 text-left text-sm font-semibold text-app-primary">Custo</th>
+                  <th className="px-4 py-3 text-left text-sm font-semibold text-app-primary">Ações</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
+              <tbody className="divide-y divide-table-divider">
                 {filteredEntries.length === 0 ? (
-                  <tr><td colSpan={6} className="px-4 py-8 text-center text-sm text-slate-500 dark:text-slate-400">Nenhum apontamento encontrado com os filtros selecionados</td></tr>
+                  <tr><td colSpan={6} className="px-4 py-8 text-center text-sm text-app-muted">Nenhum apontamento encontrado com os filtros selecionados</td></tr>
                 ) : (
                 filteredEntries.map((entry) => (
                   <tr
                     key={entry.id}
                     onClick={() => setSelectedEntry(entry)}
-                    className="hover:bg-slate-50 dark:hover:bg-slate-800 transition cursor-pointer"
+                    className="hover:bg-hover-surface transition cursor-pointer"
                     role="button"
                     tabIndex={0}
                     onKeyDown={(e) => {
@@ -266,26 +266,26 @@ export function TimeEntryApproval({ onStatusChanged }: TimeEntryApprovalProps) {
                         type="checkbox"
                         checked={selectedIds.has(entry.id)}
                         onChange={() => toggleSelect(entry.id)}
-                        className="h-4 w-4 rounded border-slate-300 dark:border-slate-600 text-focon-600 focus:ring-focon-600"
+                        className="h-4 w-4 rounded border-app-strong text-focon-600 focus:ring-focon-600"
                         aria-label={`Selecionar apontamento de ${entry.professional?.full_name}`}
                       />
                     </td>
-                    <td className="px-4 py-4 text-sm text-slate-900 dark:text-slate-100">
+                    <td className="px-4 py-4 text-sm text-app-primary">
                       {entry.professional?.full_name || 'Desconhecido'}
                     </td>
-                    <td className="px-4 py-4 text-sm text-slate-900 dark:text-slate-100">
+                    <td className="px-4 py-4 text-sm text-app-primary">
                       {entry.project?.name || 'Desconhecido'}
                     </td>
-                    <td className="px-4 py-4 text-sm text-slate-900 dark:text-slate-100 whitespace-nowrap">
+                    <td className="px-4 py-4 text-sm text-app-primary whitespace-nowrap">
                       {formatDate(entry.entry_date)}
                     </td>
-                    <td className="px-4 py-4 text-sm text-slate-900 dark:text-slate-100 whitespace-nowrap">
+                    <td className="px-4 py-4 text-sm text-app-primary whitespace-nowrap">
                       {formatDuration(entry.duration_minutes)}
                     </td>
-                    <td className="px-4 py-4 text-sm text-slate-600 dark:text-slate-400 max-w-[260px] truncate">
+                    <td className="px-4 py-4 text-sm text-app-muted max-w-[260px] truncate">
                       {entry.description}
                     </td>
-                    <td className="px-4 py-4 text-sm font-medium text-slate-900 dark:text-slate-100 whitespace-nowrap">
+                    <td className="px-4 py-4 text-sm font-medium text-app-primary whitespace-nowrap">
                       {formatCurrency((entry.duration_minutes / 60) * entry.applied_hourly_rate)}
                     </td>
                     <td className="px-4 py-4 text-sm space-x-2 flex" onClick={(e) => e.stopPropagation()}>
@@ -319,35 +319,35 @@ export function TimeEntryApproval({ onStatusChanged }: TimeEntryApprovalProps) {
           <div className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm font-medium text-slate-600 dark:text-slate-400 mb-2">Profissional</label>
-                <p className="text-lg font-semibold text-slate-900 dark:text-slate-100">
+                <label className="block text-sm font-medium text-app-muted mb-2">Profissional</label>
+                <p className="text-lg font-semibold text-app-primary">
                   {selectedEntry.professional?.full_name || 'Desconhecido'}
                 </p>
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-600 dark:text-slate-400 mb-2">Projeto</label>
-                <p className="text-lg font-semibold text-slate-900 dark:text-slate-100">
+                <label className="block text-sm font-medium text-app-muted mb-2">Projeto</label>
+                <p className="text-lg font-semibold text-app-primary">
                   {selectedEntry.project?.name || 'Desconhecido'}
                 </p>
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-600 dark:text-slate-400 mb-2">Data</label>
-                <p className="text-lg font-semibold text-slate-900 dark:text-slate-100">{formatDate(selectedEntry.entry_date)}</p>
+                <label className="block text-sm font-medium text-app-muted mb-2">Data</label>
+                <p className="text-lg font-semibold text-app-primary">{formatDate(selectedEntry.entry_date)}</p>
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-600 dark:text-slate-400 mb-2">Duração</label>
-                <p className="text-lg font-semibold text-slate-900 dark:text-slate-100">
+                <label className="block text-sm font-medium text-app-muted mb-2">Duração</label>
+                <p className="text-lg font-semibold text-app-primary">
                   {formatDuration(selectedEntry.duration_minutes)}
                 </p>
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-600 dark:text-slate-400 mb-2">Custo/Hora</label>
-                <p className="text-lg font-semibold text-slate-900 dark:text-slate-100">
+                <label className="block text-sm font-medium text-app-muted mb-2">Custo/Hora</label>
+                <p className="text-lg font-semibold text-app-primary">
                   {formatCurrency(selectedEntry.applied_hourly_rate)}
                 </p>
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate-600 dark:text-slate-400 mb-2">Custo Total</label>
+                <label className="block text-sm font-medium text-app-muted mb-2">Custo Total</label>
                 <p className="text-lg font-semibold text-green-700 dark:text-green-400">
                   {formatCurrency(
                     (selectedEntry.duration_minutes / 60) * selectedEntry.applied_hourly_rate
@@ -356,13 +356,13 @@ export function TimeEntryApproval({ onStatusChanged }: TimeEntryApprovalProps) {
               </div>
             </div>
             <div>
-              <label className="block text-sm font-medium text-slate-600 dark:text-slate-400 mb-2">Descrição</label>
-              <div className="bg-slate-50 dark:bg-slate-800 rounded-lg p-4 border border-slate-200 dark:border-slate-700">
-                <p className="text-slate-900 dark:text-slate-100 whitespace-pre-wrap">{selectedEntry.description}</p>
+              <label className="block text-sm font-medium text-app-muted mb-2">Descrição</label>
+              <div className="bg-surface-secondary rounded-lg p-4 border border-app-primary">
+                <p className="text-app-primary whitespace-pre-wrap">{selectedEntry.description}</p>
               </div>
             </div>
             <ApprovalHistorySection entryId={selectedEntry.id} />
-            <div className="flex justify-end gap-3 border-t border-slate-200 dark:border-slate-700 pt-4">
+            <div className="flex justify-end gap-3 border-t border-app-primary pt-4">
               <button
                 onClick={() => {
                   approveEntry(selectedEntry.id);
@@ -400,7 +400,7 @@ export function TimeEntryApproval({ onStatusChanged }: TimeEntryApprovalProps) {
                 type="button"
                 onClick={() => setRejectTarget(null)}
                 disabled={actionLoading === rejectTarget.id}
-                className="px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition disabled:opacity-50"
+                className="px-4 py-2 rounded-lg border border-app-strong text-app-secondary hover:bg-hover-surface transition disabled:opacity-50"
               >
                 Cancelar
               </button>
@@ -416,7 +416,7 @@ export function TimeEntryApproval({ onStatusChanged }: TimeEntryApprovalProps) {
           }
         >
           <div className="space-y-3">
-            <p className="text-sm text-slate-600 dark:text-slate-400">
+            <p className="text-sm text-app-muted">
               Informe o motivo da rejeição. O profissional visualizará esta justificativa.
             </p>
             <textarea
@@ -427,11 +427,11 @@ export function TimeEntryApproval({ onStatusChanged }: TimeEntryApprovalProps) {
               }}
               rows={4}
               maxLength={1000}
-              className="w-full px-3 py-2.5 border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-red-600"
+              className="w-full px-3 py-2.5 border border-app-strong bg-surface-secondary text-app-primary rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-red-600"
               placeholder="Descreva o motivo da rejeição (mínimo 10 caracteres)..."
               aria-label="Motivo da rejeição"
             />
-            <p className="text-xs text-slate-500 dark:text-slate-400">{rejectReason.length}/1000 caracteres</p>
+            <p className="text-xs text-app-muted">{rejectReason.length}/1000 caracteres</p>
             {rejectError && <p className="text-sm text-red-600 dark:text-red-400">{rejectError}</p>}
           </div>
         </Modal>
@@ -449,7 +449,7 @@ export function TimeEntryApproval({ onStatusChanged }: TimeEntryApprovalProps) {
                 type="button"
                 onClick={() => setBatchMode(null)}
                 disabled={batchBusy}
-                className="px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition disabled:opacity-50"
+                className="px-4 py-2 rounded-lg border border-app-strong text-app-secondary hover:bg-hover-surface transition disabled:opacity-50"
               >
                 Cancelar
               </button>
@@ -464,7 +464,7 @@ export function TimeEntryApproval({ onStatusChanged }: TimeEntryApprovalProps) {
             </>
           }
         >
-          <p className="text-sm text-slate-600 dark:text-slate-400">
+          <p className="text-sm text-app-muted">
             Confirmar a aprovação de <strong>{selectedCount}</strong> apontamento(s) pendente(s)?
             Apenas os pendentes serão processados; já avaliados retornarão como falha.
           </p>
@@ -483,7 +483,7 @@ export function TimeEntryApproval({ onStatusChanged }: TimeEntryApprovalProps) {
                 type="button"
                 onClick={() => setBatchMode(null)}
                 disabled={batchBusy}
-                className="px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition disabled:opacity-50"
+                className="px-4 py-2 rounded-lg border border-app-strong text-app-secondary hover:bg-hover-surface transition disabled:opacity-50"
               >
                 Cancelar
               </button>
@@ -499,7 +499,7 @@ export function TimeEntryApproval({ onStatusChanged }: TimeEntryApprovalProps) {
           }
         >
           <div className="space-y-3">
-            <p className="text-sm text-slate-600 dark:text-slate-400">
+            <p className="text-sm text-app-muted">
               Rejeitar <strong>{selectedCount}</strong> apontamento(s). O motivo será aplicado a todos.
             </p>
             <textarea
@@ -510,11 +510,11 @@ export function TimeEntryApproval({ onStatusChanged }: TimeEntryApprovalProps) {
               }}
               rows={4}
               maxLength={1000}
-              className="w-full px-3 py-2.5 border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-red-600"
+              className="w-full px-3 py-2.5 border border-app-strong bg-surface-secondary text-app-primary rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-red-600"
               placeholder="Motivo da rejeição (mínimo 10 caracteres)..."
               aria-label="Motivo da rejeição em lote"
             />
-            <p className="text-xs text-slate-500 dark:text-slate-400">{batchReason.length}/1000 caracteres</p>
+            <p className="text-xs text-app-muted">{batchReason.length}/1000 caracteres</p>
             {batchError && <p className="text-sm text-red-600 dark:text-red-400">{batchError}</p>}
           </div>
         </Modal>
@@ -534,7 +534,7 @@ function ApprovalHistorySection({ entryId }: { entryId: string }) {
         setHistory((data as TimeEntryApprovalHistory[]) || []);
       })
       .catch(() => setHistory([]));
-    return <p className="text-sm text-slate-500 dark:text-slate-400">Carregando histórico...</p>;
+    return <p className="text-sm text-app-muted">Carregando histórico...</p>;
   }
 
   if (history.length === 0) {
@@ -543,18 +543,18 @@ function ApprovalHistorySection({ entryId }: { entryId: string }) {
 
   return (
     <div>
-      <label className="block text-sm font-medium text-slate-600 dark:text-slate-400 mb-2">Histórico de aprovação</label>
+      <label className="block text-sm font-medium text-app-muted mb-2">Histórico de aprovação</label>
       <ul className="space-y-2">
         {history.map((h) => (
           <li
             key={h.id}
-            className="rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3 py-2 text-sm text-slate-700 dark:text-slate-300"
+            className="rounded-lg border border-app-primary bg-surface-secondary px-3 py-2 text-sm text-app-secondary"
           >
             <span className="font-medium capitalize">{h.previous_status}</span> →{' '}
             <span className="font-medium capitalize">{h.new_status}</span>
             {h.changed_by_profile?.full_name && ` por ${h.changed_by_profile.full_name}`}
-            {h.reason && <span className="block text-slate-600 dark:text-slate-400 mt-1">Motivo: {h.reason}</span>}
-            <span className="block text-xs text-slate-400 dark:text-slate-500 mt-1">
+            {h.reason && <span className="block text-app-muted mt-1">Motivo: {h.reason}</span>}
+            <span className="block text-xs text-app-muted mt-1">
               {new Date(h.created_at).toLocaleString('pt-BR')}
             </span>
           </li>

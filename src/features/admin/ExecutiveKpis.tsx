@@ -32,13 +32,13 @@ function KpiCard({
   accent?: string | undefined;
 }) {
   return (
-    <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-4">
+    <div className="rounded-xl border border-app-primary bg-surface-primary p-4">
       <div className="flex items-center gap-2 mb-2">
         <span className="text-lg" aria-hidden="true">{icon}</span>
-        <p className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wide">{label}</p>
+        <p className="text-xs font-medium text-app-muted uppercase tracking-wide">{label}</p>
       </div>
-      <p className={`text-2xl font-bold ${accent ?? 'text-slate-900 dark:text-slate-100'}`}>{value}</p>
-      {sublabel && <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">{sublabel}</p>}
+      <p className={`text-2xl font-bold ${accent ?? 'text-app-primary'}`}>{value}</p>
+      {sublabel && <p className="text-xs text-app-muted mt-1">{sublabel}</p>}
     </div>
   );
 }
@@ -63,12 +63,12 @@ export function ExecutiveKpis({ kpis, loading, error, onRetry }: ExecutiveKpisPr
   if (loading) {
     return (
       <section aria-label="Visão Executiva" className="space-y-4">
-        <h2 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">Visão Executiva</h2>
+        <h2 className="text-2xl font-semibold text-app-primary">Visão Executiva</h2>
         <div className="grid gap-3 grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
           {[1, 2, 3, 4, 5].map(i => (
-            <div key={i} className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-4">
-              <div className="h-4 w-20 bg-slate-100 dark:bg-slate-800 rounded animate-pulse mb-2" />
-              <div className="h-8 w-28 bg-slate-100 dark:bg-slate-800 rounded animate-pulse" />
+            <div key={i} className="rounded-xl border border-app-primary bg-surface-primary p-4">
+              <div className="h-4 w-20 bg-surface-secondary rounded animate-pulse mb-2" />
+              <div className="h-8 w-28 bg-surface-secondary rounded animate-pulse" />
             </div>
           ))}
         </div>
@@ -79,7 +79,7 @@ export function ExecutiveKpis({ kpis, loading, error, onRetry }: ExecutiveKpisPr
   if (error || !kpis) {
     return (
       <section aria-label="Visão Executiva" className="space-y-4">
-        <h2 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">Visão Executiva</h2>
+        <h2 className="text-2xl font-semibold text-app-primary">Visão Executiva</h2>
         <div className="grid gap-3 grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
           <ErrorCard onRetry={onRetry} />
         </div>
@@ -95,8 +95,8 @@ export function ExecutiveKpis({ kpis, loading, error, onRetry }: ExecutiveKpisPr
 
   return (
     <section aria-label="Visão Executiva" className="space-y-4">
-      <h2 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">Visão Executiva</h2>
-      <p className="text-xs text-slate-400 dark:text-slate-500">
+      <h2 className="text-2xl font-semibold text-app-primary">Visão Executiva</h2>
+      <p className="text-xs text-app-muted">
         Valores contratuais (totais do projeto) — não filtrados por período. Horas e tarefas são operacionais (período selecionado).
       </p>
       <div className="grid gap-3 grid-cols-2 md:grid-cols-3 lg:grid-cols-5">

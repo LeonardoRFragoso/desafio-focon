@@ -112,8 +112,8 @@ export function BudgetVsActualPage() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Orçamento × Realizado</h2>
-          <p className="text-slate-600 dark:text-slate-400">Compare orçamento com horas e custos realizados (aprovados)</p>
+          <h2 className="text-2xl font-bold text-app-primary">Orçamento × Realizado</h2>
+          <p className="text-app-muted">Compare orçamento com horas e custos realizados (aprovados)</p>
         </div>
         <button
           onClick={() => setCreateOpen(true)}
@@ -130,26 +130,26 @@ export function BudgetVsActualPage() {
       )}
 
       {budgets.length === 0 ? (
-        <div className="rounded-xl border border-slate-200 dark:border-slate-700 p-12 text-center bg-slate-50 dark:bg-slate-900">
-          <p className="text-slate-600 dark:text-slate-400">Nenhum orçamento cadastrado</p>
-          <p className="text-sm text-slate-500 dark:text-slate-500 mt-2">Crie um orçamento para acompanhar a performance dos projetos</p>
+        <div className="rounded-xl border border-app-primary p-12 text-center bg-surface-primary">
+          <p className="text-app-muted">Nenhum orçamento cadastrado</p>
+          <p className="text-sm text-app-muted mt-2">Crie um orçamento para acompanhar a performance dos projetos</p>
         </div>
       ) : (
-        <div className="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
+        <div className="overflow-x-auto rounded-xl border border-app-primary shadow-sm">
           <table className="w-full">
-            <thead className="bg-slate-100 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700">
+            <thead className="bg-surface-secondary border-b border-app-primary">
               <tr>
-                <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900 dark:text-slate-100">Projeto</th>
-                <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900 dark:text-slate-100">Tipo</th>
-                <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900 dark:text-slate-100">Ano Fiscal</th>
-                <th className="px-4 py-3 text-right text-sm font-semibold text-slate-900 dark:text-slate-100">Previsto</th>
-                <th className="px-4 py-3 text-right text-sm font-semibold text-slate-900 dark:text-slate-100">Realizado</th>
-                <th className="px-4 py-3 text-right text-sm font-semibold text-slate-900 dark:text-slate-100">Diferença</th>
-                <th className="px-4 py-3 text-right text-sm font-semibold text-slate-900 dark:text-slate-100">%</th>
-                <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900 dark:text-slate-100">Ações</th>
+                <th className="px-4 py-3 text-left text-sm font-semibold text-app-primary">Projeto</th>
+                <th className="px-4 py-3 text-left text-sm font-semibold text-app-primary">Tipo</th>
+                <th className="px-4 py-3 text-left text-sm font-semibold text-app-primary">Ano Fiscal</th>
+                <th className="px-4 py-3 text-right text-sm font-semibold text-app-primary">Previsto</th>
+                <th className="px-4 py-3 text-right text-sm font-semibold text-app-primary">Realizado</th>
+                <th className="px-4 py-3 text-right text-sm font-semibold text-app-primary">Diferença</th>
+                <th className="px-4 py-3 text-right text-sm font-semibold text-app-primary">%</th>
+                <th className="px-4 py-3 text-left text-sm font-semibold text-app-primary">Ações</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
+            <tbody className="divide-y divide-table-divider">
               {budgets.map((b) => {
                 const isHours = b.budget_type === 'labor_hours';
                 const budgetVal = isHours ? b.budget_value : b.budget_value;
@@ -158,12 +158,12 @@ export function BudgetVsActualPage() {
                 const variancePct = isHours ? b.hours_variance_pct : b.cost_variance_pct;
                 const fmtVal = isHours ? formatHours : formatCurrency;
                 return (
-                  <tr key={b.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition">
-                    <td className="px-4 py-3 text-sm font-medium text-slate-900 dark:text-slate-100">{b.project?.name || '—'}</td>
-                    <td className="px-4 py-3 text-sm text-slate-700 dark:text-slate-300">{budgetTypeLabels[b.budget_type] || b.budget_type}</td>
-                    <td className="px-4 py-3 text-sm text-slate-700 dark:text-slate-300">{b.fiscal_year}</td>
-                    <td className="px-4 py-3 text-sm text-right font-medium text-slate-900 dark:text-slate-100">{fmtVal(budgetVal)}</td>
-                    <td className="px-4 py-3 text-sm text-right font-medium text-slate-900 dark:text-slate-100">{fmtVal(actualVal)}</td>
+                  <tr key={b.id} className="hover:bg-hover-surface/50 transition">
+                    <td className="px-4 py-3 text-sm font-medium text-app-primary">{b.project?.name || '—'}</td>
+                    <td className="px-4 py-3 text-sm text-app-secondary">{budgetTypeLabels[b.budget_type] || b.budget_type}</td>
+                    <td className="px-4 py-3 text-sm text-app-secondary">{b.fiscal_year}</td>
+                    <td className="px-4 py-3 text-sm text-right font-medium text-app-primary">{fmtVal(budgetVal)}</td>
+                    <td className="px-4 py-3 text-sm text-right font-medium text-app-primary">{fmtVal(actualVal)}</td>
                     <td className={`px-4 py-3 text-sm text-right font-medium ${variance >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
                       {fmtVal(Math.abs(variance))}
                     </td>
@@ -274,7 +274,7 @@ function BudgetFormModal({ projects, onClose, onSaved, onError }: BudgetFormModa
       title="Novo Orçamento"
       footer={
         <>
-          <button type="button" onClick={onClose} disabled={submitting} className="px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 transition disabled:opacity-50">
+          <button type="button" onClick={onClose} disabled={submitting} className="px-4 py-2 rounded-lg border border-app-strong text-app-secondary hover:bg-hover-surface transition disabled:opacity-50">
             Cancelar
           </button>
           <button type="submit" form="budget-form" disabled={submitting} className="px-4 py-2 rounded-lg bg-focon-600 hover:bg-focon-700 text-white transition disabled:opacity-50">
@@ -285,8 +285,8 @@ function BudgetFormModal({ projects, onClose, onSaved, onError }: BudgetFormModa
     >
       <form id="budget-form" onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Projeto *</label>
-          <select value={projectId} onChange={(e) => setProjectId(e.target.value)} className="w-full px-3 py-2.5 border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-focon-600">
+          <label className="block text-sm font-medium text-app-secondary mb-1">Projeto *</label>
+          <select value={projectId} onChange={(e) => setProjectId(e.target.value)} className="w-full px-3 py-2.5 border border-app-strong bg-surface-secondary text-app-primary rounded-lg focus:outline-none focus:ring-2 focus:ring-focon-600">
             <option value="">Selecione...</option>
             {projects.map((p) => (
               <option key={p.id} value={p.id}>{p.name}</option>
@@ -295,23 +295,23 @@ function BudgetFormModal({ projects, onClose, onSaved, onError }: BudgetFormModa
         </div>
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Tipo *</label>
-            <select value={budgetType} onChange={(e) => setBudgetType(e.target.value)} className="w-full px-3 py-2.5 border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-focon-600">
+            <label className="block text-sm font-medium text-app-secondary mb-1">Tipo *</label>
+            <select value={budgetType} onChange={(e) => setBudgetType(e.target.value)} className="w-full px-3 py-2.5 border border-app-strong bg-surface-secondary text-app-primary rounded-lg focus:outline-none focus:ring-2 focus:ring-focon-600">
               <option value="labor_hours">Horas</option>
               <option value="labor_cost">Custo (R$)</option>
               <option value="total_cost">Custo Total (R$)</option>
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Ano Fiscal *</label>
-            <input type="number" value={fiscalYear} onChange={(e) => setFiscalYear(e.target.value)} min="2000" max="2100" className="w-full px-3 py-2.5 border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-focon-600" />
+            <label className="block text-sm font-medium text-app-secondary mb-1">Ano Fiscal *</label>
+            <input type="number" value={fiscalYear} onChange={(e) => setFiscalYear(e.target.value)} min="2000" max="2100" className="w-full px-3 py-2.5 border border-app-strong bg-surface-secondary text-app-primary rounded-lg focus:outline-none focus:ring-2 focus:ring-focon-600" />
           </div>
         </div>
         <div>
-          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+          <label className="block text-sm font-medium text-app-secondary mb-1">
             Valor * {budgetType === 'labor_hours' ? '(horas)' : '(R$)'}
           </label>
-          <input type="number" step="0.01" min="0" value={budgetValue} onChange={(e) => setBudgetValue(e.target.value)} className="w-full px-3 py-2.5 border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-focon-600" />
+          <input type="number" step="0.01" min="0" value={budgetValue} onChange={(e) => setBudgetValue(e.target.value)} className="w-full px-3 py-2.5 border border-app-strong bg-surface-secondary text-app-primary rounded-lg focus:outline-none focus:ring-2 focus:ring-focon-600" />
         </div>
       </form>
     </Modal>

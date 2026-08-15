@@ -64,7 +64,7 @@ export function ResetPasswordPage() {
 
   if (checkingSession) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-950 via-teal-950 to-slate-950">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-focon-950 via-teal-950 to-focon-950">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-teal-400 mx-auto mb-4"></div>
           <p className="text-teal-200/80 text-sm">Verificando sessão...</p>
@@ -75,9 +75,9 @@ export function ResetPasswordPage() {
 
   if (!sessionReady) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-950 via-teal-950 to-slate-950 py-12 px-4">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-focon-950 via-teal-950 to-focon-950 py-12 px-4">
         <div className="max-w-md w-full">
-          <div className="bg-gradient-to-br from-slate-800/40 to-slate-900/40 backdrop-blur-xl rounded-3xl shadow-2xl p-8 border border-white/10 text-center">
+          <div className="bg-gradient-to-br from-focon-900/40 to-focon-950/40 backdrop-blur-xl rounded-3xl shadow-2xl p-8 border border-white/10 text-center">
             <div className="text-yellow-400 text-4xl mb-4">⚠</div>
             <h1 className="text-2xl font-bold text-white mb-2">Link inválido ou expirado</h1>
             <p className="text-teal-200/80 text-sm mb-6">
@@ -96,11 +96,11 @@ export function ResetPasswordPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-950 via-teal-950 to-slate-950 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-focon-950 via-teal-950 to-focon-950 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8 relative z-10">
         <div className="relative">
           <div className="absolute -inset-0.5 bg-gradient-to-r from-teal-600 to-cyan-600 rounded-3xl blur opacity-20"></div>
-          <div className="relative bg-gradient-to-br from-slate-800/40 to-slate-900/40 backdrop-blur-xl rounded-3xl shadow-2xl p-8 border border-white/10">
+          <div className="relative bg-gradient-to-br from-focon-900/40 to-focon-950/40 backdrop-blur-xl rounded-3xl shadow-2xl p-8 border border-white/10">
             <div className="text-center mb-8">
               <h1 className="text-3xl font-black text-white mb-2">Nova Senha</h1>
               <p className="text-teal-200/80 text-sm">Defina sua nova senha de acesso</p>
