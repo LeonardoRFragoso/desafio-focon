@@ -38,12 +38,11 @@ export function DashboardPage() {
     setRange(newRange);
   }, []);
 
-  // Fetch admin summary
+  // Single fetch for admin summary — passed to all child components
+  /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     let cancelled = false;
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setLoading(true);
-     
     setError(null);
     commandCenterAPI
       .getAdminSummary(range.start_date, range.end_date)
@@ -53,13 +52,17 @@ export function DashboardPage() {
         setSummary(data as unknown as AdminCommandCenterSummary);
       })
       .catch(err => {
-        if (!cancelled) setError(err instanceof Error ? err.message : 'Erro ao carregar dashboard');
+        if (!cancelled) {
+          setError(err instanceof Error ? err.message : 'Erro ao carregar dashboard');
+          setSummary(null);
+        }
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
       });
     return () => { cancelled = true; };
   }, [range.start_date, range.end_date, refreshKey]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   const handleRefresh = useCallback(() => {
     setRefreshKey(prev => prev + 1);
@@ -85,7 +88,7 @@ export function DashboardPage() {
       {error && (
         <div className="rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 p-4" role="alert">
           <div className="flex items-center justify-between">
-            <p className="text-sm font-medium text-red-800 dark:text-red-400">{error}</p>
+            <p className="text-sm font-medium text-red-800 dark:text-red-400">Dados indisponíveis: {error}</p>
             <button
               onClick={handleRefresh}
               className="ml-4 px-3 py-1.5 text-sm font-medium text-red-700 dark:text-red-300 bg-red-100 dark:bg-red-900/40 hover:bg-red-200 dark:hover:bg-red-900/60 rounded transition"
@@ -96,31 +99,33 @@ export function DashboardPage() {
         </div>
       )}
 
-      {/* Action Center — first fold */}
+      {/* Action Center — receives summary from single fetch, no duplicate RPC */}
       <AdminActionCenter
-        startDate={range.start_date}
-        endDate={range.end_date}
-        onRefreshKey={refreshKey}
+        summary={summary}
+        loading={loading}
+        error={error}
+        onRetry={handleRefresh}
       />
 
-      {/* Executive KPIs */}
-      <ExecutiveKpis kpis={summary?.kpis ?? {
-        total_revenue: 0, total_labor_cost: 0, total_result: 0, total_margin: 0,
-        approved_hours_period: 0, active_projects: 0, pending_approvals: 0,
-        open_tasks: 0, overdue_tasks: 0,
-      }} loading={loading} />
+      {/* Executive KPIs — ERROR state shows error, not zeros */}
+      <ExecutiveKpis
+        kpis={summary?.kpis ?? null}
+        loading={loading}
+        error={error}
+        onRetry={handleRefresh}
+      />
 
-      {/* Projects that need attention */}
+      {/* Projects that need attention — separate RPC (different data shape) */}
       <ProjectsAttention />
 
-      {/* Approval queue summary */}
-      <ApprovalQueueSummary summary={summary} loading={loading} />
+      {/* Approval queue summary — from same summary */}
+      <ApprovalQueueSummary summary={summary} loading={loading} error={error} onRetry={handleRefresh} />
 
-      {/* Financial overview */}
-      <FinancialOverview summary={summary} loading={loading} />
+      {/* Financial overview — from same summary */}
+      <FinancialOverview summary={summary} loading={loading} error={error} onRetry={handleRefresh} />
 
-      {/* Team overview */}
-      <TeamOverview summary={summary} loading={loading} />
+      {/* Team overview — from same summary */}
+      <TeamOverview summary={summary} loading={loading} error={error} onRetry={handleRefresh} />
     </div>
   );
 }

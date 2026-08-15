@@ -1,9 +1,7 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { describe, it, expect, vi } from 'vitest';
+import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { AdminActionCenter } from '@/features/admin/AdminActionCenter';
-import { commandCenterAPI } from '@/lib/supabase/api';
 import type { AdminCommandCenterSummary } from '@/lib/supabase/api';
 
 vi.mock('@/lib/errors', () => ({
@@ -28,9 +26,11 @@ const mockSummary: AdminCommandCenterSummary = {
   },
   kpis: {
     total_revenue: 200000,
+    total_tax: 20000,
+    total_indirect_cost: 5000,
     total_labor_cost: 14200,
-    total_result: 159800,
-    total_margin: 79.9,
+    total_result: 160800,
+    total_margin: 80.4,
     approved_hours_period: 480,
     active_projects: 2,
     pending_approvals: 5,
@@ -44,7 +44,13 @@ const mockSummary: AdminCommandCenterSummary = {
 function renderCenter(props: Partial<Parameters<typeof AdminActionCenter>[0]> = {}) {
   return render(
     <MemoryRouter>
-      <AdminActionCenter {...props} />
+      <AdminActionCenter
+        summary={null}
+        loading={false}
+        error={null}
+        onRetry={vi.fn()}
+        {...props}
+      />
     </MemoryRouter>
   );
 }
@@ -55,17 +61,13 @@ describe('AdminActionCenter', () => {
   });
 
   it('renders loading skeletons initially', () => {
-    vi.spyOn(commandCenterAPI, 'getAdminSummary').mockReturnValue(new Promise(() => {}) as any);
-    renderCenter();
+    renderCenter({ loading: true });
     expect(screen.getByText('O que precisa da minha atenção?')).toBeInTheDocument();
   });
 
   it('renders action signals from summary data', async () => {
-    vi.spyOn(commandCenterAPI, 'getAdminSummary').mockResolvedValue({ data: mockSummary as any, error: null } as any);
-    renderCenter();
-    await waitFor(() => {
-      expect(screen.getByText(/5 apontamento\(s\) aguardando aprovação/)).toBeInTheDocument();
-    });
+    renderCenter({ summary: mockSummary });
+    expect(screen.getByText(/5 apontamento\(s\) aguardando aprovação/)).toBeInTheDocument();
     expect(screen.getByText(/2 aguardam há mais de 3 dias/)).toBeInTheDocument();
     expect(screen.getByText(/1 apontamento\(s\) rejeitado\(s\)/)).toBeInTheDocument();
     expect(screen.getByText(/Residencial Aurora — 87% do orçamento/)).toBeInTheDocument();
@@ -91,34 +93,22 @@ describe('AdminActionCenter', () => {
         projects_without_team_count: 0,
       },
     };
-    vi.spyOn(commandCenterAPI, 'getAdminSummary').mockResolvedValue({ data: emptySummary as any, error: null } as any);
-    renderCenter();
-    await waitFor(() => {
-      expect(screen.getByText('Nenhuma pendência crítica no momento')).toBeInTheDocument();
-    });
+    renderCenter({ summary: emptySummary });
+    expect(screen.getByText('Nenhuma pendência crítica no momento')).toBeInTheDocument();
   });
 
   it('shows error state with retry button', async () => {
-    vi.spyOn(commandCenterAPI, 'getAdminSummary').mockResolvedValue({ data: null, error: { message: 'Access denied' } as any } as any);
-    renderCenter();
-    await waitFor(() => {
-      expect(screen.getByText('Tentar novamente')).toBeInTheDocument();
-    });
+    renderCenter({ error: 'Access denied' });
+    expect(screen.getByText('Tentar novamente')).toBeInTheDocument();
   });
 
   it('shows CRÍTICO badge for old pending entries', async () => {
-    vi.spyOn(commandCenterAPI, 'getAdminSummary').mockResolvedValue({ data: mockSummary as any, error: null } as any);
-    renderCenter();
-    await waitFor(() => {
-      expect(screen.getAllByText('CRÍTICO').length).toBeGreaterThan(0);
-    });
+    renderCenter({ summary: mockSummary });
+    expect(screen.getAllByText('CRÍTICO').length).toBeGreaterThan(0);
   });
 
   it('does not show missing rate signal when count is 0', async () => {
-    vi.spyOn(commandCenterAPI, 'getAdminSummary').mockResolvedValue({ data: mockSummary as any, error: null } as any);
-    renderCenter();
-    await waitFor(() => {
-      expect(screen.queryByText(/sem valor\/hora vigente/)).not.toBeInTheDocument();
-    });
+    renderCenter({ summary: mockSummary });
+    expect(screen.queryByText(/sem valor\/hora vigente/)).not.toBeInTheDocument();
   });
 });

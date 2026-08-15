@@ -3,6 +3,8 @@ import type { AdminCommandCenterSummary } from '@/lib/supabase/api';
 interface TeamOverviewProps {
   summary: AdminCommandCenterSummary | null;
   loading: boolean;
+  error: string | null;
+  onRetry: () => void;
 }
 
 function formatHours(minutes: number): string {
@@ -12,12 +14,31 @@ function formatHours(minutes: number): string {
   return `${h}h${m.toString().padStart(2, '0')}`;
 }
 
-export function TeamOverview({ summary, loading }: TeamOverviewProps) {
-  if (loading || !summary) {
+export function TeamOverview({ summary, loading, error, onRetry }: TeamOverviewProps) {
+  if (loading) {
     return (
       <section aria-label="Equipe" className="space-y-4">
         <h2 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">Equipe</h2>
         <div className="h-32 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 animate-pulse" />
+      </section>
+    );
+  }
+
+  if (error || !summary) {
+    return (
+      <section aria-label="Equipe" className="space-y-4">
+        <h2 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">Equipe</h2>
+        <div className="rounded-xl border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20 p-4">
+          <div className="flex items-center justify-between">
+            <p className="text-sm font-medium text-red-800 dark:text-red-400">Dados indisponíveis</p>
+            <button
+              onClick={onRetry}
+              className="ml-4 px-3 py-1.5 text-sm font-medium text-red-700 dark:text-red-300 bg-red-100 dark:bg-red-900/40 hover:bg-red-200 dark:hover:bg-red-900/60 rounded transition"
+            >
+              Tentar novamente
+            </button>
+          </div>
+        </div>
       </section>
     );
   }

@@ -1,4 +1,5 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { supabase } from '@/lib/supabase/client';
 import { useAuthContext } from '@/features/auth/useAuthContext';
 import { HourGoalWidget } from '@/features/time-entries/HourGoalWidget';
@@ -20,6 +21,7 @@ interface ProfessionalStats {
 
 export function ProfessionalDashboard() {
   const { user } = useAuthContext();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [entries, setEntries] = useState<TimeEntryWithRelations[]>([]);
   const [stats, setStats] = useState<ProfessionalStats>({
     approvedHours: 0,
@@ -33,6 +35,32 @@ export function ProfessionalDashboard() {
   const [quickEntryOpen, setQuickEntryOpen] = useState(false);
   const [selectedEntry, setSelectedEntry] = useState<TimeEntryDetail | null>(null);
   const [toast, setToast] = useState<string | null>(null);
+  const timerRef = useRef<HTMLDivElement>(null);
+  const actionHandled = useRef(false);
+
+  // Handle deep link actions from Command Palette (?action=quick-entry or ?action=start-timer)
+  useEffect(() => {
+    if (actionHandled.current) return;
+    const action = searchParams.get('action');
+    if (action === 'quick-entry') {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setQuickEntryOpen(true);
+      actionHandled.current = true;
+      // Clean URL
+      const params = new URLSearchParams(searchParams);
+      params.delete('action');
+      setSearchParams(params, { replace: true });
+    } else if (action === 'start-timer') {
+      // Scroll to timer section
+      requestAnimationFrame(() => {
+        timerRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      });
+      actionHandled.current = true;
+      const params = new URLSearchParams(searchParams);
+      params.delete('action');
+      setSearchParams(params, { replace: true });
+    }
+  }, [searchParams, setSearchParams]);
 
   const fetchUserEntries = useCallback(async () => {
     if (!user) return;
@@ -279,7 +307,11 @@ export function ProfessionalDashboard() {
           </svg>
           Novo Apontamento
         </button>
-        {user && <Timer userId={user.id} onEntryCreated={handleTimerEntryCreated} />}
+        {user && (
+          <div ref={timerRef}>
+            <Timer userId={user.id} onEntryCreated={handleTimerEntryCreated} />
+          </div>
+        )}
       </div>
 
       {/* Hour Goal Widget */}
