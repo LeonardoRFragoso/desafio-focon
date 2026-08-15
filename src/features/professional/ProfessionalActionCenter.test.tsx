@@ -86,6 +86,25 @@ describe('ProfessionalActionCenter', () => {
     expect(screen.getByText(/registradas.*30h de 40h/)).toBeInTheDocument();
   });
 
+  it('formats sub-hour remainders correctly (30m, not 0h)', () => {
+    const stats = makeStats({
+      weekly_goal: {
+        configured: true,
+        goal_minutes: 2400, // 40h
+        approved_minutes: 1380, // 23h
+        pending_minutes: 990, // 16h30
+        rejected_minutes: 0,
+        registered_minutes: 2370, // 39h30
+        remaining_minutes: 30, // 30m — must show "30m", not "0h"
+        progress_percent: 98.75,
+        week_start: '2024-08-12',
+        week_end: '2024-08-18',
+      },
+    });
+    renderCenter({ stats });
+    expect(screen.getByText(/30m restantes para a meta semanal/)).toBeInTheDocument();
+  });
+
   it('shows "Meta semanal atingida" when registered meets the goal', () => {
     const stats = makeStats({
       weekly_goal: {

@@ -49,7 +49,7 @@ function renderTab(props: Partial<Parameters<typeof ProjectTasksTab>[0]> = {}) {
   );
 }
 
-describe('ProjectTasksTab — deep link race condition (A13)', () => {
+describe('ProjectTasksTab — deep link (state-based, A13)', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     listByProjectPhasesMock.mockResolvedValue({ data: [] });
@@ -58,7 +58,15 @@ describe('ProjectTasksTab — deep link race condition (A13)', () => {
     Element.prototype.scrollIntoView = vi.fn();
   });
 
-  it('waits for the task to render before scrolling (task loads after highlight is set)', async () => {
+  it('scrolls to the task when it is already loaded on mount', async () => {
+    listByProjectTasksMock.mockResolvedValue({ data: [makeTask('task-1', 'Design')] });
+    renderTab({ highlightTaskId: 'task-1', onTaskHighlightCleared: vi.fn() });
+    await waitFor(() => {
+      expect(Element.prototype.scrollIntoView).toHaveBeenCalled();
+    });
+  });
+
+  it('waits for tasks to load before scrolling (async load race condition)', async () => {
     // Simulate the async load: tasks resolve after a tick.
     let resolveTasks: (value: { data: unknown }) => void = () => {};
     listByProjectTasksMock.mockReturnValue(
@@ -70,49 +78,19 @@ describe('ProjectTasksTab — deep link race condition (A13)', () => {
     const onTaskHighlightCleared = vi.fn();
     renderTab({ highlightTaskId: 'task-99', onTaskHighlightCleared });
 
-    // While tasks are still loading, the target element does not exist yet.
-    // The highlight should NOT have been cleared prematurely.
-    expect(onTaskHighlightCleared).not.toHaveBeenCalled();
+    // While tasks are still loading, no scroll should happen.
+    expect(Element.prototype.scrollIntoView).not.toHaveBeenCalled();
 
-    // Now resolve the async load — the task appears in the DOM.
+    // Now resolve the async load — the task appears and scroll fires.
     await act(async () => {
       resolveTasks({ data: [makeTask('task-99', 'Excavation')] });
     });
-
-    // After the task renders, scrollIntoView should have been called on it.
     await waitFor(() => {
       expect(Element.prototype.scrollIntoView).toHaveBeenCalled();
     });
   });
 
-  it('scrolls to the task when it is already loaded on mount', async () => {
-    listByProjectTasksMock.mockResolvedValue({ data: [makeTask('task-1', 'Design')] });
-    renderTab({ highlightTaskId: 'task-1', onTaskHighlightCleared: vi.fn() });
-    await waitFor(() => {
-      expect(Element.prototype.scrollIntoView).toHaveBeenCalled();
-    });
-  });
-
-  it('clears the highlight after a few seconds once the task is found', async () => {
-    vi.useFakeTimers();
-    listByProjectTasksMock.mockResolvedValue({ data: [makeTask('task-1', 'Design')] });
-    const onTaskHighlightCleared = vi.fn();
-    renderTab({ highlightTaskId: 'task-1', onTaskHighlightCleared });
-    // Flush the initial effect + rAF
-    await act(async () => {
-      await vi.advanceTimersByTimeAsync(100);
-    });
-    expect(Element.prototype.scrollIntoView).toHaveBeenCalled();
-    // The highlight clear timer is 5s
-    expect(onTaskHighlightCleared).not.toHaveBeenCalled();
-    await act(async () => {
-      await vi.advanceTimersByTimeAsync(5000);
-    });
-    expect(onTaskHighlightCleared).toHaveBeenCalledTimes(1);
-    vi.useRealTimers();
-  });
-
-  it('does not scroll before the task exists in the DOM', async () => {
+  it('does not scroll before tasks are loaded', async () => {
     // Tasks load slowly; ensure no scroll happens before the element exists.
     let resolveTasks: (value: { data: unknown }) => void = () => {};
     listByProjectTasksMock.mockReturnValue(
@@ -121,7 +99,7 @@ describe('ProjectTasksTab — deep link race condition (A13)', () => {
       })
     );
     renderTab({ highlightTaskId: 'task-99', onTaskHighlightCleared: vi.fn() });
-    // Give it a couple of rAF cycles — still no scroll because element is absent
+    // Give it a moment — still no scroll because tasks are loading
     await act(async () => {
       await new Promise((r) => setTimeout(r, 50));
     });
@@ -133,5 +111,53 @@ describe('ProjectTasksTab — deep link race condition (A13)', () => {
     await waitFor(() => {
       expect(Element.prototype.scrollIntoView).toHaveBeenCalled();
     });
+  });
+
+  it('clears highlight for nonexistent task after load completes', async () => {
+    listByProjectTasksMock.mockResolvedValue({ data: [makeTask('task-1')] });
+    const onTaskHighlightCleared = vi.fn();
+    renderTab({ highlightTaskId: 'nonexistent', onTaskHighlightCleared });
+    // The task doesn't exist, so after load the highlight should be cleared
+    // (1s timeout in the component)
+    await waitFor(() => {
+      expect(onTaskHighlightCleared).toHaveBeenCalled();
+    }, { timeout: 3000 });
+    // And no scroll should have happened
+    expect(Element.prototype.scrollIntoView).not.toHaveBeenCalled();
+  });
+
+  it('clears highlight after 5s when task is found', async () => {
+    listByProjectTasksMock.mockResolvedValue({ data: [makeTask('task-1', 'Design')] });
+    const onTaskHighlightCleared = vi.fn();
+    renderTab({ highlightTaskId: 'task-1', onTaskHighlightCleared });
+    // Wait for the scroll to happen
+    await waitFor(() => {
+      expect(Element.prototype.scrollIntoView).toHaveBeenCalled();
+    });
+    // The highlight clear timer is 5s — not called yet
+    expect(onTaskHighlightCleared).not.toHaveBeenCalled();
+    // Wait for the 5s timer to fire (use longer timeout to avoid flakiness)
+    await waitFor(() => {
+      expect(onTaskHighlightCleared).toHaveBeenCalled();
+    }, { timeout: 10000 });
+  }, 15000);
+
+  it('does not scroll again if highlightTaskId has not changed', async () => {
+    listByProjectTasksMock.mockResolvedValue({ data: [makeTask('task-1')] });
+    const { rerender } = renderTab({ highlightTaskId: 'task-1', onTaskHighlightCleared: vi.fn() });
+    await waitFor(() => {
+      expect(Element.prototype.scrollIntoView).toHaveBeenCalledTimes(1);
+    });
+    // Re-render with same props — the hasScrolledRef guard prevents duplicate scrolls
+    rerender(
+      <MemoryRouter>
+        <ProjectTasksTab projectId="p1" isAdmin={false} highlightTaskId="task-1" onTaskHighlightCleared={vi.fn()} />
+      </MemoryRouter>
+    );
+    // Wait a bit to ensure no additional scroll
+    await act(async () => {
+      await new Promise((r) => setTimeout(r, 100));
+    });
+    expect(Element.prototype.scrollIntoView).toHaveBeenCalledTimes(1);
   });
 });

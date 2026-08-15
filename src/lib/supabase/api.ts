@@ -723,6 +723,13 @@ export const userPreferencesAPI = {
       .select('*')
       .single();
   },
+  remove: async (userId: string, key: string) => {
+    return supabase
+      .from('user_preferences')
+      .delete()
+      .eq('user_id', userId)
+      .eq('pref_key', key);
+  },
 };
 
 /**

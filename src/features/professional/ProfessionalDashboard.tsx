@@ -319,9 +319,16 @@ export function ProfessionalDashboard() {
         )}
       </div>
 
-      {/* Hour Goal Widget */}
+      {/* Hour Goal Widget — consumes the same RPC weekly_goal block as the
+          Action Center (single source of truth). When the goal is saved or
+          removed, onGoalChanged triggers a full dashboard refetch so both
+          widgets update immediately without a manual page reload. */}
       <div id="hour-goal-widget">
-        <HourGoalWidget openEditorSignal={goalEditorSignal} />
+        <HourGoalWidget
+          weeklyGoal={dashboardStats?.weekly_goal ?? null}
+          openEditorSignal={goalEditorSignal}
+          onGoalChanged={fetchUserEntries}
+        />
       </div>
 
       {/* Entries Table */}

@@ -321,9 +321,6 @@ export function Timer({ userId, onEntryCreated, isAdmin = false }: TimerProps) {
                     className="w-full px-3 py-2.5 border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-focon-600 disabled:opacity-50"
                   >
                     <option value="">Sem fase</option>
-                    {phases.length === 0 && selProject ? (
-                      <option value="" disabled>Nenhuma fase cadastrada</option>
-                    ) : null}
                     {phases.map((p) => (
                       <option key={p.id} value={p.id}>{p.name}</option>
                     ))}
@@ -355,9 +352,6 @@ export function Timer({ userId, onEntryCreated, isAdmin = false }: TimerProps) {
                     className="w-full px-3 py-2.5 border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-focon-600 disabled:opacity-50"
                   >
                     <option value="">Sem tarefa</option>
-                    {filteredTasks.length === 0 && selProject ? (
-                      <option value="" disabled>Nenhuma tarefa cadastrada</option>
-                    ) : null}
                     {filteredTasks.map((t) => (
                       <option key={t.id} value={t.id}>{t.title}</option>
                     ))}

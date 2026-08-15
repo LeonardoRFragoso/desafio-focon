@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import type { ProfessionalDashboardStats } from '@/lib/supabase/api';
+import { formatDuration } from '@/lib/duration';
 
 interface ProfessionalActionCenterProps {
   stats: ProfessionalDashboardStats | null;
@@ -18,14 +19,6 @@ const SEVERITY_STYLES: Record<Severity, string> = {
   critical: 'border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20',
   success: 'border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-900/20',
 };
-
-function formatHours(minutes: number): string {
-  const h = Math.floor(minutes / 60);
-  const m = minutes % 60;
-  if (h === 0) return `${m}m`;
-  if (m === 0) return `${h}h`;
-  return `${h}h${m.toString().padStart(2, '0')}`;
-}
 
 export function ProfessionalActionCenter({ stats, loading, onDefineGoal }: ProfessionalActionCenterProps) {
   const navigate = useNavigate();
@@ -114,12 +107,10 @@ export function ProfessionalActionCenter({ stats, loading, onDefineGoal }: Profe
   // Weekly goal progress — single source of truth is stats.weekly_goal
   // (returned by get_professional_dashboard_stats). No hardcoded 40h fallback.
   // registered = approved + pending (rejected excluded from progress).
+  // Uses the shared formatDuration helper so sub-hour remainders show as
+  // "30m" / "1h30" instead of being floored to "0h".
   const wg = stats.weekly_goal;
   if (wg && wg.configured && wg.goal_minutes !== null) {
-    const goalH = Math.floor(wg.goal_minutes / 60);
-    const registeredH = Math.floor(wg.registered_minutes / 60);
-    const approvedH = Math.floor(wg.approved_minutes / 60);
-    const pendingH = Math.floor(wg.pending_minutes / 60);
     const remaining = wg.remaining_minutes ?? 0;
     const progress = wg.progress_percent ?? 0;
     if (remaining > 0) {
@@ -127,8 +118,8 @@ export function ProfessionalActionCenter({ stats, loading, onDefineGoal }: Profe
         id: 'weekly-goal',
         severity: progress >= 75 ? 'info' : 'warning',
         icon: '🎯',
-        title: `${Math.floor(remaining / 60)}h restantes para a meta semanal`,
-        description: `${progress.toFixed(0)}% registradas (${registeredH}h de ${goalH}h) — aprovadas ${approvedH}h / pendentes ${pendingH}h`,
+        title: `${formatDuration(remaining)} restantes para a meta semanal`,
+        description: `${progress.toFixed(0)}% registradas (${formatDuration(wg.registered_minutes)} de ${formatDuration(wg.goal_minutes)}) — aprovadas ${formatDuration(wg.approved_minutes)} / pendentes ${formatDuration(wg.pending_minutes)}`,
       });
     } else {
       items.push({
@@ -136,7 +127,7 @@ export function ProfessionalActionCenter({ stats, loading, onDefineGoal }: Profe
         severity: 'success',
         icon: '🎯',
         title: 'Meta semanal atingida',
-        description: `${registeredH}h registradas na semana (meta ${goalH}h) — aprovadas ${approvedH}h / pendentes ${pendingH}h`,
+        description: `${formatDuration(wg.registered_minutes)} registradas na semana (meta ${formatDuration(wg.goal_minutes)}) — aprovadas ${formatDuration(wg.approved_minutes)} / pendentes ${formatDuration(wg.pending_minutes)}`,
       });
     }
   } else if (wg && !wg.configured) {
@@ -148,7 +139,7 @@ export function ProfessionalActionCenter({ stats, loading, onDefineGoal }: Profe
       severity: 'info',
       icon: '🎯',
       title: 'Meta semanal não definida',
-      description: `Registradas nesta semana: ${formatHours(wg.registered_minutes)}. Defina sua meta para acompanhar o progresso.`,
+      description: `Registradas nesta semana: ${formatDuration(wg.registered_minutes)}. Defina sua meta para acompanhar o progresso.`,
       cta: 'Definir meta',
       href: '#hour-goal-widget',
     };

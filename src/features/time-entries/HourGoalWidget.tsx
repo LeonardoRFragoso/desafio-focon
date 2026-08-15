@@ -1,125 +1,51 @@
-import { useState, useEffect, useCallback } from 'react';
-import { userPreferencesAPI, timeEntriesAPI } from '@/lib/supabase/api';
+import { useState, useEffect } from 'react';
+import type { ProfessionalDashboardStats } from '@/lib/supabase/api';
 import { useAuthContext } from '@/features/auth/useAuthContext';
-
-const PREF_KEY = 'expected_weekly_minutes';
-
-function getWeekStart(date: Date): Date {
-  const d = new Date(date);
-  const day = d.getDay();
-  const diff = day === 0 ? -6 : 1 - day;
-  d.setDate(d.getDate() + diff);
-  d.setHours(0, 0, 0, 0);
-  return d;
-}
-
-function formatDuration(minutes: number): string {
-  const h = Math.floor(minutes / 60);
-  const m = minutes % 60;
-  if (h === 0) return `${m}m`;
-  if (m === 0) return `${h}h`;
-  return `${h}h${m.toString().padStart(2, '0')}`;
-}
-
-interface GoalStats {
-  registered: number;
-  approved: number;
-  pending: number;
-  rejected: number;
-  goal: number;
-  percent: number;
-  remaining: number;
-}
+import { formatDuration, minutesToHoursInput } from '@/lib/duration';
+import { useWeeklyGoal, MAX_GOAL_HOURS } from './useWeeklyGoal';
 
 interface HourGoalWidgetProps {
+  /** The weekly_goal block from the RPC (single source of truth). Provided by
+   *  ProfessionalDashboard which already fetches get_professional_dashboard_stats. */
+  weeklyGoal: ProfessionalDashboardStats['weekly_goal'] | null;
   /** When this number increments, the widget opens its goal editor. Used by
    *  ProfessionalActionCenter's "Definir meta" CTA to reuse this form instead
    *  of creating a second configuration UI. */
   openEditorSignal?: number;
+  /** Callback fired after the goal is saved or removed, so the dashboard can
+   *  refresh the Action Center and any other consumers. */
+  onGoalChanged?: () => void;
 }
 
-export function HourGoalWidget({ openEditorSignal }: HourGoalWidgetProps = {}) {
+export function HourGoalWidget({ weeklyGoal, openEditorSignal, onGoalChanged }: HourGoalWidgetProps) {
   const { user } = useAuthContext();
-  const [goal, setGoal] = useState<number | null>(null);
-  const [stats, setStats] = useState<GoalStats | null>(null);
-  const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
   const [inputHours, setInputHours] = useState('40');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fetchGoal = useCallback(async () => {
-    if (!user) return;
-    try {
-      const { data } = await userPreferencesAPI.get(user.id, PREF_KEY);
-      if (data?.pref_value && typeof data.pref_value === 'object') {
-        const val = (data.pref_value as { minutes?: number }).minutes;
-        if (typeof val === 'number' && val > 0) {
-          setGoal(val);
-          setInputHours(String(Math.round(val / 60)));
-        }
-      }
-    } catch {
-      // No preference set yet — that's fine
+  // The canonical numbers come from the RPC via the shared hook.
+  // This widget does NOT replicate the aggregation math client-side.
+  const { saveGoal, removeGoal } = useWeeklyGoal(weeklyGoal, (stats) => {
+    // The hook refetched the RPC; notify the parent so Action Center updates.
+    onGoalChanged?.();
+    // Update the input to reflect the saved value (preserves fractions).
+    if (stats.weekly_goal.configured && stats.weekly_goal.goal_minutes !== null) {
+      setInputHours(minutesToHoursInput(stats.weekly_goal.goal_minutes));
     }
-  }, [user]);
+  });
 
-  const fetchStats = useCallback(
-    async (goalMinutes: number) => {
-      if (!user) return;
-      try {
-        const weekStart = getWeekStart(new Date());
-        const startDateStr = weekStart.toISOString().slice(0, 10);
-        const { data, error: err } = await timeEntriesAPI.getByUser(user.id);
-        if (err) throw err;
-
-        interface RawEntry {
-          entry_date: string;
-          duration_minutes: number;
-          approval_status: 'pending' | 'approved' | 'rejected';
-        }
-
-        const weekEntries = ((data as unknown as RawEntry[]) || []).filter(
-          (e) => e.entry_date >= startDateStr
-        );
-
-        const registered = weekEntries
-          .filter((e) => e.approval_status === 'approved' || e.approval_status === 'pending')
-          .reduce((s, e) => s + e.duration_minutes, 0);
-        const approved = weekEntries
-          .filter((e) => e.approval_status === 'approved')
-          .reduce((s, e) => s + e.duration_minutes, 0);
-        const pending = weekEntries
-          .filter((e) => e.approval_status === 'pending')
-          .reduce((s, e) => s + e.duration_minutes, 0);
-        const rejected = weekEntries
-          .filter((e) => e.approval_status === 'rejected')
-          .reduce((s, e) => s + e.duration_minutes, 0);
-
-        const percent = goalMinutes > 0 ? Math.min((registered / goalMinutes) * 100, 100) : 0;
-        const remaining = Math.max(goalMinutes - registered, 0);
-
-        setStats({ registered, approved, pending, rejected, goal: goalMinutes, percent, remaining });
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Erro ao carregar estatísticas');
-      }
-    },
-    [user]
-  );
-
+  // Pre-fill the editor input with the current goal (or default 40h) when
+  // the weeklyGoal data arrives. Preserves fractional values (e.g. 37.5h).
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    fetchGoal();
-  }, [fetchGoal]);
-
-  useEffect(() => {
-    if (goal !== null) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      fetchStats(goal);
-    } else {
-      setLoading(false);
+    /* eslint-disable react-hooks/set-state-in-effect */
+    if (weeklyGoal?.configured && weeklyGoal.goal_minutes !== null) {
+      setInputHours(minutesToHoursInput(weeklyGoal.goal_minutes));
+    } else if (!weeklyGoal?.configured) {
+      setInputHours('40');
     }
-  }, [goal, fetchStats]);
+    /* eslint-enable react-hooks/set-state-in-effect */
+  }, [weeklyGoal?.configured, weeklyGoal?.goal_minutes]);
 
   // External trigger to open the goal editor (reused by Action Center CTA).
   useEffect(() => {
@@ -132,19 +58,19 @@ export function HourGoalWidget({ openEditorSignal }: HourGoalWidgetProps = {}) {
   const handleSave = async () => {
     if (!user) return;
     const hours = parseFloat(inputHours);
-    if (isNaN(hours) || hours < 0 || hours > 168) {
-      setError('Meta inválida (0-168 horas).');
+    if (isNaN(hours) || hours <= 0 || hours > MAX_GOAL_HOURS) {
+      setError(`A meta deve ser maior que 0 horas e no máximo ${MAX_GOAL_HOURS} horas.`);
       return;
     }
     setSaving(true);
     setError(null);
     try {
-      const minutes = Math.round(hours * 60);
-      const { error: err } = await userPreferencesAPI.set(user.id, PREF_KEY, { minutes });
-      if (err) throw err;
-      setGoal(minutes);
+      const { error: saveError } = await saveGoal(hours);
+      if (saveError) {
+        setError(saveError);
+        return;
+      }
       setEditing(false);
-      await fetchStats(minutes);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Erro ao salvar meta');
     } finally {
@@ -152,7 +78,28 @@ export function HourGoalWidget({ openEditorSignal }: HourGoalWidgetProps = {}) {
     }
   };
 
-  if (loading && goal === null) {
+  const handleRemove = async () => {
+    if (!user) return;
+    setSaving(true);
+    setError(null);
+    try {
+      const { error: removeError } = await removeGoal();
+      if (removeError) {
+        setError(removeError);
+        return;
+      }
+      setEditing(false);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Erro ao remover meta');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const configured = weeklyGoal?.configured ?? false;
+  const loading = !weeklyGoal;
+
+  if (loading) {
     return (
       <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 p-6 shadow-sm">
         <div className="animate-pulse">
@@ -175,7 +122,7 @@ export function HourGoalWidget({ openEditorSignal }: HourGoalWidgetProps = {}) {
             onClick={() => setEditing(true)}
             className="text-sm text-focon-600 hover:text-focon-700 font-medium"
           >
-            {goal ? 'Alterar' : 'Definir'}
+            {configured ? 'Alterar' : 'Definir'}
           </button>
         )}
       </div>
@@ -195,8 +142,8 @@ export function HourGoalWidget({ openEditorSignal }: HourGoalWidgetProps = {}) {
             <div className="flex items-center gap-2">
               <input
                 type="number"
-                min="0"
-                max="168"
+                min="0.5"
+                max={MAX_GOAL_HOURS}
                 step="0.5"
                 value={inputHours}
                 onChange={(e) => setInputHours(e.target.value)}
@@ -204,6 +151,9 @@ export function HourGoalWidget({ openEditorSignal }: HourGoalWidgetProps = {}) {
               />
               <span className="text-sm text-slate-500 dark:text-slate-400">horas</span>
             </div>
+            <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+              Valores fracionados são aceitos (ex.: 37,5h). A meta deve ser maior que 0.
+            </p>
           </div>
           <div className="flex gap-2">
             <button
@@ -213,6 +163,15 @@ export function HourGoalWidget({ openEditorSignal }: HourGoalWidgetProps = {}) {
             >
               {saving ? 'Salvando...' : 'Salvar'}
             </button>
+            {configured && (
+              <button
+                onClick={handleRemove}
+                disabled={saving}
+                className="px-4 py-2 border border-red-300 dark:border-red-700 text-red-700 dark:text-red-400 rounded-lg text-sm font-medium transition hover:bg-red-50 dark:hover:bg-red-900/20 disabled:opacity-50"
+              >
+                Remover meta
+              </button>
+            )}
             <button
               onClick={() => {
                 setEditing(false);
@@ -225,7 +184,7 @@ export function HourGoalWidget({ openEditorSignal }: HourGoalWidgetProps = {}) {
             </button>
           </div>
         </div>
-      ) : goal === null ? (
+      ) : !configured ? (
         <div className="text-center py-6">
           <p className="text-slate-500 dark:text-slate-400 mb-3">Nenhuma meta definida</p>
           <button
@@ -235,36 +194,38 @@ export function HourGoalWidget({ openEditorSignal }: HourGoalWidgetProps = {}) {
             Definir Meta
           </button>
         </div>
-      ) : stats ? (
+      ) : weeklyGoal ? (
         <div className="space-y-4">
           {/* Progress bar */}
           <div>
             <div className="flex justify-between items-baseline mb-2">
               <span className="text-2xl font-bold text-slate-900 dark:text-slate-100">
-                {formatDuration(stats.registered)}
+                {formatDuration(weeklyGoal.registered_minutes)}
               </span>
               <span className="text-sm text-slate-500 dark:text-slate-400">
-                de {formatDuration(stats.goal)}
+                de {formatDuration(weeklyGoal.goal_minutes ?? 0)}
               </span>
             </div>
             <div className="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-3 overflow-hidden">
               <div
                 className={`h-full rounded-full transition-all ${
-                  stats.percent >= 100
+                  (weeklyGoal.progress_percent ?? 0) >= 100
                     ? 'bg-green-500'
-                    : stats.percent >= 75
+                    : (weeklyGoal.progress_percent ?? 0) >= 75
                       ? 'bg-focon-500'
                       : 'bg-yellow-500'
                 }`}
-                style={{ width: `${stats.percent}%` }}
+                style={{ width: `${weeklyGoal.progress_percent ?? 0}%` }}
               />
             </div>
             <div className="flex justify-between mt-2 text-sm">
               <span className="font-medium text-slate-700 dark:text-slate-300">
-                {stats.percent.toFixed(0)}%
+                {(weeklyGoal.progress_percent ?? 0).toFixed(0)}%
               </span>
               <span className="text-slate-500 dark:text-slate-400">
-                {stats.remaining > 0 ? `Faltam ${formatDuration(stats.remaining)}` : 'Meta atingida!'}
+                {(weeklyGoal.remaining_minutes ?? 0) > 0
+                  ? `Faltam ${formatDuration(weeklyGoal.remaining_minutes ?? 0)}`
+                  : 'Meta atingida!'}
               </span>
             </div>
           </div>
@@ -273,19 +234,19 @@ export function HourGoalWidget({ openEditorSignal }: HourGoalWidgetProps = {}) {
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             <div className="rounded-lg bg-green-50 dark:bg-green-900/20 p-3 text-center">
               <p className="text-xs text-green-700 dark:text-green-400 font-medium">Aprovado</p>
-              <p className="text-lg font-bold text-green-800 dark:text-green-300">{formatDuration(stats.approved)}</p>
+              <p className="text-lg font-bold text-green-800 dark:text-green-300">{formatDuration(weeklyGoal.approved_minutes)}</p>
             </div>
             <div className="rounded-lg bg-yellow-50 dark:bg-yellow-900/20 p-3 text-center">
               <p className="text-xs text-yellow-700 dark:text-yellow-400 font-medium">Pendente</p>
-              <p className="text-lg font-bold text-yellow-800 dark:text-yellow-300">{formatDuration(stats.pending)}</p>
+              <p className="text-lg font-bold text-yellow-800 dark:text-yellow-300">{formatDuration(weeklyGoal.pending_minutes)}</p>
             </div>
             <div className="rounded-lg bg-red-50 dark:bg-red-900/20 p-3 text-center">
               <p className="text-xs text-red-700 dark:text-red-400 font-medium">Rejeitado</p>
-              <p className="text-lg font-bold text-red-800 dark:text-red-300">{formatDuration(stats.rejected)}</p>
+              <p className="text-lg font-bold text-red-800 dark:text-red-300">{formatDuration(weeklyGoal.rejected_minutes)}</p>
             </div>
             <div className="rounded-lg bg-slate-100 dark:bg-slate-800 p-3 text-center">
               <p className="text-xs text-slate-600 dark:text-slate-400 font-medium">Registrado</p>
-              <p className="text-lg font-bold text-slate-800 dark:text-slate-200">{formatDuration(stats.registered)}</p>
+              <p className="text-lg font-bold text-slate-800 dark:text-slate-200">{formatDuration(weeklyGoal.registered_minutes)}</p>
             </div>
           </div>
         </div>

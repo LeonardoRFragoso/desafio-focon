@@ -208,25 +208,25 @@ describe('Timer', () => {
       tasksMock.mockResolvedValue({ data: [] });
     });
 
-    it('shows "Nenhuma fase cadastrada" when project has no phases', async () => {
+    it('shows info text when project has no phases', async () => {
       const user = userEvent.setup();
       renderTimer();
       await user.click(screen.getByText('Iniciar Timer'));
       const projectSelect = screen.getByLabelText('Projeto *');
       await user.selectOptions(projectSelect, 'p1');
       await waitFor(() => {
-        expect(screen.getByText('Nenhuma fase cadastrada')).toBeInTheDocument();
+        expect(screen.getByText('Este projeto ainda não possui fases cadastradas.')).toBeInTheDocument();
       });
     });
 
-    it('shows "Nenhuma tarefa cadastrada" when project has no tasks', async () => {
+    it('shows info text when project has no tasks', async () => {
       const user = userEvent.setup();
       renderTimer();
       await user.click(screen.getByText('Iniciar Timer'));
       const projectSelect = screen.getByLabelText('Projeto *');
       await user.selectOptions(projectSelect, 'p1');
       await waitFor(() => {
-        expect(screen.getByText('Nenhuma tarefa cadastrada')).toBeInTheDocument();
+        expect(screen.getByText('Este projeto ainda não possui tarefas disponíveis.')).toBeInTheDocument();
       });
     });
 

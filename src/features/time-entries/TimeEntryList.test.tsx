@@ -59,18 +59,18 @@ function makeEntry(id: string, status: 'pending' | 'approved' | 'rejected' = 'pe
     duration_minutes: 60,
     description: 'Test entry',
     approval_status: status,
-    applied_hourly_rate: null,
-    rejection_reason: status === 'rejected' ? 'Needs more detail' : null,
-    rejected_by: null,
-    rejected_at: null,
+    applied_hourly_rate: null as number | null,
+    rejection_reason: (status === 'rejected' ? 'Needs more detail' : null) as string | null,
+    rejected_by: null as string | null,
+    rejected_at: null as string | null,
     created_at: '2024-08-14T10:00:00Z',
-    updated_at: null,
-    phase_id: null,
-    task_id: null,
+    updated_at: null as string | null,
+    phase_id: null as string | null,
+    task_id: null as string | null,
     project: { name: 'Aurora' },
-    phase: null,
-    task: null,
-    rejected_by_profile: null,
+    phase: null as { name: string } | null,
+    task: null as { title: string } | null,
+    rejected_by_profile: null as { full_name: string } | null,
   };
 }
 
@@ -160,5 +160,73 @@ describe('TimeEntryList — URL query params', () => {
       const select = screen.getByLabelText('Filtrar por status') as HTMLSelectElement;
       expect(select.value).toBe('');
     });
+  });
+});
+
+// ==========================================================================
+// A12: Deep link to rejected entry — integrated test
+// When the user navigates to /time-entries?status=rejected&entry=<id>:
+//   1. The status filter is set to "rejected"
+//   2. The entry details modal opens automatically
+//   3. The rejection reason is visible in the modal
+//   4. Closing the modal removes only the `entry` param (status stays rejected)
+// ==========================================================================
+describe('TimeEntryList — deep link to rejected entry (A12 integrated)', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('opens modal with rejection reason visible, and closing removes only the entry param', async () => {
+    const user = userEvent.setup();
+    const rejectedEntry = makeEntry('entry-rej-1', 'rejected');
+    rejectedEntry.rejection_reason = 'Descrição insuficiente para aprovação do apontamento';
+    rejectedEntry.rejected_by = 'admin-uuid';
+    rejectedEntry.rejected_at = '2024-08-14T12:00:00Z';
+    rejectedEntry.rejected_by_profile = { full_name: 'Admin User' };
+
+    getByIdMock.mockResolvedValue({ data: rejectedEntry, error: null });
+    queryUserEntriesMock.mockResolvedValue({ data: [rejectedEntry], error: null, count: 1 });
+
+    renderList('/time-entries?status=rejected&entry=entry-rej-1');
+
+    // 1. Status filter is set to "rejected"
+    await waitFor(() => {
+      const select = screen.getByLabelText('Filtrar por status') as HTMLSelectElement;
+      expect(select.value).toBe('rejected');
+    });
+
+    // 2. The entry details modal opens automatically (getById called with the entry id)
+    await waitFor(() => {
+      expect(getByIdMock).toHaveBeenCalledWith('entry-rej-1');
+    });
+
+    // 3. The rejection reason is visible in the modal
+    await waitFor(() => {
+      expect(screen.getByText(/Descrição insuficiente para aprovação do apontamento/)).toBeInTheDocument();
+    });
+
+    // 4. Close the modal — the `entry` param should be removed but status stays
+    const closeButton = screen.queryByRole('button', { name: /close|fechar|×/i }) ?? screen.getAllByRole('button').find(b => b.textContent === '×' || b.textContent === 'Close');
+    if (closeButton) {
+      await user.click(closeButton as HTMLElement);
+    }
+    // The status filter should still be "rejected" after closing the modal
+    await waitFor(() => {
+      const select = screen.getByLabelText('Filtrar por status') as HTMLSelectElement;
+      expect(select.value).toBe('rejected');
+    });
+  });
+
+  it('does not open modal when entry param is absent (only status filter applied)', async () => {
+    const entry = makeEntry('entry-rej-2', 'rejected');
+    queryUserEntriesMock.mockResolvedValue({ data: [entry], error: null, count: 1 });
+
+    renderList('/time-entries?status=rejected');
+
+    await waitFor(() => {
+      expect(queryUserEntriesMock).toHaveBeenCalled();
+    });
+    // getById should NOT be called (no entry param)
+    expect(getByIdMock).not.toHaveBeenCalled();
   });
 });

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { projectTasksAPI, projectPhasesAPI, profilesAPI } from '@/lib/supabase/api';
 import { mapDatabaseError } from '@/lib/errors';
 import { Modal } from '@/components/Modal';
@@ -88,44 +88,51 @@ export function ProjectTasksTab({ projectId, isAdmin, highlightTaskId, onTaskHig
   }, [fetchTasks, fetchMeta, isAdmin]);
 
   // Scroll to highlighted task and auto-clear after 5s.
-  // The task list loads asynchronously, so the target element may not exist
-  // when the deep link first resolves. We poll briefly (rAF) until the element
-  // is present, then scroll. The 5s highlight timer starts only after the
-  // scroll actually happens, so the highlight is always visible to the user.
+  // Uses React state (loading + tasks) instead of DOM polling (rAF) for
+  // deterministic behavior: the scroll fires exactly once when the task list
+  // has loaded AND the target task is present. If the task doesn't exist
+  // (deleted, wrong project), the highlight is cleared after a timeout.
+  const hasScrolledRef = useRef(false);
   useEffect(() => {
-    if (!highlightTaskId) return;
-    let cancelled = false;
-    let clearTimer: ReturnType<typeof setTimeout> | null = null;
+    if (!highlightTaskId) return undefined;
 
-    const tryScroll = (attempts = 0) => {
-      if (cancelled) return;
-      const el = document.getElementById(`task-${highlightTaskId}`);
-      if (el) {
-        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        clearTimer = setTimeout(() => {
-          if (!cancelled) onTaskHighlightCleared?.();
-        }, 5000);
-        return;
-      }
-      // Element not rendered yet — retry on the next frame (up to ~2s).
-      if (attempts < 120) {
-        requestAnimationFrame(() => tryScroll(attempts + 1));
-      } else {
-        // Fallback: clear the highlight even if the task never appeared
-        // (e.g. it was deleted or belongs to another project).
-        clearTimer = setTimeout(() => {
-          if (!cancelled) onTaskHighlightCleared?.();
-        }, 5000);
-      }
-    };
+    // If tasks are still loading, wait — the effect will re-run when `tasks`
+    // or `loading` changes.
+    if (loading) return undefined;
 
-    tryScroll();
+    const targetExists = tasks.some((t) => t.id === highlightTaskId);
 
-    return () => {
-      cancelled = true;
-      if (clearTimer) clearTimeout(clearTimer);
-    };
-  }, [highlightTaskId, onTaskHighlightCleared, tasks]);
+    if (targetExists && !hasScrolledRef.current) {
+      hasScrolledRef.current = true;
+      // Use rAF for one frame so the DOM is committed before scrolling.
+      requestAnimationFrame(() => {
+        const el = document.getElementById(`task-${highlightTaskId}`);
+        el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      });
+      // Auto-clear the highlight after 5s (starts after scroll).
+      const clearTimer = setTimeout(() => {
+        onTaskHighlightCleared?.();
+      }, 5000);
+      return () => clearTimeout(clearTimer);
+    }
+
+    if (!targetExists && !hasScrolledRef.current) {
+      // Task not found after load completed — clear the highlight so the URL
+      // doesn't stay stuck on a non-existent task.
+      hasScrolledRef.current = true;
+      const clearTimer = setTimeout(() => {
+        onTaskHighlightCleared?.();
+      }, 1000);
+      return () => clearTimeout(clearTimer);
+    }
+
+    return undefined;
+  }, [highlightTaskId, tasks, loading, onTaskHighlightCleared]);
+
+  // Reset the scroll guard when the highlight target changes.
+  useEffect(() => {
+    hasScrolledRef.current = false;
+  }, [highlightTaskId]);
 
   const formatDate = (d: string | null) => (d ? new Date(d).toLocaleDateString('pt-BR') : '—');
   const formatHours = (m: number | null) => (m ? `${(m / 60).toFixed(1)}h` : '—');
