@@ -1,4 +1,5 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Outlet } from 'react-router-dom';
+import { Layout } from '@/components/Layout';
 import { LoginPage } from '@/pages/LoginPage';
 import { RootPage } from '@/pages/RootPage';
 import { DashboardPage } from '@/pages/DashboardPage';
@@ -23,143 +24,166 @@ import { ProfitabilityAlertsPage } from '@/pages/admin/ProfitabilityAlertsPage';
 import { SystemStatusPage } from '@/pages/admin/SystemStatusPage';
 import { ProtectedRoute } from './ProtectedRoute';
 
+/**
+ * Authenticated application shell.
+ *
+ * Every protected route renders inside the same <Layout> (sidebar + header +
+ * themed canvas) via a nested layout route, so no page can accidentally ship
+ * without the shell. <ProtectedRoute> stays per-route to preserve role checks
+ * and redirects; when it redirects, the <Navigate> replaces the <Outlet>
+ * content and the shell is unmounted by the router.
+ */
+function AuthenticatedShell() {
+  return (
+    <Layout>
+      <Outlet />
+    </Layout>
+  );
+}
+
 export function AppRoutes() {
   return (
     <BrowserRouter>
       <Routes>
+        {/* Public routes — no authenticated shell */}
         <Route path="/" element={<RootPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/reset-password" element={<ResetPasswordPage />} />
-        <Route
-          path="/dashboard"
-          element={
-            <ProtectedRoute requiredRole="admin">
-              <DashboardPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/my-dashboard"
-          element={
-            <ProtectedRoute requiredRole="member">
-              <ProfessionalDashboardPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/time-entries"
-          element={
-            <ProtectedRoute requiredRole="member">
-              <TimeEntriesPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/report"
-          element={
-            <ProtectedRoute requiredRole="admin">
-              <ReportPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/projects"
-          element={
-            <ProtectedRoute requiredRole="admin">
-              <ProjectsPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/professionals"
-          element={
-            <ProtectedRoute requiredRole="admin">
-              <ProfessionalsPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/hourly-rates"
-          element={
-            <ProtectedRoute requiredRole="admin">
-              <HourlyRatesPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/financial"
-          element={
-            <ProtectedRoute requiredRole="admin">
-              <FinancialManagementPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/periods"
-          element={
-            <ProtectedRoute requiredRole="admin">
-              <AccountingPeriodsPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/audit"
-          element={
-            <ProtectedRoute requiredRole="admin">
-              <AuditLogPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/recurring"
-          element={
-            <ProtectedRoute requiredRole="member">
-              <RecurringRulesPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/time-entries/calendar"
-          element={
-            <ProtectedRoute requiredRole="member">
-              <WeeklyCalendarPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/budget"
-          element={
-            <ProtectedRoute requiredRole="admin">
-              <BudgetVsActualPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/charts"
-          element={
-            <ProtectedRoute requiredRole="admin">
-              <ChartsPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/alerts"
-          element={
-            <ProtectedRoute requiredRole="admin">
-              <ProfitabilityAlertsPage />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/admin/system-status"
-          element={
-            <ProtectedRoute requiredRole="admin">
-              <SystemStatusPage />
-            </ProtectedRoute>
-          }
-        />
         <Route path="/access-denied" element={<AccessDeniedPage />} />
+
+        {/* Authenticated routes — shared shell */}
+        <Route element={<AuthenticatedShell />}>
+          <Route
+            path="/dashboard"
+            element={
+              <ProtectedRoute requiredRole="admin">
+                <DashboardPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/my-dashboard"
+            element={
+              <ProtectedRoute requiredRole="member">
+                <ProfessionalDashboardPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/time-entries"
+            element={
+              <ProtectedRoute requiredRole="member">
+                <TimeEntriesPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/report"
+            element={
+              <ProtectedRoute requiredRole="admin">
+                <ReportPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/projects"
+            element={
+              <ProtectedRoute requiredRole="admin">
+                <ProjectsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/professionals"
+            element={
+              <ProtectedRoute requiredRole="admin">
+                <ProfessionalsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/hourly-rates"
+            element={
+              <ProtectedRoute requiredRole="admin">
+                <HourlyRatesPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/financial"
+            element={
+              <ProtectedRoute requiredRole="admin">
+                <FinancialManagementPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/periods"
+            element={
+              <ProtectedRoute requiredRole="admin">
+                <AccountingPeriodsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/audit"
+            element={
+              <ProtectedRoute requiredRole="admin">
+                <AuditLogPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/recurring"
+            element={
+              <ProtectedRoute requiredRole="member">
+                <RecurringRulesPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/time-entries/calendar"
+            element={
+              <ProtectedRoute requiredRole="member">
+                <WeeklyCalendarPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/budget"
+            element={
+              <ProtectedRoute requiredRole="admin">
+                <BudgetVsActualPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/charts"
+            element={
+              <ProtectedRoute requiredRole="admin">
+                <ChartsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/alerts"
+            element={
+              <ProtectedRoute requiredRole="admin">
+                <ProfitabilityAlertsPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/system-status"
+            element={
+              <ProtectedRoute requiredRole="admin">
+                <SystemStatusPage />
+              </ProtectedRoute>
+            }
+          />
+        </Route>
+
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </BrowserRouter>

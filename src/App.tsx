@@ -3,6 +3,7 @@ import { AppRoutes } from '@/routes';
 import { initSentry } from '@/lib/sentry-init';
 import { SentryErrorBoundary } from '@/lib/sentry';
 import { PWAUpdatePrompt } from '@/components/PWAUpdatePrompt';
+import { ThemeProvider } from '@/features/theme/ThemeProvider';
 
 // Initialize Sentry (no-op if DSN not configured)
 initSentry();
@@ -10,10 +11,12 @@ initSentry();
 function App() {
   return (
     <SentryErrorBoundary>
-      <AuthProvider>
-        <AppRoutes />
-        <PWAUpdatePrompt />
-      </AuthProvider>
+      <ThemeProvider>
+        <AuthProvider>
+          <AppRoutes />
+          <PWAUpdatePrompt />
+        </AuthProvider>
+      </ThemeProvider>
     </SentryErrorBoundary>
   );
 }

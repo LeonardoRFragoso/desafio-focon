@@ -2,7 +2,7 @@ import { type ReactNode, useState } from 'react';
 import { useNavigate, NavLink } from 'react-router-dom';
 import { useAuthContext } from '@/features/auth/useAuthContext';
 import { NotificationBell } from '@/components/NotificationBell';
-import { DarkThemeToggle } from '@/components/DarkThemeToggle';
+import { ThemeToggle } from '@/components/ThemeToggle';
 
 interface LayoutProps {
   children: ReactNode;
@@ -21,7 +21,7 @@ export function Layout({ children }: LayoutProps) {
   const closeSidebar = () => setSidebarOpen(false);
 
   return (
-    <div className="min-h-screen bg-slate-50 md:flex">
+    <div className="min-h-screen bg-app-canvas md:flex">
       {/* Mobile sidebar backdrop */}
       {sidebarOpen && (
         <div
@@ -279,11 +279,11 @@ export function Layout({ children }: LayoutProps) {
       {/* Main content wrapper */}
       <div className="min-w-0 flex-1">
         {/* Header */}
-        <header className="bg-white border-b border-slate-200 border-t-4 border-t-focon-600 sticky top-0 z-40 print:hidden">
+        <header className="bg-surface-primary border-b border-app-primary border-t-4 border-t-focon-600 dark:border-slate-700 sticky top-0 z-40 print:hidden">
           <div className="flex items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
             <button
               onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="md:hidden p-2 hover:bg-slate-100 rounded-lg transition"
+              className="md:hidden p-2 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition"
               aria-label="Toggle menu"
             >
               <svg
@@ -302,8 +302,8 @@ export function Layout({ children }: LayoutProps) {
             </button>
             <div className="flex items-center gap-3">
               <NotificationBell />
-              <DarkThemeToggle />
-              <span className="text-sm text-slate-600">
+              <ThemeToggle />
+              <span className="text-sm text-slate-600 dark:text-slate-300">
                 {isAdmin ? 'Administrador' : 'Profissional'}
               </span>
             </div>

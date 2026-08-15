@@ -1,5 +1,17 @@
 @import "tailwindcss";
 
+/*
+ * Tailwind v4 — class-driven dark mode.
+ *
+ * The default `dark:` variant in Tailwind v4 compiles to
+ * `@media (prefers-color-scheme: dark)`, which lets the OS theme leak into the
+ * application and produced the "light shell + dark cards + light table" mixed
+ * theme observed in production. This custom variant redefines `dark:` to be
+ * controlled exclusively by the `.dark` class on <html>, managed by the
+ * ThemeProvider. The OS preference no longer activates dark utilities.
+ */
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
   --color-focon-50: #eff9f9;
   --color-focon-100: #d9f0f0;
@@ -14,12 +26,161 @@
   --color-focon-950: #022a2c;
 }
 
+/*
+ * Semantic design tokens.
+ *
+ * Single source of truth for surface/text/border colors across both themes.
+ * Components can consume these via the `bg-app-canvas`, `text-app-primary`,
+ * etc. utility classes defined below, OR keep using Tailwind's `dark:` variants
+ * — both resolve to the same palette. The tokens exist to prevent future
+ * "hardcoded light-only" regressions and to keep the two themes in sync.
+ */
+:root {
+  color-scheme: light;
+
+  --app-canvas: #f8fafc; /* slate-50 */
+  --surface-primary: #ffffff; /* white */
+  --surface-secondary: #f8fafc; /* slate-50 */
+  --surface-elevated: #ffffff; /* white */
+
+  --text-primary: #0f172a; /* slate-900 */
+  --text-secondary: #475569; /* slate-600 */
+  --text-muted: #64748b; /* slate-500 */
+
+  --border-primary: #e2e8f0; /* slate-200 */
+  --border-strong: #cbd5e1; /* slate-300 */
+
+  --input-background: #ffffff; /* white */
+  --input-border: #cbd5e1; /* slate-300 */
+  --input-text: #0f172a; /* slate-900 */
+  --input-placeholder: #64748b; /* slate-500 */
+
+  --hover-surface: #f8fafc; /* slate-50 */
+
+  --table-header: #f1f5f9; /* slate-100 */
+  --table-row: #ffffff; /* white */
+  --table-row-hover: #f8fafc; /* slate-50 */
+  --table-divider: #e2e8f0; /* slate-200 */
+}
+
+.dark {
+  color-scheme: dark;
+
+  --app-canvas: #020617; /* slate-950 */
+  --surface-primary: #0f172a; /* slate-900 */
+  --surface-secondary: #1e293b; /* slate-800 */
+  --surface-elevated: #1e293b; /* slate-800 */
+
+  --text-primary: #f1f5f9; /* slate-100 */
+  --text-secondary: #cbd5e1; /* slate-300 */
+  --text-muted: #94a3b8; /* slate-400 */
+
+  --border-primary: #334155; /* slate-700 */
+  --border-strong: #475569; /* slate-600 */
+
+  --input-background: #0f172a; /* slate-900 */
+  --input-border: #475569; /* slate-600 */
+  --input-text: #e2e8f0; /* slate-200 */
+  --input-placeholder: #94a3b8; /* slate-400 */
+
+  --hover-surface: #1e293b; /* slate-800 */
+
+  --table-header: #1e293b; /* slate-800 */
+  --table-row: #0f172a; /* slate-900 */
+  --table-row-hover: #1e293b; /* slate-800 */
+  --table-divider: #334155; /* slate-700 */
+}
+
+/*
+ * Semantic utility classes backed by the tokens above.
+ * These are intentionally thin wrappers so components can opt-in gradually
+ * without duplicating full light/dark rule sets.
+ */
+@layer utilities {
+  .bg-app-canvas {
+    background-color: var(--app-canvas);
+  }
+  .bg-surface-primary {
+    background-color: var(--surface-primary);
+  }
+  .bg-surface-secondary {
+    background-color: var(--surface-secondary);
+  }
+  .bg-surface-elevated {
+    background-color: var(--surface-elevated);
+  }
+  .bg-hover-surface {
+    background-color: var(--hover-surface);
+  }
+  .bg-input {
+    background-color: var(--input-background);
+  }
+  .bg-table-header {
+    background-color: var(--table-header);
+  }
+  .bg-table-row {
+    background-color: var(--table-row);
+  }
+  .bg-table-row-hover {
+    background-color: var(--table-row-hover);
+  }
+
+  .text-app-primary {
+    color: var(--text-primary);
+  }
+  .text-app-secondary {
+    color: var(--text-secondary);
+  }
+  .text-app-muted {
+    color: var(--text-muted);
+  }
+  .text-input {
+    color: var(--input-text);
+  }
+
+  .border-app-primary {
+    border-color: var(--border-primary);
+  }
+  .border-app-strong {
+    border-color: var(--border-strong);
+  }
+  .border-input {
+    border-color: var(--input-border);
+  }
+  .border-table-divider {
+    border-color: var(--table-divider);
+  }
+
+  .divide-table-divider > * + * {
+    border-color: var(--table-divider);
+  }
+
+  .hover\:bg-hover-surface:hover {
+    background-color: var(--hover-surface);
+  }
+  .hover\:bg-table-row-hover:hover {
+    background-color: var(--table-row-hover);
+  }
+
+  .placeholder-input::placeholder {
+    color: var(--input-placeholder);
+  }
+}
+
 @layer base {
   html,
   body,
   #root {
     min-height: 100%;
     width: 100%;
+  }
+
+  html {
+    /* color-scheme is set on :root/.dark above; ensure native controls follow */
+    color-scheme: light;
+  }
+  html.dark {
+    color-scheme: dark;
   }
 
   body {
