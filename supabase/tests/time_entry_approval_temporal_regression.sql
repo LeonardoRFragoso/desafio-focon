@@ -433,8 +433,22 @@ BEGIN
 
   -- ====================================================================
   -- T20: Recurring future → denied
+  --     process_recurring_time_entries is now service_role-only (migration
+  --     20240824070000 revoked PUBLIC grant to prevent authenticated users
+  --     from triggering recurring processing for others). The test validates
+  --     the business logic (future-date denial), not authorization, so it
+  --     runs as the postgres superuser (RESET ROLE to undo any SET LOCAL
+  --     ROLE from the helper functions above) which bypasses EXECUTE grants.
   -- ====================================================================
-  v_err := pg_temp.err_as(v_admin::text, 'SELECT public.process_recurring_time_entries(CURRENT_DATE + 7)');
+  v_err := NULL;
+  BEGIN
+    -- Reset to the session user (postgres) so the EXECUTE grant check passes.
+    -- SET LOCAL ROLE from pg_temp helpers leaks to the outer transaction.
+    RESET ROLE;
+    PERFORM public.process_recurring_time_entries(CURRENT_DATE + 7);
+  EXCEPTION WHEN OTHERS THEN
+    v_err := SQLERRM;
+  END;
   PERFORM pg_temp.assert_true(
     v_err IS NOT NULL AND v_err LIKE 'FOCONFLOW_RECURRING_FUTURE%',
     'T20: recurring future date should DENY with FOCONFLOW_RECURRING_FUTURE'

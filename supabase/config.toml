@@ -32,11 +32,6 @@ jwt_expiry = 3600
 enable_signup = true
 
 [functions]
-enabled = true
 
 [functions.invite-user]
-enabled = true
 verify_jwt = true
-# Allowed origins for CORS and redirect validation.
-# In production, set ALLOWED_WEB_ORIGINS to the deployed frontend URL(s).
-env_vars = ["ALLOWED_WEB_ORIGINS"]
