@@ -86,7 +86,7 @@ export function ExecutivePeriodSelector({ preset, onChange }: ExecutivePeriodSel
           className={`px-3 py-1.5 text-sm font-medium rounded-lg transition ${
             preset === p.value
               ? 'bg-focon-600 text-white'
-              : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
+              : 'bg-surface-secondary text-app-secondary hover:bg-hover-surface'
           }`}
           aria-pressed={preset === p.value}
         >

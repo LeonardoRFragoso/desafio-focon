@@ -80,8 +80,8 @@ export function RecurringRulesPage() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Regras Recorrentes</h2>
-          <p className="text-slate-600 dark:text-slate-400">Automatize a criação de apontamentos repetitivos</p>
+          <h2 className="text-2xl font-bold text-app-primary">Regras Recorrentes</h2>
+          <p className="text-app-muted">Automatize a criação de apontamentos repetitivos</p>
         </div>
         <button
           onClick={() => setCreateOpen(true)}
@@ -103,41 +103,41 @@ export function RecurringRulesPage() {
       )}
 
       {rules.length === 0 ? (
-        <div className="rounded-xl border border-slate-200 dark:border-slate-700 p-12 text-center bg-slate-50 dark:bg-slate-800/50">
-          <p className="text-slate-600 dark:text-slate-300">Nenhuma regra recorrente configurada</p>
-          <p className="text-sm text-slate-500 dark:text-slate-400 mt-2">Crie uma regra para automatizar apontamentos repetitivos</p>
+        <div className="rounded-xl border border-app-primary p-12 text-center bg-surface-secondary/50">
+          <p className="text-app-secondary">Nenhuma regra recorrente configurada</p>
+          <p className="text-sm text-app-muted mt-2">Crie uma regra para automatizar apontamentos repetitivos</p>
         </div>
       ) : (
-        <div className="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
+        <div className="overflow-x-auto rounded-xl border border-app-primary shadow-sm">
           <table className="w-full">
-            <thead className="bg-slate-100 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700">
+            <thead className="bg-surface-secondary border-b border-app-primary">
               <tr>
-                <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900 dark:text-slate-100">Projeto</th>
-                <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900 dark:text-slate-100">Descrição</th>
-                <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900 dark:text-slate-100">Frequência</th>
-                <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900 dark:text-slate-100">Duração</th>
-                <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900 dark:text-slate-100">Próxima execução</th>
-                <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900 dark:text-slate-100">Status</th>
-                <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900 dark:text-slate-100">Ações</th>
+                <th className="px-4 py-3 text-left text-sm font-semibold text-app-primary">Projeto</th>
+                <th className="px-4 py-3 text-left text-sm font-semibold text-app-primary">Descrição</th>
+                <th className="px-4 py-3 text-left text-sm font-semibold text-app-primary">Frequência</th>
+                <th className="px-4 py-3 text-left text-sm font-semibold text-app-primary">Duração</th>
+                <th className="px-4 py-3 text-left text-sm font-semibold text-app-primary">Próxima execução</th>
+                <th className="px-4 py-3 text-left text-sm font-semibold text-app-primary">Status</th>
+                <th className="px-4 py-3 text-left text-sm font-semibold text-app-primary">Ações</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
+            <tbody className="divide-y divide-table-divider">
               {rules.map((r) => (
-                <tr key={r.id} className="hover:bg-slate-50 dark:hover:bg-slate-800 transition">
-                  <td className="px-4 py-3 text-sm text-slate-900 dark:text-slate-100 font-medium">{r.project?.name || '—'}</td>
-                  <td className="px-4 py-3 text-sm text-slate-700 dark:text-slate-300 max-w-[200px] truncate">{r.description}</td>
-                  <td className="px-4 py-3 text-sm text-slate-700 dark:text-slate-300">{freqLabels[r.frequency] || r.frequency}</td>
-                  <td className="px-4 py-3 text-sm text-slate-700 dark:text-slate-300">{formatDuration(r.duration_minutes)}</td>
-                  <td className="px-4 py-3 text-sm text-slate-700 dark:text-slate-300">{formatDate(r.next_run_date)}</td>
+                <tr key={r.id} className="hover:bg-hover-surface transition">
+                  <td className="px-4 py-3 text-sm text-app-primary font-medium">{r.project?.name || '—'}</td>
+                  <td className="px-4 py-3 text-sm text-app-secondary max-w-[200px] truncate">{r.description}</td>
+                  <td className="px-4 py-3 text-sm text-app-secondary">{freqLabels[r.frequency] || r.frequency}</td>
+                  <td className="px-4 py-3 text-sm text-app-secondary">{formatDuration(r.duration_minutes)}</td>
+                  <td className="px-4 py-3 text-sm text-app-secondary">{formatDate(r.next_run_date)}</td>
                   <td className="px-4 py-3 text-sm">
-                    <span className={`inline-block px-2.5 py-1 rounded-full text-xs font-semibold ${r.is_active ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' : 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300'}`}>
+                    <span className={`inline-block px-2.5 py-1 rounded-full text-xs font-semibold ${r.is_active ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' : 'bg-slate-100 text-slate-700 bg-surface-secondary text-app-secondary'}`}>
                       {r.is_active ? 'Ativa' : 'Pausada'}
                     </span>
                   </td>
                   <td className="px-4 py-3 text-sm space-x-2">
                     <button
                       onClick={() => toggleActive(r)}
-                      className="px-2.5 py-1 rounded-md text-xs font-medium border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition"
+                      className="px-2.5 py-1 rounded-md text-xs font-medium border border-app-strong text-app-secondary hover:bg-hover-surface transition"
                     >
                       {r.is_active ? 'Pausar' : 'Ativar'}
                     </button>
@@ -267,7 +267,7 @@ function RuleFormModal({ userId, projects, onClose, onSaved, onError }: RuleForm
       title="Nova Regra Recorrente"
       footer={
         <>
-          <button type="button" onClick={onClose} disabled={submitting} className="px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition disabled:opacity-50">
+          <button type="button" onClick={onClose} disabled={submitting} className="px-4 py-2 rounded-lg border border-app-strong text-app-secondary hover:bg-hover-surface transition disabled:opacity-50">
             Cancelar
           </button>
           <button type="submit" form="rule-form" disabled={submitting} className="px-4 py-2 rounded-lg bg-focon-600 hover:bg-focon-700 text-white transition disabled:opacity-50">
@@ -278,8 +278,8 @@ function RuleFormModal({ userId, projects, onClose, onSaved, onError }: RuleForm
     >
       <form id="rule-form" onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Projeto *</label>
-          <select value={projectId} onChange={(e) => setProjectId(e.target.value)} className="w-full px-3 py-2.5 border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-focon-600">
+          <label className="block text-sm font-medium text-app-secondary mb-1">Projeto *</label>
+          <select value={projectId} onChange={(e) => setProjectId(e.target.value)} className="w-full px-3 py-2.5 border border-app-strong bg-surface-secondary text-app-primary rounded-lg focus:outline-none focus:ring-2 focus:ring-focon-600">
             <option value="">Selecione...</option>
             {projects.map((p) => (
               <option key={p.id} value={p.id}>{p.name}</option>
@@ -287,17 +287,17 @@ function RuleFormModal({ userId, projects, onClose, onSaved, onError }: RuleForm
           </select>
         </div>
         <div>
-          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Descrição *</label>
-          <input value={description} onChange={(e) => setDescription(e.target.value)} maxLength={500} className="w-full px-3 py-2.5 border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-focon-600" />
+          <label className="block text-sm font-medium text-app-secondary mb-1">Descrição *</label>
+          <input value={description} onChange={(e) => setDescription(e.target.value)} maxLength={500} className="w-full px-3 py-2.5 border border-app-strong bg-surface-secondary text-app-primary rounded-lg focus:outline-none focus:ring-2 focus:ring-focon-600" />
         </div>
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Duração (min) *</label>
-            <input type="number" min="1" max="1440" value={duration} onChange={(e) => setDuration(e.target.value)} className="w-full px-3 py-2.5 border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-focon-600" />
+            <label className="block text-sm font-medium text-app-secondary mb-1">Duração (min) *</label>
+            <input type="number" min="1" max="1440" value={duration} onChange={(e) => setDuration(e.target.value)} className="w-full px-3 py-2.5 border border-app-strong bg-surface-secondary text-app-primary rounded-lg focus:outline-none focus:ring-2 focus:ring-focon-600" />
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Frequência *</label>
-            <select value={frequency} onChange={(e) => setFrequency(e.target.value as RecurringFrequency)} className="w-full px-3 py-2.5 border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-focon-600">
+            <label className="block text-sm font-medium text-app-secondary mb-1">Frequência *</label>
+            <select value={frequency} onChange={(e) => setFrequency(e.target.value as RecurringFrequency)} className="w-full px-3 py-2.5 border border-app-strong bg-surface-secondary text-app-primary rounded-lg focus:outline-none focus:ring-2 focus:ring-focon-600">
               <option value="daily">Diária</option>
               <option value="weekly">Semanal</option>
               <option value="monthly">Mensal</option>
@@ -306,8 +306,8 @@ function RuleFormModal({ userId, projects, onClose, onSaved, onError }: RuleForm
         </div>
         {frequency === 'weekly' && (
           <div>
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Dia da semana *</label>
-            <select value={dayOfWeek} onChange={(e) => setDayOfWeek(e.target.value)} className="w-full px-3 py-2.5 border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-focon-600">
+            <label className="block text-sm font-medium text-app-secondary mb-1">Dia da semana *</label>
+            <select value={dayOfWeek} onChange={(e) => setDayOfWeek(e.target.value)} className="w-full px-3 py-2.5 border border-app-strong bg-surface-secondary text-app-primary rounded-lg focus:outline-none focus:ring-2 focus:ring-focon-600">
               <option value="0">Domingo</option>
               <option value="1">Segunda</option>
               <option value="2">Terça</option>
@@ -320,15 +320,15 @@ function RuleFormModal({ userId, projects, onClose, onSaved, onError }: RuleForm
         )}
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Início *</label>
-            <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="w-full px-3 py-2.5 border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-focon-600" />
+            <label className="block text-sm font-medium text-app-secondary mb-1">Início *</label>
+            <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="w-full px-3 py-2.5 border border-app-strong bg-surface-secondary text-app-primary rounded-lg focus:outline-none focus:ring-2 focus:ring-focon-600" />
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Fim (opcional)</label>
-            <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="w-full px-3 py-2.5 border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-focon-600" />
+            <label className="block text-sm font-medium text-app-secondary mb-1">Fim (opcional)</label>
+            <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="w-full px-3 py-2.5 border border-app-strong bg-surface-secondary text-app-primary rounded-lg focus:outline-none focus:ring-2 focus:ring-focon-600" />
           </div>
         </div>
-        <p className="text-xs text-slate-500 dark:text-slate-400">
+        <p className="text-xs text-app-muted">
           A regra criará apontamentos pendentes automaticamente nas datas programadas.
           Períodos fechados são pulados automaticamente.
         </p>

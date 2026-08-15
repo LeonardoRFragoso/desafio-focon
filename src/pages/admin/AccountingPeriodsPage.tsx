@@ -46,8 +46,8 @@ export function AccountingPeriodsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Fechamentos Mensais</h2>
-        <p className="text-slate-600 dark:text-slate-400">
+        <h2 className="text-2xl font-bold text-app-primary">Fechamentos Mensais</h2>
+        <p className="text-app-muted">
           Feche períodos para bloquear alterações em apontamentos. Períodos fechados impedem
           criação, edição e exclusão de apontamentos por profissionais não-administradores.
         </p>
@@ -65,38 +65,38 @@ export function AccountingPeriodsPage() {
       )}
 
       {periods.length === 0 ? (
-        <div className="rounded-xl border border-slate-200 dark:border-slate-700 p-12 text-center bg-slate-50 dark:bg-slate-800/50">
-          <p className="text-slate-600 dark:text-slate-400">Nenhum período de fechamento registrado</p>
-          <p className="text-sm text-slate-500 dark:text-slate-400 mt-2">
+        <div className="rounded-xl border border-app-primary p-12 text-center bg-surface-secondary/50">
+          <p className="text-app-muted">Nenhum período de fechamento registrado</p>
+          <p className="text-sm text-app-muted mt-2">
             Períodos são criados automaticamente quando há apontamentos. Feche um período
             para bloquear alterações.
           </p>
         </div>
       ) : (
-        <div className="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
+        <div className="overflow-x-auto rounded-xl border border-app-primary shadow-sm">
           <table className="w-full">
-            <thead className="bg-slate-100 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700">
+            <thead className="bg-surface-secondary border-b border-app-primary">
               <tr>
-                <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900 dark:text-slate-100">Período</th>
-                <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900 dark:text-slate-100">Status</th>
-                <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900 dark:text-slate-100">Fechado por</th>
-                <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900 dark:text-slate-100">Fechado em</th>
-                <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900 dark:text-slate-100">Ações</th>
+                <th className="px-4 py-3 text-left text-sm font-semibold text-app-primary">Período</th>
+                <th className="px-4 py-3 text-left text-sm font-semibold text-app-primary">Status</th>
+                <th className="px-4 py-3 text-left text-sm font-semibold text-app-primary">Fechado por</th>
+                <th className="px-4 py-3 text-left text-sm font-semibold text-app-primary">Fechado em</th>
+                <th className="px-4 py-3 text-left text-sm font-semibold text-app-primary">Ações</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
+            <tbody className="divide-y divide-table-divider">
               {periods.map((p) => (
-                <tr key={p.id} className="hover:bg-slate-50 dark:hover:bg-slate-800 transition">
-                  <td className="px-4 py-3 text-sm text-slate-900 dark:text-slate-100 font-medium">{p.period_key}</td>
+                <tr key={p.id} className="hover:bg-hover-surface transition">
+                  <td className="px-4 py-3 text-sm text-app-primary font-medium">{p.period_key}</td>
                   <td className="px-4 py-3 text-sm">
                     <span className={`inline-block px-2.5 py-1 rounded-full text-xs font-semibold ${p.status === 'closed' ? 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400' : 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'}`}>
                       {p.status === 'closed' ? 'Fechado' : 'Aberto'}
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-sm text-slate-700 dark:text-slate-300">
+                  <td className="px-4 py-3 text-sm text-app-secondary">
                     {p.closed_by_profile?.full_name || '—'}
                   </td>
-                  <td className="px-4 py-3 text-sm text-slate-700 dark:text-slate-300">{formatDateTime(p.closed_at)}</td>
+                  <td className="px-4 py-3 text-sm text-app-secondary">{formatDateTime(p.closed_at)}</td>
                   <td className="px-4 py-3 text-sm">
                     {p.status === 'open' ? (
                       <button
@@ -110,7 +110,7 @@ export function AccountingPeriodsPage() {
                       <button
                         onClick={() => setReopenTarget(p)}
                         disabled={busy}
-                        className="px-2.5 py-1 rounded-md text-xs font-medium border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition disabled:opacity-50"
+                        className="px-2.5 py-1 rounded-md text-xs font-medium border border-app-strong text-app-secondary hover:bg-hover-surface transition disabled:opacity-50"
                       >
                         Reabrir período
                       </button>

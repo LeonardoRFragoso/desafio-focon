@@ -50,17 +50,17 @@ export function Modal({
       aria-labelledby={labelledById}
     >
       <div
-        className={`bg-white dark:bg-slate-900 rounded-xl shadow-lg w-full ${maxWidth} max-h-[90vh] overflow-y-auto`}
+        className={`bg-surface-primary rounded-xl shadow-lg w-full ${maxWidth} max-h-[90vh] overflow-y-auto`}
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="sticky top-0 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700 p-6 flex justify-between items-center">
-          <h2 id={labelledById} className="text-xl font-bold text-slate-900 dark:text-slate-100">
+        <div className="sticky top-0 bg-surface-primary border-b border-app-primary p-6 flex justify-between items-center">
+          <h2 id={labelledById} className="text-xl font-bold text-app-primary">
             {title}
           </h2>
           <button
             ref={closeRef}
             onClick={onClose}
-            className="text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 text-2xl leading-none"
+            className="text-app-muted hover:text-app-secondary text-2xl leading-none"
             aria-label="Fechar modal"
           >
             ×
@@ -68,7 +68,7 @@ export function Modal({
         </div>
         <div className="p-6 space-y-4">{children}</div>
         {footer && (
-          <div className="sticky bottom-0 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-700 p-6 flex justify-end gap-3">
+          <div className="sticky bottom-0 bg-surface-primary border-t border-app-primary p-6 flex justify-end gap-3">
             {footer}
           </div>
         )}

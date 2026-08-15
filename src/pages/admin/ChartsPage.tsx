@@ -6,9 +6,8 @@ import {
 } from 'recharts';
 import { projectsAPI } from '@/lib/supabase/api';
 import { useTheme } from '@/features/theme/ThemeContext';
+import { CHART_COLORS, FOCON_TEAL, SERIES_COLORS, getChartTheme, getChartTooltipStyle } from '@/lib/chartTheme';
 import type { Project } from '@/types/database';
-
-const COLORS = ['#0d9488', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#14b8a6', '#f97316'];
 
 interface TimeEntryRow {
   entry_date: string;
@@ -24,11 +23,10 @@ interface TimeEntryRow {
 export function ChartsPage() {
   const { theme } = useTheme();
   const isDark = theme === 'dark';
-  const axisColor = isDark ? '#cbd5e1' : '#475569'; // slate-300 / slate-600
-  const gridColor = isDark ? '#334155' : '#cbd5e1'; // slate-700 / slate-300
-  const tooltipStyle = isDark
-    ? { backgroundColor: '#0f172a', border: '1px solid #334155', borderRadius: '0.5rem', color: '#e2e8f0' }
-    : { backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '0.5rem', color: '#0f172a' };
+  const chartTheme = getChartTheme(isDark);
+  const axisColor = chartTheme.axisColor;
+  const gridColor = chartTheme.gridColor;
+  const tooltipStyle = getChartTooltipStyle(isDark);
   const [entries, setEntries] = useState<TimeEntryRow[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
@@ -165,15 +163,15 @@ export function ChartsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Gráficos Gerenciais</h2>
-        <p className="text-slate-600 dark:text-slate-400">Visualize horas, financeiro e orçamento</p>
+        <h2 className="text-2xl font-bold text-app-primary">Gráficos Gerenciais</h2>
+        <p className="text-app-muted">Visualize horas, financeiro e orçamento</p>
       </div>
 
       {/* Filters */}
       <div className="flex flex-wrap gap-4 items-end">
         <div>
-          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Período</label>
-          <select value={periodFilter} onChange={(e) => setPeriodFilter(e.target.value)} className="px-3 py-2 border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-focon-600">
+          <label className="block text-sm font-medium text-app-secondary mb-1">Período</label>
+          <select value={periodFilter} onChange={(e) => setPeriodFilter(e.target.value)} className="px-3 py-2 border border-app-strong bg-surface-secondary text-app-primary rounded-lg focus:outline-none focus:ring-2 focus:ring-focon-600">
             <option value="7">7 dias</option>
             <option value="30">30 dias</option>
             <option value="90">90 dias</option>
@@ -182,8 +180,8 @@ export function ChartsPage() {
           </select>
         </div>
         <div>
-          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Projeto</label>
-          <select value={projectFilter} onChange={(e) => setProjectFilter(e.target.value)} className="px-3 py-2 border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-focon-600">
+          <label className="block text-sm font-medium text-app-secondary mb-1">Projeto</label>
+          <select value={projectFilter} onChange={(e) => setProjectFilter(e.target.value)} className="px-3 py-2 border border-app-strong bg-surface-secondary text-app-primary rounded-lg focus:outline-none focus:ring-2 focus:ring-focon-600">
             <option value="">Todos</option>
             {projects.map((p) => (
               <option key={p.id} value={p.id}>{p.name}</option>
@@ -199,65 +197,65 @@ export function ChartsPage() {
       )}
 
       {!hasData ? (
-        <div className="rounded-xl border border-slate-200 dark:border-slate-700 p-12 text-center bg-slate-50 dark:bg-slate-900">
-          <p className="text-slate-600 dark:text-slate-400">Sem dados para o período selecionado</p>
-          <p className="text-sm text-slate-500 dark:text-slate-500 mt-2">Ajuste os filtros ou aguarde novos apontamentos</p>
+        <div className="rounded-xl border border-app-primary p-12 text-center bg-surface-primary">
+          <p className="text-app-muted">Sem dados para o período selecionado</p>
+          <p className="text-sm text-app-muted mt-2">Ajuste os filtros ou aguarde novos apontamentos</p>
         </div>
       ) : (
         <div className="space-y-6">
           {/* Hours by Day */}
-          <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 p-6 shadow-sm">
-            <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-4">Horas por Dia</h3>
+          <div className="bg-surface-primary rounded-xl border border-app-primary p-6 shadow-sm">
+            <h3 className="text-lg font-semibold text-app-primary mb-4">Horas por Dia</h3>
             <ResponsiveContainer width="100%" height={300}>
               <LineChart data={hoursByDay}>
                 <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
                 <XAxis dataKey="date" stroke={axisColor} fontSize={12} />
                 <YAxis stroke={axisColor} fontSize={12} />
                 <Tooltip contentStyle={tooltipStyle} />
-                <Line type="monotone" dataKey="hours" stroke="#0d9488" strokeWidth={2} name="Horas" />
+                <Line type="monotone" dataKey="hours" stroke={FOCON_TEAL} strokeWidth={2} name="Horas" />
               </LineChart>
             </ResponsiveContainer>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Hours by Project */}
-            <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 p-6 shadow-sm">
-              <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-4">Horas por Projeto</h3>
+            <div className="bg-surface-primary rounded-xl border border-app-primary p-6 shadow-sm">
+              <h3 className="text-lg font-semibold text-app-primary mb-4">Horas por Projeto</h3>
               <ResponsiveContainer width="100%" height={300}>
                 <BarChart data={hoursByProject}>
                   <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
                   <XAxis dataKey="name" stroke={axisColor} fontSize={11} angle={-15} textAnchor="end" height={60} />
                   <YAxis stroke={axisColor} fontSize={12} />
                   <Tooltip contentStyle={tooltipStyle} />
-                  <Bar dataKey="hours" fill="#0d9488" name="Horas" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="hours" fill={FOCON_TEAL} name="Horas" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
 
             {/* Hours by Professional */}
-            <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 p-6 shadow-sm">
-              <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-4">Horas por Profissional</h3>
+            <div className="bg-surface-primary rounded-xl border border-app-primary p-6 shadow-sm">
+              <h3 className="text-lg font-semibold text-app-primary mb-4">Horas por Profissional</h3>
               <ResponsiveContainer width="100%" height={300}>
                 <BarChart data={hoursByProfessional} layout="vertical">
                   <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
                   <XAxis type="number" stroke={axisColor} fontSize={12} />
                   <YAxis type="category" dataKey="name" stroke={axisColor} fontSize={11} width={100} />
                   <Tooltip contentStyle={tooltipStyle} />
-                  <Bar dataKey="hours" fill="#3b82f6" name="Horas" radius={[0, 4, 4, 0]} />
+                  <Bar dataKey="hours" fill={CHART_COLORS[1]} name="Horas" radius={[0, 4, 4, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
           </div>
 
           {/* Financial */}
-          <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 p-6 shadow-sm">
-            <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-4">Financeiro</h3>
+          <div className="bg-surface-primary rounded-xl border border-app-primary p-6 shadow-sm">
+            <h3 className="text-lg font-semibold text-app-primary mb-4">Financeiro</h3>
             {financialData.length > 0 && financialData[0] && financialData[0].value > 0 ? (
               <ResponsiveContainer width="100%" height={300}>
                 <PieChart>
                   <Pie data={financialData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={100} label={{ fill: axisColor, fontSize: 12 }}>
                     {financialData.map((_, i) => (
-                      <Cell key={i} fill={COLORS[i % COLORS.length] ?? '#0d9488'} />
+                      <Cell key={i} fill={CHART_COLORS[i % CHART_COLORS.length] ?? FOCON_TEAL} />
                     ))}
                   </Pie>
                   <Tooltip contentStyle={tooltipStyle} formatter={(v) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Number(v))} />
@@ -265,14 +263,14 @@ export function ChartsPage() {
                 </PieChart>
               </ResponsiveContainer>
             ) : (
-              <p className="text-center text-slate-500 dark:text-slate-400 py-12">Sem dados financeiros aprovados no período</p>
+              <p className="text-center text-app-muted py-12">Sem dados financeiros aprovados no período</p>
             )}
           </div>
 
           {/* Budget vs Actual */}
           {budgetChart.length > 0 && (
-            <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 p-6 shadow-sm">
-              <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-4">Orçamento × Realizado (Horas)</h3>
+            <div className="bg-surface-primary rounded-xl border border-app-primary p-6 shadow-sm">
+              <h3 className="text-lg font-semibold text-app-primary mb-4">Orçamento × Realizado (Horas)</h3>
               <ResponsiveContainer width="100%" height={300}>
                 <BarChart data={budgetChart}>
                   <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
@@ -280,8 +278,8 @@ export function ChartsPage() {
                   <YAxis stroke={axisColor} fontSize={12} />
                   <Tooltip contentStyle={tooltipStyle} />
                   <Legend wrapperStyle={{ color: axisColor }} />
-                  <Bar dataKey="Previsto" fill="#0d9488" radius={[4, 4, 0, 0]} />
-                  <Bar dataKey="Realizado" fill="#f59e0b" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="Previsto" fill={SERIES_COLORS.planned} radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="Realizado" fill={SERIES_COLORS.warning} radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </div>

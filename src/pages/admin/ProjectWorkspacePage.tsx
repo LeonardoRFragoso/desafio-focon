@@ -142,7 +142,7 @@ export function ProjectWorkspacePage() {
   const statusColors: Record<string, string> = {
     planned: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400',
     active: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400',
-    completed: 'bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-300',
+    completed: 'bg-slate-100 text-slate-800 bg-surface-secondary text-app-secondary',
     cancelled: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400',
   };
 
@@ -157,13 +157,13 @@ export function ProjectWorkspacePage() {
         <div>
           <button
             onClick={() => navigate('/admin/projects')}
-            className="text-sm text-slate-500 dark:text-slate-400 hover:text-focon-600 dark:hover:text-focon-400 mb-2 transition"
+            className="text-sm text-app-muted hover:text-focon-600 dark:hover:text-focon-400 mb-2 transition"
           >
             ← Voltar para Projetos
           </button>
-          <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100">{project.name}</h2>
+          <h2 className="text-2xl font-bold text-app-primary">{project.name}</h2>
           <div className="flex items-center gap-3 mt-2">
-            <span className="text-sm text-slate-600 dark:text-slate-400">Cliente: {project.client}</span>
+            <span className="text-sm text-app-muted">Cliente: {project.client}</span>
             <span
               className={`inline-block px-2.5 py-1 rounded-full text-xs font-semibold ${
                 statusColors[project.status] || statusColors['planned']
@@ -176,7 +176,7 @@ export function ProjectWorkspacePage() {
       </div>
 
       {/* Tabs */}
-      <div className="border-b border-slate-200 dark:border-slate-700">
+      <div className="border-b border-app-primary">
         <nav className="flex flex-wrap gap-1" aria-label="Tabs">
           {tabs.map((tab) => (
             <button
@@ -185,7 +185,7 @@ export function ProjectWorkspacePage() {
               className={`px-4 py-2.5 text-sm font-medium border-b-2 transition ${
                 activeTab === tab
                   ? 'border-focon-600 text-focon-600 dark:text-focon-400'
-                  : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'
+                  : 'border-transparent text-app-muted hover:text-app-secondary'
               }`}
             >
               {TAB_LABELS[tab]}

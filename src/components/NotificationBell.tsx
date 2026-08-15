@@ -23,7 +23,7 @@ const typeColors: Record<string, string> = {
   period_closing: 'text-blue-600',
   budget_threshold: 'text-orange-600',
   comment_received: 'text-purple-600',
-  system: 'text-slate-600 dark:text-slate-400',
+  system: 'text-app-muted',
 };
 
 const typeFilterLabels: Record<string, string> = {
@@ -98,13 +98,13 @@ export function NotificationBell() {
       <button
         ref={buttonRef}
         onClick={() => setOpen(!open)}
-        className="relative p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition"
+        className="relative p-2 rounded-lg hover:bg-hover-surface transition"
         aria-label={`Notificações${unreadCount > 0 ? ` (${unreadCount} não lidas)` : ''}`}
         aria-expanded={open}
         aria-haspopup="dialog"
         aria-controls={open ? panelId : undefined}
       >
-        <svg className="w-5 h-5 text-slate-600 dark:text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg className="w-5 h-5 text-app-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
         </svg>
         {unreadCount > 0 && (
@@ -121,10 +121,10 @@ export function NotificationBell() {
             id={panelId}
             role="dialog"
             aria-label="Notificações"
-            className="absolute right-0 mt-2 w-[min(24rem,calc(100vw-2rem))] bg-white dark:bg-slate-900 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 z-50 flex flex-col max-h-[min(24rem,70vh)]"
+            className="absolute right-0 mt-2 w-[min(24rem,calc(100vw-2rem))] bg-surface-primary rounded-xl shadow-lg border border-app-primary z-50 flex flex-col max-h-[min(24rem,70vh)]"
           >
-            <div className="shrink-0 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-700 p-3 flex justify-between items-center rounded-t-xl">
-              <h3 className="font-semibold text-slate-900 dark:text-slate-100">Notificações</h3>
+            <div className="shrink-0 bg-surface-primary border-b border-app-primary p-3 flex justify-between items-center rounded-t-xl">
+              <h3 className="font-semibold text-app-primary">Notificações</h3>
               {unreadCount > 0 && (
                 <button
                   onClick={markAllRead}
@@ -136,11 +136,11 @@ export function NotificationBell() {
             </div>
 
             {notifications.length > 0 && (
-              <div className="shrink-0 px-3 py-2 border-b border-slate-100 dark:border-slate-800">
+              <div className="shrink-0 px-3 py-2 border-b border-app-primary">
                 <select
                   value={typeFilter}
                   onChange={(e) => setTypeFilter(e.target.value)}
-                  className="w-full px-2 py-1.5 border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-focon-600"
+                  className="w-full px-2 py-1.5 border border-app-strong bg-surface-secondary text-app-primary rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-focon-600"
                 >
                   <option value="">Todos os tipos</option>
                   {Object.entries(typeFilterLabels).map(([val, label]) => (
@@ -152,17 +152,17 @@ export function NotificationBell() {
 
             <div className="flex-1 min-h-0 overflow-y-auto app-scrollbar">
               {loading ? (
-                <div className="p-8 text-center text-sm text-slate-500 dark:text-slate-400">Carregando...</div>
+                <div className="p-8 text-center text-sm text-app-muted">Carregando...</div>
               ) : filteredNotifications.length === 0 ? (
-                <div className="p-8 text-center text-sm text-slate-500 dark:text-slate-400">
+                <div className="p-8 text-center text-sm text-app-muted">
                   {notifications.length === 0 ? 'Nenhuma notificação' : 'Nenhuma notificação deste tipo'}
                 </div>
               ) : (
-                <ul className="divide-y divide-slate-100 dark:divide-slate-800">
+                <ul className="divide-y divide-table-divider">
                   {filteredNotifications.map((n: Notification) => (
                     <li
                       key={n.id}
-                      className={`p-3 transition ${!n.read_at ? 'bg-focon-50 dark:bg-slate-800/50' : ''} ${n.entity_type ? 'hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer' : ''}`}
+                      className={`p-3 transition ${!n.read_at ? 'bg-primary-soft' : ''} ${n.entity_type ? 'hover:bg-hover-surface cursor-pointer' : ''}`}
                       onClick={() => n.entity_type && handleNotificationClick(n)}
                       role={n.entity_type ? 'button' : undefined}
                       tabIndex={n.entity_type ? 0 : undefined}
@@ -178,9 +178,9 @@ export function NotificationBell() {
                           {typeIcons[n.type] || 'ℹ'}
                         </span>
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-slate-900 dark:text-slate-100">{n.title}</p>
+                          <p className="text-sm font-medium text-app-primary">{n.title}</p>
                           {n.body && (
-                            <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5 break-words">{n.body}</p>
+                            <p className="text-xs text-app-muted mt-0.5 break-words">{n.body}</p>
                           )}
                           <div className="flex items-center justify-between mt-1">
                             <span className="text-xs text-slate-400">{formatTimeAgo(n.created_at)}</span>

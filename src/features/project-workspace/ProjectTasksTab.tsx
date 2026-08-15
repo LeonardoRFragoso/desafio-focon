@@ -21,11 +21,11 @@ const STATUS_LABELS: Record<TaskStatus, string> = {
 };
 
 const STATUS_COLORS: Record<TaskStatus, string> = {
-  todo: 'bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-300',
+  todo: 'bg-slate-100 text-slate-800 bg-surface-secondary text-app-secondary',
   in_progress: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400',
   blocked: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400',
   done: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400',
-  cancelled: 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-500',
+  cancelled: 'bg-slate-100 text-slate-600 bg-surface-secondary text-app-muted',
 };
 
 const PRIORITY_LABELS: Record<TaskPriority, string> = {
@@ -36,7 +36,7 @@ const PRIORITY_LABELS: Record<TaskPriority, string> = {
 };
 
 const PRIORITY_COLORS: Record<TaskPriority, string> = {
-  low: 'bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-400',
+  low: 'bg-slate-100 text-slate-600 bg-surface-secondary text-app-muted',
   medium: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400',
   high: 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400',
   critical: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400',
@@ -175,16 +175,16 @@ export function ProjectTasksTab({ projectId, isAdmin, highlightTaskId, onTaskHig
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap justify-between items-center gap-3">
-        <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Tarefas</h3>
+        <h3 className="text-lg font-semibold text-app-primary">Tarefas</h3>
         <div className="flex gap-2">
           {/* View toggle */}
-          <div className="inline-flex rounded-lg border border-slate-300 dark:border-slate-600 overflow-hidden">
+          <div className="inline-flex rounded-lg border border-app-strong overflow-hidden">
             <button
               onClick={() => setView('list')}
               className={`px-3 py-1.5 text-sm font-medium transition ${
                 view === 'list'
                   ? 'bg-focon-600 text-white'
-                  : 'bg-surface-primary text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
+                  : 'bg-surface-primary text-app-secondary hover:bg-hover-surface'
               }`}
             >
               Lista
@@ -194,7 +194,7 @@ export function ProjectTasksTab({ projectId, isAdmin, highlightTaskId, onTaskHig
               className={`px-3 py-1.5 text-sm font-medium transition ${
                 view === 'board'
                   ? 'bg-focon-600 text-white'
-                  : 'bg-surface-primary text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800'
+                  : 'bg-surface-primary text-app-secondary hover:bg-hover-surface'
               }`}
             >
               Board
@@ -223,28 +223,28 @@ export function ProjectTasksTab({ projectId, isAdmin, highlightTaskId, onTaskHig
       )}
 
       {tasks.length === 0 ? (
-        <div className="rounded-xl border border-slate-200 dark:border-slate-700 p-12 text-center bg-slate-50 dark:bg-slate-800/50">
-          <p className="text-slate-600 dark:text-slate-400">Nenhuma tarefa cadastrada</p>
-          <p className="text-sm text-slate-400 dark:text-slate-500 mt-1">
+        <div className="rounded-xl border border-app-primary p-12 text-center bg-surface-secondary/50">
+          <p className="text-app-muted">Nenhuma tarefa cadastrada</p>
+          <p className="text-sm text-app-muted mt-1">
             Crie tarefas para organizar o trabalho do projeto.
           </p>
         </div>
       ) : view === 'list' ? (
-        <div className="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
+        <div className="overflow-x-auto rounded-xl border border-app-primary shadow-sm">
           <table className="w-full">
-            <thead className="bg-slate-100 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700">
+            <thead className="bg-surface-secondary border-b border-app-primary">
               <tr>
-                <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900 dark:text-slate-100">Título</th>
-                <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900 dark:text-slate-100">Fase</th>
-                <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900 dark:text-slate-100">Status</th>
-                <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900 dark:text-slate-100">Prioridade</th>
-                <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900 dark:text-slate-100">Responsável</th>
-                <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900 dark:text-slate-100">Prazo</th>
-                <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900 dark:text-slate-100">Horas</th>
-                {isAdmin && <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900 dark:text-slate-100">Ações</th>}
+                <th className="px-4 py-3 text-left text-sm font-semibold text-app-primary">Título</th>
+                <th className="px-4 py-3 text-left text-sm font-semibold text-app-primary">Fase</th>
+                <th className="px-4 py-3 text-left text-sm font-semibold text-app-primary">Status</th>
+                <th className="px-4 py-3 text-left text-sm font-semibold text-app-primary">Prioridade</th>
+                <th className="px-4 py-3 text-left text-sm font-semibold text-app-primary">Responsável</th>
+                <th className="px-4 py-3 text-left text-sm font-semibold text-app-primary">Prazo</th>
+                <th className="px-4 py-3 text-left text-sm font-semibold text-app-primary">Horas</th>
+                {isAdmin && <th className="px-4 py-3 text-left text-sm font-semibold text-app-primary">Ações</th>}
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
+            <tbody className="divide-y divide-table-divider">
               {tasks.map((t) => (
                 <tr
                   key={t.id}
@@ -252,11 +252,11 @@ export function ProjectTasksTab({ projectId, isAdmin, highlightTaskId, onTaskHig
                   className={`transition ${
                     highlightTaskId === t.id
                       ? 'bg-focon-50 dark:bg-focon-900/30 ring-2 ring-focon-400'
-                      : 'hover:bg-slate-50 dark:hover:bg-slate-800'
+                      : 'hover:bg-hover-surface'
                   }`}
                 >
-                  <td className="px-4 py-3 text-sm text-slate-900 dark:text-slate-100 font-medium">{t.title}</td>
-                  <td className="px-4 py-3 text-sm text-slate-700 dark:text-slate-300">
+                  <td className="px-4 py-3 text-sm text-app-primary font-medium">{t.title}</td>
+                  <td className="px-4 py-3 text-sm text-app-secondary">
                     {t.phase?.name ?? '—'}
                   </td>
                   <td className="px-4 py-3 text-sm">
@@ -283,20 +283,20 @@ export function ProjectTasksTab({ projectId, isAdmin, highlightTaskId, onTaskHig
                       {PRIORITY_LABELS[t.priority] || t.priority}
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-sm text-slate-700 dark:text-slate-300">
+                  <td className="px-4 py-3 text-sm text-app-secondary">
                     {t.assignee?.full_name ?? '—'}
                   </td>
-                  <td className="px-4 py-3 text-sm text-slate-700 dark:text-slate-300">
+                  <td className="px-4 py-3 text-sm text-app-secondary">
                     {formatDate(t.due_date)}
                   </td>
-                  <td className="px-4 py-3 text-sm text-slate-700 dark:text-slate-300">
+                  <td className="px-4 py-3 text-sm text-app-secondary">
                     {formatHours(t.planned_minutes)}
                   </td>
                   {isAdmin && (
                     <td className="px-4 py-3 text-sm space-x-2">
                       <button
                         onClick={() => setEditTarget(t)}
-                        className="px-2.5 py-1 rounded-md text-xs font-medium border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition"
+                        className="px-2.5 py-1 rounded-md text-xs font-medium border border-app-strong text-app-secondary hover:bg-hover-surface transition"
                       >
                         Editar
                       </button>
@@ -319,32 +319,32 @@ export function ProjectTasksTab({ projectId, isAdmin, highlightTaskId, onTaskHig
           <div className="flex gap-4 min-w-max">
             {KANBAN_COLUMNS.map((col) => (
               <div key={col} className="w-72 shrink-0">
-                <div className="rounded-lg bg-slate-100 dark:bg-slate-800 p-3 mb-3">
+                <div className="rounded-lg bg-surface-secondary p-3 mb-3">
                   <div className="flex items-center justify-between">
-                    <h4 className="text-sm font-semibold text-slate-700 dark:text-slate-200">
+                    <h4 className="text-sm font-semibold text-app-secondary">
                       {STATUS_LABELS[col]}
                     </h4>
-                    <span className="text-xs text-slate-500 dark:text-slate-400">
+                    <span className="text-xs text-app-muted">
                       {kanbanTasks[col].length}
                     </span>
                   </div>
                 </div>
                 <div className="space-y-2">
                   {kanbanTasks[col].length === 0 ? (
-                    <div className="rounded-lg border border-dashed border-slate-300 dark:border-slate-600 p-6 text-center">
-                      <p className="text-xs text-slate-400 dark:text-slate-500">Vazio</p>
+                    <div className="rounded-lg border border-dashed border-app-strong p-6 text-center">
+                      <p className="text-xs text-app-muted">Vazio</p>
                     </div>
                   ) : (
                     kanbanTasks[col].map((t) => (
                       <div
                         key={t.id}
-                        className="rounded-lg border border-slate-200 dark:border-slate-700 bg-surface-primary p-3 shadow-sm"
+                        className="rounded-lg border border-app-primary bg-surface-primary p-3 shadow-sm"
                       >
-                        <p className="text-sm font-medium text-slate-900 dark:text-slate-100">
+                        <p className="text-sm font-medium text-app-primary">
                           {t.title}
                         </p>
                         {t.description && (
-                          <p className="mt-1 text-xs text-slate-500 dark:text-slate-400 line-clamp-2">
+                          <p className="mt-1 text-xs text-app-muted line-clamp-2">
                             {t.description}
                           </p>
                         )}
@@ -353,12 +353,12 @@ export function ProjectTasksTab({ projectId, isAdmin, highlightTaskId, onTaskHig
                             {PRIORITY_LABELS[t.priority] || t.priority}
                           </span>
                           {t.assignee?.full_name && (
-                            <span className="text-xs text-slate-500 dark:text-slate-400">
+                            <span className="text-xs text-app-muted">
                               {t.assignee.full_name}
                             </span>
                           )}
                           {t.due_date && (
-                            <span className="text-xs text-slate-500 dark:text-slate-400">
+                            <span className="text-xs text-app-muted">
                               {formatDate(t.due_date)}
                             </span>
                           )}
@@ -511,7 +511,7 @@ function TaskFormModal({ projectId, phases, professionals, task, onClose, onSave
             type="button"
             onClick={onClose}
             disabled={submitting}
-            className="px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition disabled:opacity-50"
+            className="px-4 py-2 rounded-lg border border-app-strong text-app-secondary hover:bg-hover-surface transition disabled:opacity-50"
           >
             Cancelar
           </button>
@@ -528,35 +528,35 @@ function TaskFormModal({ projectId, phases, professionals, task, onClose, onSave
     >
       <form id="task-form" onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+          <label className="block text-sm font-medium text-app-secondary mb-1">
             Título *
           </label>
           <input
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            className="w-full px-3 py-2.5 border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-focon-600"
+            className="w-full px-3 py-2.5 border border-app-strong bg-surface-secondary text-app-primary rounded-lg focus:outline-none focus:ring-2 focus:ring-focon-600"
           />
         </div>
         <div>
-          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+          <label className="block text-sm font-medium text-app-secondary mb-1">
             Descrição
           </label>
           <textarea
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             rows={3}
-            className="w-full px-3 py-2.5 border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-focon-600"
+            className="w-full px-3 py-2.5 border border-app-strong bg-surface-secondary text-app-primary rounded-lg focus:outline-none focus:ring-2 focus:ring-focon-600"
           />
         </div>
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+            <label className="block text-sm font-medium text-app-secondary mb-1">
               Fase
             </label>
             <select
               value={phaseId}
               onChange={(e) => setPhaseId(e.target.value)}
-              className="w-full px-3 py-2.5 border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-focon-600"
+              className="w-full px-3 py-2.5 border border-app-strong bg-surface-secondary text-app-primary rounded-lg focus:outline-none focus:ring-2 focus:ring-focon-600"
             >
               <option value="">Sem fase</option>
               {phases.map((p) => (
@@ -567,13 +567,13 @@ function TaskFormModal({ projectId, phases, professionals, task, onClose, onSave
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+            <label className="block text-sm font-medium text-app-secondary mb-1">
               Responsável
             </label>
             <select
               value={assigneeId}
               onChange={(e) => setAssigneeId(e.target.value)}
-              className="w-full px-3 py-2.5 border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-focon-600"
+              className="w-full px-3 py-2.5 border border-app-strong bg-surface-secondary text-app-primary rounded-lg focus:outline-none focus:ring-2 focus:ring-focon-600"
             >
               <option value="">Sem responsável</option>
               {professionals.map((p) => (
@@ -586,13 +586,13 @@ function TaskFormModal({ projectId, phases, professionals, task, onClose, onSave
         </div>
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+            <label className="block text-sm font-medium text-app-secondary mb-1">
               Status
             </label>
             <select
               value={status}
               onChange={(e) => setStatus(e.target.value as TaskStatus)}
-              className="w-full px-3 py-2.5 border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-focon-600"
+              className="w-full px-3 py-2.5 border border-app-strong bg-surface-secondary text-app-primary rounded-lg focus:outline-none focus:ring-2 focus:ring-focon-600"
             >
               {Object.entries(STATUS_LABELS).map(([val, label]) => (
                 <option key={val} value={val}>
@@ -602,13 +602,13 @@ function TaskFormModal({ projectId, phases, professionals, task, onClose, onSave
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+            <label className="block text-sm font-medium text-app-secondary mb-1">
               Prioridade
             </label>
             <select
               value={priority}
               onChange={(e) => setPriority(e.target.value as TaskPriority)}
-              className="w-full px-3 py-2.5 border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-focon-600"
+              className="w-full px-3 py-2.5 border border-app-strong bg-surface-secondary text-app-primary rounded-lg focus:outline-none focus:ring-2 focus:ring-focon-600"
             >
               {Object.entries(PRIORITY_LABELS).map(([val, label]) => (
                 <option key={val} value={val}>
@@ -620,7 +620,7 @@ function TaskFormModal({ projectId, phases, professionals, task, onClose, onSave
         </div>
         <div className="grid grid-cols-3 gap-4">
           <div>
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+            <label className="block text-sm font-medium text-app-secondary mb-1">
               Horas (min)
             </label>
             <input
@@ -628,29 +628,29 @@ function TaskFormModal({ projectId, phases, professionals, task, onClose, onSave
               min={0}
               value={plannedMinutes}
               onChange={(e) => setPlannedMinutes(e.target.value)}
-              className="w-full px-3 py-2.5 border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-focon-600"
+              className="w-full px-3 py-2.5 border border-app-strong bg-surface-secondary text-app-primary rounded-lg focus:outline-none focus:ring-2 focus:ring-focon-600"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+            <label className="block text-sm font-medium text-app-secondary mb-1">
               Início
             </label>
             <input
               type="date"
               value={startDate}
               onChange={(e) => setStartDate(e.target.value)}
-              className="w-full px-3 py-2.5 border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-focon-600"
+              className="w-full px-3 py-2.5 border border-app-strong bg-surface-secondary text-app-primary rounded-lg focus:outline-none focus:ring-2 focus:ring-focon-600"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+            <label className="block text-sm font-medium text-app-secondary mb-1">
               Prazo
             </label>
             <input
               type="date"
               value={dueDate}
               onChange={(e) => setDueDate(e.target.value)}
-              className="w-full px-3 py-2.5 border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-focon-600"
+              className="w-full px-3 py-2.5 border border-app-strong bg-surface-secondary text-app-primary rounded-lg focus:outline-none focus:ring-2 focus:ring-focon-600"
             />
           </div>
         </div>

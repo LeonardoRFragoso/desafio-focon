@@ -4,11 +4,11 @@ export function NotFoundPage() {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen flex items-center justify-center bg-app-canvas py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8 text-center">
         <div>
-          <h1 className="text-6xl font-bold text-slate-900 dark:text-slate-100">404</h1>
-          <p className="mt-2 text-xl text-slate-600 dark:text-slate-400">Página não encontrada</p>
+          <h1 className="text-6xl font-bold text-app-primary">404</h1>
+          <p className="mt-2 text-xl text-app-muted">Página não encontrada</p>
         </div>
         <button
           onClick={() => navigate('/')}

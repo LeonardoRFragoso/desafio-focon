@@ -101,21 +101,21 @@ export function HourGoalWidget({ weeklyGoal, openEditorSignal, onGoalChanged }: 
 
   if (loading) {
     return (
-      <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 p-6 shadow-sm">
+      <div className="bg-surface-primary rounded-xl border border-app-primary p-6 shadow-sm">
         <div className="animate-pulse">
-          <div className="h-6 bg-slate-200 dark:bg-slate-700 rounded w-1/3 mb-4"></div>
-          <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded w-1/2"></div>
+          <div className="h-6 bg-surface-elevated rounded w-1/3 mb-4"></div>
+          <div className="h-4 bg-surface-elevated rounded w-1/2"></div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 p-6 shadow-sm">
+    <div className="bg-surface-primary rounded-xl border border-app-primary p-6 shadow-sm">
       <div className="flex justify-between items-start mb-4">
         <div>
-          <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Meta Semanal</h3>
-          <p className="text-sm text-slate-500 dark:text-slate-400">Acompanhe sua produtividade</p>
+          <h3 className="text-lg font-semibold text-app-primary">Meta Semanal</h3>
+          <p className="text-sm text-app-muted">Acompanhe sua produtividade</p>
         </div>
         {!editing && (
           <button
@@ -136,7 +136,7 @@ export function HourGoalWidget({ weeklyGoal, openEditorSignal, onGoalChanged }: 
       {editing ? (
         <div className="space-y-3">
           <div>
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+            <label className="block text-sm font-medium text-app-secondary mb-1">
               Horas esperadas por semana
             </label>
             <div className="flex items-center gap-2">
@@ -147,11 +147,11 @@ export function HourGoalWidget({ weeklyGoal, openEditorSignal, onGoalChanged }: 
                 step="0.5"
                 value={inputHours}
                 onChange={(e) => setInputHours(e.target.value)}
-                className="w-24 px-3 py-2 border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-focon-600"
+                className="w-24 px-3 py-2 border border-app-strong bg-surface-secondary text-app-primary rounded-lg focus:outline-none focus:ring-2 focus:ring-focon-600"
               />
-              <span className="text-sm text-slate-500 dark:text-slate-400">horas</span>
+              <span className="text-sm text-app-muted">horas</span>
             </div>
-            <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+            <p className="mt-1 text-xs text-app-muted">
               Valores fracionados são aceitos (ex.: 37,5h). A meta deve ser maior que 0.
             </p>
           </div>
@@ -178,7 +178,7 @@ export function HourGoalWidget({ weeklyGoal, openEditorSignal, onGoalChanged }: 
                 setError(null);
               }}
               disabled={saving}
-              className="px-4 py-2 border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200 rounded-lg text-sm font-medium transition hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-50"
+              className="px-4 py-2 border border-app-strong text-app-secondary rounded-lg text-sm font-medium transition hover:bg-hover-surface disabled:opacity-50"
             >
               Cancelar
             </button>
@@ -186,7 +186,7 @@ export function HourGoalWidget({ weeklyGoal, openEditorSignal, onGoalChanged }: 
         </div>
       ) : !configured ? (
         <div className="text-center py-6">
-          <p className="text-slate-500 dark:text-slate-400 mb-3">Nenhuma meta definida</p>
+          <p className="text-app-muted mb-3">Nenhuma meta definida</p>
           <button
             onClick={() => setEditing(true)}
             className="px-4 py-2 bg-focon-600 hover:bg-focon-700 text-white rounded-lg text-sm font-medium transition"
@@ -199,14 +199,14 @@ export function HourGoalWidget({ weeklyGoal, openEditorSignal, onGoalChanged }: 
           {/* Progress bar */}
           <div>
             <div className="flex justify-between items-baseline mb-2">
-              <span className="text-2xl font-bold text-slate-900 dark:text-slate-100">
+              <span className="text-2xl font-bold text-app-primary">
                 {formatDuration(weeklyGoal.registered_minutes)}
               </span>
-              <span className="text-sm text-slate-500 dark:text-slate-400">
+              <span className="text-sm text-app-muted">
                 de {formatDuration(weeklyGoal.goal_minutes ?? 0)}
               </span>
             </div>
-            <div className="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-3 overflow-hidden">
+            <div className="w-full bg-surface-elevated rounded-full h-3 overflow-hidden">
               <div
                 className={`h-full rounded-full transition-all ${
                   (weeklyGoal.progress_percent ?? 0) >= 100
@@ -219,10 +219,10 @@ export function HourGoalWidget({ weeklyGoal, openEditorSignal, onGoalChanged }: 
               />
             </div>
             <div className="flex justify-between mt-2 text-sm">
-              <span className="font-medium text-slate-700 dark:text-slate-300">
+              <span className="font-medium text-app-secondary">
                 {(weeklyGoal.progress_percent ?? 0).toFixed(0)}%
               </span>
-              <span className="text-slate-500 dark:text-slate-400">
+              <span className="text-app-muted">
                 {(weeklyGoal.remaining_minutes ?? 0) > 0
                   ? `Faltam ${formatDuration(weeklyGoal.remaining_minutes ?? 0)}`
                   : 'Meta atingida!'}
@@ -244,9 +244,9 @@ export function HourGoalWidget({ weeklyGoal, openEditorSignal, onGoalChanged }: 
               <p className="text-xs text-red-700 dark:text-red-400 font-medium">Rejeitado</p>
               <p className="text-lg font-bold text-red-800 dark:text-red-300">{formatDuration(weeklyGoal.rejected_minutes)}</p>
             </div>
-            <div className="rounded-lg bg-slate-100 dark:bg-slate-800 p-3 text-center">
-              <p className="text-xs text-slate-600 dark:text-slate-400 font-medium">Registrado</p>
-              <p className="text-lg font-bold text-slate-800 dark:text-slate-200">{formatDuration(weeklyGoal.registered_minutes)}</p>
+            <div className="rounded-lg bg-surface-secondary p-3 text-center">
+              <p className="text-xs text-app-muted font-medium">Registrado</p>
+              <p className="text-lg font-bold text-app-secondary">{formatDuration(weeklyGoal.registered_minutes)}</p>
             </div>
           </div>
         </div>

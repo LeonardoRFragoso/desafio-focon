@@ -310,11 +310,11 @@ export function Layout({ children }: LayoutProps) {
       {/* Main content wrapper */}
       <div className="min-w-0 flex-1">
         {/* Header */}
-        <header className="bg-surface-primary border-b border-app-primary border-t-4 border-t-focon-600 dark:border-slate-700 sticky top-0 z-30 print:hidden">
+        <header className="bg-surface-primary border-b border-app-primary border-t-4 border-t-focon-600 border-app-primary sticky top-0 z-30 print:hidden">
           <div className="flex items-center px-4 py-4 sm:px-6 lg:px-8">
             <button
               onClick={() => setSidebarOpen(!sidebarOpen)}
-              className="md:hidden p-2 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition"
+              className="md:hidden p-2 text-app-secondary hover:bg-hover-surface rounded-lg transition"
               aria-label="Toggle menu"
             >
               <svg
@@ -334,18 +334,18 @@ export function Layout({ children }: LayoutProps) {
             <div className="flex items-center gap-3 ml-auto">
               <button
                 onClick={() => setPaletteOpen(true)}
-                className="flex items-center gap-2 px-3 py-1.5 text-sm text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg transition"
+                className="flex items-center gap-2 px-3 py-1.5 text-sm text-app-muted bg-surface-secondary hover:bg-hover-surface rounded-lg transition"
                 aria-label="Buscar (Ctrl+K)"
               >
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                 </svg>
                 <span className="hidden sm:inline">Buscar</span>
-                <kbd className="hidden sm:inline-block px-1.5 py-0.5 text-xs bg-slate-200 dark:bg-slate-700 rounded">⌘K</kbd>
+                <kbd className="hidden sm:inline-block px-1.5 py-0.5 text-xs bg-surface-elevated rounded">⌘K</kbd>
               </button>
               <NotificationBell />
               <ThemeToggle />
-              <span className="text-sm text-slate-600 dark:text-slate-300">
+              <span className="text-sm text-app-secondary">
                 {isAdmin ? 'Administrador' : 'Profissional'}
               </span>
             </div>

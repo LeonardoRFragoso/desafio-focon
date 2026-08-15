@@ -143,7 +143,7 @@ export function QuickEntryModal({ isOpen, onClose, userId, onSaved }: QuickEntry
             type="button"
             onClick={onClose}
             disabled={submitting}
-            className="px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition disabled:opacity-50"
+            className="px-4 py-2 rounded-lg border border-app-strong text-app-secondary hover:bg-hover-surface transition disabled:opacity-50"
           >
             Cancelar
           </button>
@@ -166,7 +166,7 @@ export function QuickEntryModal({ isOpen, onClose, userId, onSaved }: QuickEntry
         )}
 
         <div>
-          <label htmlFor="qe-project" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+          <label htmlFor="qe-project" className="block text-sm font-medium text-app-secondary mb-1">
             Projeto *
           </label>
           <select
@@ -174,7 +174,7 @@ export function QuickEntryModal({ isOpen, onClose, userId, onSaved }: QuickEntry
             value={projectId}
             onChange={(e) => setProjectId(e.target.value)}
             required
-            className="w-full px-3 py-2.5 border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-focon-600"
+            className="w-full px-3 py-2.5 border border-app-strong bg-surface-secondary text-app-primary rounded-lg focus:outline-none focus:ring-2 focus:ring-focon-600"
           >
             <option value="">Selecione...</option>
             {projects.map((p) => (
@@ -185,7 +185,7 @@ export function QuickEntryModal({ isOpen, onClose, userId, onSaved }: QuickEntry
 
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label htmlFor="qe-phase" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+            <label htmlFor="qe-phase" className="block text-sm font-medium text-app-secondary mb-1">
               Fase
             </label>
             <select
@@ -196,7 +196,7 @@ export function QuickEntryModal({ isOpen, onClose, userId, onSaved }: QuickEntry
                 setTaskId('');
               }}
               disabled={!projectId}
-              className="w-full px-3 py-2.5 border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-focon-600 disabled:opacity-50"
+              className="w-full px-3 py-2.5 border border-app-strong bg-surface-secondary text-app-primary rounded-lg focus:outline-none focus:ring-2 focus:ring-focon-600 disabled:opacity-50"
             >
               <option value="">Sem fase</option>
               {phases.map((p) => (
@@ -205,7 +205,7 @@ export function QuickEntryModal({ isOpen, onClose, userId, onSaved }: QuickEntry
             </select>
           </div>
           <div>
-            <label htmlFor="qe-task" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+            <label htmlFor="qe-task" className="block text-sm font-medium text-app-secondary mb-1">
               Tarefa
             </label>
             <select
@@ -213,7 +213,7 @@ export function QuickEntryModal({ isOpen, onClose, userId, onSaved }: QuickEntry
               value={taskId}
               onChange={(e) => setTaskId(e.target.value)}
               disabled={!projectId}
-              className="w-full px-3 py-2.5 border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-focon-600 disabled:opacity-50"
+              className="w-full px-3 py-2.5 border border-app-strong bg-surface-secondary text-app-primary rounded-lg focus:outline-none focus:ring-2 focus:ring-focon-600 disabled:opacity-50"
             >
               <option value="">Sem tarefa</option>
               {filteredTasks.map((t) => (
@@ -225,7 +225,7 @@ export function QuickEntryModal({ isOpen, onClose, userId, onSaved }: QuickEntry
 
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label htmlFor="qe-date" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+            <label htmlFor="qe-date" className="block text-sm font-medium text-app-secondary mb-1">
               Data *
             </label>
             <input
@@ -234,11 +234,11 @@ export function QuickEntryModal({ isOpen, onClose, userId, onSaved }: QuickEntry
               value={entryDate}
               onChange={(e) => setEntryDate(e.target.value)}
               required
-              className="w-full px-3 py-2.5 border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-focon-600"
+              className="w-full px-3 py-2.5 border border-app-strong bg-surface-secondary text-app-primary rounded-lg focus:outline-none focus:ring-2 focus:ring-focon-600"
             />
           </div>
           <div>
-            <label htmlFor="qe-duration" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+            <label htmlFor="qe-duration" className="block text-sm font-medium text-app-secondary mb-1">
               Duração (min) *
             </label>
             <input
@@ -250,13 +250,13 @@ export function QuickEntryModal({ isOpen, onClose, userId, onSaved }: QuickEntry
               onChange={(e) => setDurationMinutes(e.target.value)}
               required
               placeholder="ex: 120"
-              className="w-full px-3 py-2.5 border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-focon-600"
+              className="w-full px-3 py-2.5 border border-app-strong bg-surface-secondary text-app-primary rounded-lg focus:outline-none focus:ring-2 focus:ring-focon-600"
             />
           </div>
         </div>
 
         <div>
-          <label htmlFor="qe-description" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
+          <label htmlFor="qe-description" className="block text-sm font-medium text-app-secondary mb-1">
             Descrição *
           </label>
           <textarea
@@ -268,7 +268,7 @@ export function QuickEntryModal({ isOpen, onClose, userId, onSaved }: QuickEntry
             maxLength={500}
             required
             placeholder="Descreva o trabalho realizado (mínimo 10 caracteres)..."
-            className="w-full px-3 py-2.5 border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-focon-600"
+            className="w-full px-3 py-2.5 border border-app-strong bg-surface-secondary text-app-primary rounded-lg focus:outline-none focus:ring-2 focus:ring-focon-600"
           />
           <p className="mt-1 text-xs text-slate-400">{description.length}/500</p>
         </div>

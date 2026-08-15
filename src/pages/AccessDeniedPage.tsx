@@ -4,11 +4,11 @@ export function AccessDeniedPage() {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen flex items-center justify-center bg-app-canvas py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8 text-center">
         <div>
-          <h1 className="text-4xl font-bold text-slate-900 dark:text-slate-100">Acesso Negado</h1>
-          <p className="mt-2 text-lg text-slate-600 dark:text-slate-400">
+          <h1 className="text-4xl font-bold text-app-primary">Acesso Negado</h1>
+          <p className="mt-2 text-lg text-app-muted">
             Você não tem permissão para acessar esta página.
           </p>
         </div>

@@ -49,10 +49,10 @@ export function ProjectsAttention() {
   if (loading) {
     return (
       <section aria-label="Projetos que exigem atenção" className="space-y-4">
-        <h2 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">
+        <h2 className="text-2xl font-semibold text-app-primary">
           Projetos que exigem atenção
         </h2>
-        <div className="h-48 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 animate-pulse" />
+        <div className="h-48 rounded-xl border border-app-primary bg-surface-secondary animate-pulse" />
       </section>
     );
   }
@@ -60,7 +60,7 @@ export function ProjectsAttention() {
   if (error) {
     return (
       <section aria-label="Projetos que exigem atenção" className="space-y-4">
-        <h2 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">
+        <h2 className="text-2xl font-semibold text-app-primary">
           Projetos que exigem atenção
         </h2>
         <div className="rounded-lg border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20 p-4">
@@ -81,11 +81,11 @@ export function ProjectsAttention() {
   if (projects.length === 0) {
     return (
       <section aria-label="Projetos que exigem atenção" className="space-y-4">
-        <h2 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">
+        <h2 className="text-2xl font-semibold text-app-primary">
           Projetos que exigem atenção
         </h2>
-        <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-6 text-center">
-          <p className="text-sm text-slate-500 dark:text-slate-400">Nenhum projeto cadastrado</p>
+        <div className="rounded-xl border border-app-primary bg-surface-primary p-6 text-center">
+          <p className="text-sm text-app-muted">Nenhum projeto cadastrado</p>
         </div>
       </section>
     );
@@ -94,7 +94,7 @@ export function ProjectsAttention() {
   if (attentionProjects.length === 0) {
     return (
       <section aria-label="Projetos que exigem atenção" className="space-y-4">
-        <h2 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">
+        <h2 className="text-2xl font-semibold text-app-primary">
           Projetos que exigem atenção
         </h2>
         <div className="rounded-xl border border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-900/20 p-6">
@@ -111,15 +111,15 @@ export function ProjectsAttention() {
 
   return (
     <section aria-label="Projetos que exigem atenção" className="space-y-4">
-      <h2 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">
+      <h2 className="text-2xl font-semibold text-app-primary">
         Projetos que exigem atenção
       </h2>
 
       {/* Desktop table */}
-      <div className="hidden md:block overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900">
+      <div className="hidden md:block overflow-x-auto rounded-xl border border-app-primary bg-surface-primary">
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-slate-200 dark:border-slate-700 text-left text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wide">
+            <tr className="border-b border-app-primary text-left text-xs text-app-muted uppercase tracking-wide">
               <th className="px-4 py-3 font-medium">Projeto</th>
               <th className="px-4 py-3 font-medium">Cliente</th>
               <th className="px-4 py-3 font-medium">Status</th>
@@ -138,13 +138,13 @@ export function ProjectsAttention() {
                 <tr
                   key={p.id}
                   onClick={() => navigate(`/projects/${p.id}`)}
-                  className="border-b border-slate-100 dark:border-slate-800 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800/50 transition"
+                  className="border-b border-app-primary cursor-pointer hover:bg-hover-surface/50 transition"
                 >
-                  <td className="px-4 py-3 font-medium text-slate-900 dark:text-slate-100">{p.name}</td>
-                  <td className="px-4 py-3 text-slate-600 dark:text-slate-400">{p.client}</td>
-                  <td className="px-4 py-3 text-slate-600 dark:text-slate-400 capitalize">{p.status}</td>
-                  <td className="px-4 py-3 text-slate-600 dark:text-slate-400">{formatHours(p.approved_minutes)}</td>
-                  <td className="px-4 py-3 text-slate-600 dark:text-slate-400">
+                  <td className="px-4 py-3 font-medium text-app-primary">{p.name}</td>
+                  <td className="px-4 py-3 text-app-muted">{p.client}</td>
+                  <td className="px-4 py-3 text-app-muted capitalize">{p.status}</td>
+                  <td className="px-4 py-3 text-app-muted">{formatHours(p.approved_minutes)}</td>
+                  <td className="px-4 py-3 text-app-muted">
                     {p.budget_value > 0 ? `${p.budget_utilization_percent.toFixed(0)}%` : '—'}
                   </td>
                   <td className="px-4 py-3">
@@ -182,31 +182,31 @@ export function ProjectsAttention() {
             <div
               key={p.id}
               onClick={() => navigate(`/projects/${p.id}`)}
-              className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-4 cursor-pointer active:bg-slate-50 dark:active:bg-slate-800/50 transition"
+              className="rounded-xl border border-app-primary bg-surface-primary p-4 cursor-pointer active:bg-slate-50 dark:active:bg-slate-800/50 transition"
             >
               <div className="flex items-start justify-between gap-2 mb-2">
                 <div className="min-w-0">
-                  <p className="font-medium text-slate-900 dark:text-slate-100 truncate">{p.name}</p>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 truncate">{p.client}</p>
+                  <p className="font-medium text-app-primary truncate">{p.name}</p>
+                  <p className="text-xs text-app-muted truncate">{p.client}</p>
                 </div>
                 <span className={`inline-flex items-center gap-1 px-2 py-1 text-xs font-bold rounded shrink-0 ${style.badge}`}>
                   {style.icon} {style.label}
                 </span>
               </div>
-              <div className="grid grid-cols-3 gap-2 text-xs text-slate-600 dark:text-slate-400">
+              <div className="grid grid-cols-3 gap-2 text-xs text-app-muted">
                 <div>
                   <p className="text-slate-400">Horas</p>
-                  <p className="font-medium text-slate-700 dark:text-slate-200">{formatHours(p.approved_minutes)}</p>
+                  <p className="font-medium text-app-secondary">{formatHours(p.approved_minutes)}</p>
                 </div>
                 <div>
                   <p className="text-slate-400">Budget</p>
-                  <p className="font-medium text-slate-700 dark:text-slate-200">
+                  <p className="font-medium text-app-secondary">
                     {p.budget_value > 0 ? `${p.budget_utilization_percent.toFixed(0)}%` : '—'}
                   </p>
                 </div>
                 <div>
                   <p className="text-slate-400">Atrasadas</p>
-                  <p className={`font-medium ${p.overdue_tasks_count > 0 ? 'text-red-600 dark:text-red-400' : 'text-slate-700 dark:text-slate-200'}`}>
+                  <p className={`font-medium ${p.overdue_tasks_count > 0 ? 'text-red-600 dark:text-red-400' : 'text-app-secondary'}`}>
                     {p.overdue_tasks_count}
                   </p>
                 </div>
@@ -217,7 +217,7 @@ export function ProjectsAttention() {
       </div>
 
       {/* Note: attention_state is NOT the future Project Health Score */}
-      <p className="text-xs text-slate-400 dark:text-slate-500">
+      <p className="text-xs text-app-muted">
         * attention_state é um indicador operacional temporário derivado de sinais existentes (orçamento, tarefas atrasadas, alertas). Não é o futuro Project Health Score.
       </p>
     </section>

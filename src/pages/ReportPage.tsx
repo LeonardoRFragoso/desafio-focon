@@ -23,10 +23,10 @@ export function ReportPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-slate-200 dark:border-slate-700 pb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-app-primary pb-6">
         <div>
-          <h1 className="text-4xl font-bold text-slate-900 dark:text-slate-100">Relatório Financeiro</h1>
-          <p className="mt-2 text-lg text-slate-600 dark:text-slate-400">
+          <h1 className="text-4xl font-bold text-app-primary">Relatório Financeiro</h1>
+          <p className="mt-2 text-lg text-app-muted">
             Gere relatórios para impressão, PDF ou exportação
           </p>
         </div>

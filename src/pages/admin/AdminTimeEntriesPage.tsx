@@ -183,8 +183,8 @@ export function AdminTimeEntriesPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Histórico de Apontamentos</h1>
-        <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+        <h1 className="text-2xl font-bold text-app-primary">Histórico de Apontamentos</h1>
+        <p className="text-sm text-app-muted mt-1">
           Consulta histórica e auditoria operacional de todos os apontamentos.
         </p>
       </div>
@@ -201,20 +201,20 @@ export function AdminTimeEntriesPage() {
       )}
 
       {/* Filters */}
-      <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-surface-primary p-4 shadow-sm space-y-3">
+      <div className="rounded-xl border border-app-primary bg-surface-primary p-4 shadow-sm space-y-3">
         <div className="flex flex-wrap gap-2">
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Buscar por profissional, projeto ou descrição..."
-            className="flex-1 min-w-[200px] px-3 py-2 border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-focon-600"
+            className="flex-1 min-w-[200px] px-3 py-2 border border-app-strong bg-surface-secondary text-app-primary rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-focon-600"
             aria-label="Busca textual"
           />
           <select
             value={professionalFilter}
             onChange={(e) => setProfessionalFilter(e.target.value)}
-            className="px-3 py-2 border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-focon-600"
+            className="px-3 py-2 border border-app-strong bg-surface-secondary text-app-primary rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-focon-600"
             aria-label="Filtrar por profissional"
           >
             <option value="">Todos os profissionais</option>
@@ -225,7 +225,7 @@ export function AdminTimeEntriesPage() {
           <select
             value={projectFilter}
             onChange={(e) => setProjectFilter(e.target.value)}
-            className="px-3 py-2 border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-focon-600"
+            className="px-3 py-2 border border-app-strong bg-surface-secondary text-app-primary rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-focon-600"
             aria-label="Filtrar por projeto"
           >
             <option value="">Todos os projetos</option>
@@ -236,7 +236,7 @@ export function AdminTimeEntriesPage() {
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="px-3 py-2 border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-focon-600"
+            className="px-3 py-2 border border-app-strong bg-surface-secondary text-app-primary rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-focon-600"
             aria-label="Filtrar por status"
           >
             <option value="">Todos os status</option>
@@ -250,7 +250,7 @@ export function AdminTimeEntriesPage() {
             <select
               value={phaseFilter}
               onChange={(e) => setPhaseFilter(e.target.value)}
-              className="px-3 py-2 border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-focon-600"
+              className="px-3 py-2 border border-app-strong bg-surface-secondary text-app-primary rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-focon-600"
               aria-label="Filtrar por fase"
             >
               <option value="">Todas as fases</option>
@@ -263,7 +263,7 @@ export function AdminTimeEntriesPage() {
             <select
               value={taskFilter}
               onChange={(e) => setTaskFilter(e.target.value)}
-              className="px-3 py-2 border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-focon-600"
+              className="px-3 py-2 border border-app-strong bg-surface-secondary text-app-primary rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-focon-600"
               aria-label="Filtrar por tarefa"
             >
               <option value="">Todas as tarefas</option>
@@ -276,19 +276,19 @@ export function AdminTimeEntriesPage() {
             type="date"
             value={startDate}
             onChange={(e) => setStartDate(e.target.value)}
-            className="px-3 py-2 border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-focon-600"
+            className="px-3 py-2 border border-app-strong bg-surface-secondary text-app-primary rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-focon-600"
             aria-label="Data inicial"
           />
           <input
             type="date"
             value={endDate}
             onChange={(e) => setEndDate(e.target.value)}
-            className="px-3 py-2 border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-focon-600"
+            className="px-3 py-2 border border-app-strong bg-surface-secondary text-app-primary rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-focon-600"
             aria-label="Data final"
           />
           <button
             onClick={handleClearFilters}
-            className="px-3 py-2 border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200 rounded-lg text-sm hover:bg-slate-100 dark:hover:bg-slate-800 transition"
+            className="px-3 py-2 border border-app-strong text-app-secondary rounded-lg text-sm hover:bg-hover-surface transition"
           >
             Limpar filtros
           </button>
@@ -296,7 +296,7 @@ export function AdminTimeEntriesPage() {
       </div>
 
       {/* Results count */}
-      <p className="text-sm text-slate-500 dark:text-slate-400">
+      <p className="text-sm text-app-muted">
         {total} apontamento{total !== 1 ? 's' : ''} encontrado{total !== 1 ? 's' : ''}
       </p>
 
@@ -306,36 +306,36 @@ export function AdminTimeEntriesPage() {
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-focon-600"></div>
         </div>
       ) : entries.length === 0 ? (
-        <div className="rounded-xl border border-slate-200 dark:border-slate-700 p-12 text-center bg-slate-50 dark:bg-slate-800/50">
-          <p className="text-slate-600 dark:text-slate-400">Nenhum apontamento encontrado</p>
+        <div className="rounded-xl border border-app-primary p-12 text-center bg-surface-secondary/50">
+          <p className="text-app-muted">Nenhum apontamento encontrado</p>
         </div>
       ) : (
         <>
           {/* Desktop table */}
-          <div className="hidden md:block overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
+          <div className="hidden md:block overflow-x-auto rounded-xl border border-app-primary shadow-sm">
             <table className="w-full">
               <caption className="sr-only">Histórico de apontamentos</caption>
-              <thead className="bg-slate-100 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700">
+              <thead className="bg-surface-secondary border-b border-app-primary">
                 <tr>
-                  <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900 dark:text-slate-100" scope="col">Profissional</th>
-                  <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900 dark:text-slate-100" scope="col">Projeto</th>
-                  <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900 dark:text-slate-100" scope="col">Fase</th>
-                  <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900 dark:text-slate-100" scope="col">Tarefa</th>
-                  <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900 dark:text-slate-100" scope="col">Data</th>
-                  <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900 dark:text-slate-100" scope="col">Duração</th>
-                  <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900 dark:text-slate-100" scope="col">Status</th>
-                  <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900 dark:text-slate-100" scope="col">Ações</th>
+                  <th className="px-4 py-3 text-left text-sm font-semibold text-app-primary" scope="col">Profissional</th>
+                  <th className="px-4 py-3 text-left text-sm font-semibold text-app-primary" scope="col">Projeto</th>
+                  <th className="px-4 py-3 text-left text-sm font-semibold text-app-primary" scope="col">Fase</th>
+                  <th className="px-4 py-3 text-left text-sm font-semibold text-app-primary" scope="col">Tarefa</th>
+                  <th className="px-4 py-3 text-left text-sm font-semibold text-app-primary" scope="col">Data</th>
+                  <th className="px-4 py-3 text-left text-sm font-semibold text-app-primary" scope="col">Duração</th>
+                  <th className="px-4 py-3 text-left text-sm font-semibold text-app-primary" scope="col">Status</th>
+                  <th className="px-4 py-3 text-left text-sm font-semibold text-app-primary" scope="col">Ações</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
+              <tbody className="divide-y divide-table-divider">
                 {entries.map((entry) => (
-                  <tr key={entry.id} className="hover:bg-slate-50 dark:hover:bg-slate-800 transition">
-                    <td className="px-4 py-3 text-sm text-slate-900 dark:text-slate-100">{entry.professional?.full_name || '—'}</td>
-                    <td className="px-4 py-3 text-sm text-slate-700 dark:text-slate-300">{entry.project?.name || '—'}</td>
-                    <td className="px-4 py-3 text-sm text-slate-700 dark:text-slate-300">{entry.phase?.name || '—'}</td>
-                    <td className="px-4 py-3 text-sm text-slate-700 dark:text-slate-300">{entry.task?.title || '—'}</td>
-                    <td className="px-4 py-3 text-sm text-slate-700 dark:text-slate-300 whitespace-nowrap">{formatDate(entry.entry_date)}</td>
-                    <td className="px-4 py-3 text-sm text-slate-700 dark:text-slate-300 whitespace-nowrap">{formatDuration(entry.duration_minutes)}</td>
+                  <tr key={entry.id} className="hover:bg-hover-surface transition">
+                    <td className="px-4 py-3 text-sm text-app-primary">{entry.professional?.full_name || '—'}</td>
+                    <td className="px-4 py-3 text-sm text-app-secondary">{entry.project?.name || '—'}</td>
+                    <td className="px-4 py-3 text-sm text-app-secondary">{entry.phase?.name || '—'}</td>
+                    <td className="px-4 py-3 text-sm text-app-secondary">{entry.task?.title || '—'}</td>
+                    <td className="px-4 py-3 text-sm text-app-secondary whitespace-nowrap">{formatDate(entry.entry_date)}</td>
+                    <td className="px-4 py-3 text-sm text-app-secondary whitespace-nowrap">{formatDuration(entry.duration_minutes)}</td>
                     <td className="px-4 py-3 text-sm">
                       <span className={`inline-block px-2.5 py-1 rounded-full text-xs font-semibold ${
                         entry.approval_status === 'approved'
@@ -350,7 +350,7 @@ export function AdminTimeEntriesPage() {
                     <td className="px-4 py-3 text-sm space-x-2">
                       <button
                         onClick={() => setSelectedEntry(entry)}
-                        className="px-2.5 py-1 rounded-md text-xs font-medium border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition"
+                        className="px-2.5 py-1 rounded-md text-xs font-medium border border-app-strong text-app-secondary hover:bg-hover-surface transition"
                       >
                         Ver detalhes
                       </button>
@@ -388,14 +388,14 @@ export function AdminTimeEntriesPage() {
             {entries.map((entry) => (
               <div
                 key={entry.id}
-                className="rounded-xl border border-slate-200 dark:border-slate-700 bg-surface-primary p-4 shadow-sm"
+                className="rounded-xl border border-app-primary bg-surface-primary p-4 shadow-sm"
               >
                 <div className="flex justify-between items-start mb-2">
                   <div className="min-w-0 flex-1">
-                    <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">
+                    <p className="text-sm font-semibold text-app-primary">
                       {entry.professional?.full_name || '—'}
                     </p>
-                    <p className="text-xs text-slate-500 dark:text-slate-400">
+                    <p className="text-xs text-app-muted">
                       {entry.project?.name || '—'} · {formatDate(entry.entry_date)} · {formatDuration(entry.duration_minutes)}
                     </p>
                   </div>
@@ -409,11 +409,11 @@ export function AdminTimeEntriesPage() {
                     {entry.approval_status === 'approved' ? 'Aprovado' : entry.approval_status === 'pending' ? 'Pendente' : 'Rejeitado'}
                   </span>
                 </div>
-                <p className="text-xs text-slate-600 dark:text-slate-400 line-clamp-2 mb-3">{entry.description}</p>
+                <p className="text-xs text-app-muted line-clamp-2 mb-3">{entry.description}</p>
                 <div className="flex gap-2">
                   <button
                     onClick={() => setSelectedEntry(entry)}
-                    className="flex-1 px-3 py-1.5 rounded-lg text-xs font-medium border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition"
+                    className="flex-1 px-3 py-1.5 rounded-lg text-xs font-medium border border-app-strong text-app-secondary hover:bg-hover-surface transition"
                   >
                     Ver detalhes
                   </button>

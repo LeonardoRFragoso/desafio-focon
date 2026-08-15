@@ -21,7 +21,7 @@ interface ActionSignal {
 }
 
 const SEVERITY_STYLES: Record<Severity, string> = {
-  info: 'border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/20',
+  info: 'border-blue-200 border-app-strong bg-blue-50 bg-surface-primary/20',
   warning: 'border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-900/20',
   critical: 'border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20',
   success: 'border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-900/20',
@@ -47,14 +47,14 @@ export function AdminActionCenter({ summary, loading, error, onRetry }: AdminAct
   if (loading) {
     return (
       <section aria-label="Central de Ações" className="space-y-4">
-        <h2 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">
+        <h2 className="text-2xl font-semibold text-app-primary">
           O que precisa da minha atenção?
         </h2>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {[1, 2, 3].map(i => (
             <div
               key={i}
-              className="h-32 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 animate-pulse"
+              className="h-32 rounded-xl border border-app-primary bg-surface-secondary animate-pulse"
             />
           ))}
         </div>
@@ -65,7 +65,7 @@ export function AdminActionCenter({ summary, loading, error, onRetry }: AdminAct
   if (error) {
     return (
       <section aria-label="Central de Ações" className="space-y-4">
-        <h2 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">
+        <h2 className="text-2xl font-semibold text-app-primary">
           O que precisa da minha atenção?
         </h2>
         <div className="rounded-lg border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20 p-4">
@@ -189,7 +189,7 @@ export function AdminActionCenter({ summary, loading, error, onRetry }: AdminAct
 
   return (
     <section aria-label="Central de Ações" className="space-y-4">
-      <h2 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">
+      <h2 className="text-2xl font-semibold text-app-primary">
         O que precisa da minha atenção?
       </h2>
 
@@ -222,10 +222,10 @@ export function AdminActionCenter({ summary, loading, error, onRetry }: AdminAct
                       {SEVERITY_LABEL[item.severity]}
                     </span>
                   </div>
-                  <p className="text-sm font-medium text-slate-900 dark:text-slate-100">
+                  <p className="text-sm font-medium text-app-primary">
                     {item.title}
                   </p>
-                  <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
+                  <p className="text-xs text-app-muted mt-1">
                     {item.description}
                   </p>
                   <button

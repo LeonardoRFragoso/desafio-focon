@@ -69,19 +69,19 @@ export function AdminFilters({ filters, onFilterChange, onClearFilters }: AdminF
   };
 
   return (
-    <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 p-6 shadow-sm space-y-6">
-      <h3 className="text-xl font-semibold text-slate-900 dark:text-slate-100">Filtros</h3>
+    <div className="bg-surface-primary rounded-xl border border-app-primary p-6 shadow-sm space-y-6">
+      <h3 className="text-xl font-semibold text-app-primary">Filtros</h3>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div>
-          <label htmlFor="project" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+          <label htmlFor="project" className="block text-sm font-medium text-app-secondary mb-2">
             Projeto
           </label>
           <select
             id="project"
             value={filters.projectId}
             onChange={(e) => handleProjectChange(e.target.value)}
-            className="w-full px-3 py-2.5 border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-focon-600 focus:border-transparent transition"
+            className="w-full px-3 py-2.5 border border-app-strong bg-surface-secondary text-app-primary rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-focon-600 focus:border-transparent transition"
           >
             <option value="">Todos os projetos</option>
             {projects.map((project) => (
@@ -93,14 +93,14 @@ export function AdminFilters({ filters, onFilterChange, onClearFilters }: AdminF
         </div>
 
         <div>
-          <label htmlFor="professional" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+          <label htmlFor="professional" className="block text-sm font-medium text-app-secondary mb-2">
             Profissional
           </label>
           <select
             id="professional"
             value={filters.professionalId}
             onChange={(e) => handleProfessionalChange(e.target.value)}
-            className="w-full px-3 py-2.5 border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-focon-600 focus:border-transparent transition"
+            className="w-full px-3 py-2.5 border border-app-strong bg-surface-secondary text-app-primary rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-focon-600 focus:border-transparent transition"
           >
             <option value="">Todos os profissionais</option>
             {professionals.map((prof) => (
@@ -112,7 +112,7 @@ export function AdminFilters({ filters, onFilterChange, onClearFilters }: AdminF
         </div>
 
         <div>
-          <label htmlFor="startDate" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+          <label htmlFor="startDate" className="block text-sm font-medium text-app-secondary mb-2">
             Data Inicial
           </label>
           <input
@@ -120,12 +120,12 @@ export function AdminFilters({ filters, onFilterChange, onClearFilters }: AdminF
             type="date"
             value={filters.startDate}
             onChange={(e) => handleDateChange('startDate', e.target.value)}
-            className="w-full px-3 py-2.5 border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-focon-600 focus:border-transparent transition"
+            className="w-full px-3 py-2.5 border border-app-strong bg-surface-secondary text-app-primary rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-focon-600 focus:border-transparent transition"
           />
         </div>
 
         <div>
-          <label htmlFor="endDate" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+          <label htmlFor="endDate" className="block text-sm font-medium text-app-secondary mb-2">
             Data Final
           </label>
           <input
@@ -133,7 +133,7 @@ export function AdminFilters({ filters, onFilterChange, onClearFilters }: AdminF
             type="date"
             value={filters.endDate}
             onChange={(e) => handleDateChange('endDate', e.target.value)}
-            className="w-full px-3 py-2.5 border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-focon-600 focus:border-transparent transition"
+            className="w-full px-3 py-2.5 border border-app-strong bg-surface-secondary text-app-primary rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-focon-600 focus:border-transparent transition"
           />
         </div>
       </div>
@@ -145,7 +145,7 @@ export function AdminFilters({ filters, onFilterChange, onClearFilters }: AdminF
         <div className="flex justify-end">
           <button
             onClick={handleClearFilters}
-            className="px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg transition"
+            className="px-4 py-2 text-sm font-medium text-app-secondary bg-surface-secondary hover:bg-hover-surface rounded-lg transition"
           >
             Limpar Filtros
           </button>

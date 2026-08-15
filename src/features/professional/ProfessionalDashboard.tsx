@@ -191,7 +191,7 @@ export function ProfessionalDashboard() {
       case 'rejected':
         return `${baseClasses} bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400`;
       default:
-        return `${baseClasses} bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-300`;
+        return `${baseClasses} bg-slate-100 text-slate-800 bg-surface-secondary text-app-secondary`;
     }
   };
 
@@ -270,23 +270,23 @@ export function ProfessionalDashboard() {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 p-6 shadow-sm">
-          <p className="text-sm font-medium text-slate-600 dark:text-slate-400 mb-2">Horas Aprovadas</p>
+        <div className="bg-surface-primary rounded-xl border border-app-primary p-6 shadow-sm">
+          <p className="text-sm font-medium text-app-muted mb-2">Horas Aprovadas</p>
           <p className="text-3xl font-bold text-green-600 dark:text-green-400">{formatDuration(stats.approvedHours)}</p>
         </div>
 
-        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 p-6 shadow-sm">
-          <p className="text-sm font-medium text-slate-600 dark:text-slate-400 mb-2">Aprovados</p>
+        <div className="bg-surface-primary rounded-xl border border-app-primary p-6 shadow-sm">
+          <p className="text-sm font-medium text-app-muted mb-2">Aprovados</p>
           <p className="text-3xl font-bold text-green-600 dark:text-green-400">{stats.approvedCount}</p>
         </div>
 
-        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 p-6 shadow-sm">
-          <p className="text-sm font-medium text-slate-600 dark:text-slate-400 mb-2">Pendentes</p>
+        <div className="bg-surface-primary rounded-xl border border-app-primary p-6 shadow-sm">
+          <p className="text-sm font-medium text-app-muted mb-2">Pendentes</p>
           <p className="text-3xl font-bold text-yellow-600 dark:text-yellow-400">{stats.pendingCount}</p>
         </div>
 
-        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 p-6 shadow-sm">
-          <p className="text-sm font-medium text-slate-600 dark:text-slate-400 mb-2">Rejeitados</p>
+        <div className="bg-surface-primary rounded-xl border border-app-primary p-6 shadow-sm">
+          <p className="text-sm font-medium text-app-muted mb-2">Rejeitados</p>
           <p className="text-3xl font-bold text-red-600 dark:text-red-400">{stats.rejectedCount}</p>
         </div>
       </div>
@@ -332,57 +332,57 @@ export function ProfessionalDashboard() {
       </div>
 
       {/* Entries Table */}
-      <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 p-6 shadow-sm">
+      <div className="bg-surface-primary rounded-xl border border-app-primary p-6 shadow-sm">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">Meus Apontamentos</h2>
+          <h2 className="text-2xl font-semibold text-app-primary">Meus Apontamentos</h2>
           <a href="/time-entries" className="text-sm text-focon-600 dark:text-focon-400 hover:underline">
             Ver histórico completo →
           </a>
         </div>
 
         {entries.length === 0 ? (
-          <div className="rounded-lg bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 p-8 text-center">
-            <p className="text-slate-600 dark:text-slate-400">Nenhum apontamento registrado</p>
-            <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+          <div className="rounded-lg bg-surface-secondary/50 border border-app-primary p-8 text-center">
+            <p className="text-app-muted">Nenhum apontamento registrado</p>
+            <p className="text-sm text-app-muted mt-1">
               Use o botão "Novo Apontamento" ou o Timer para registrar suas horas.
             </p>
           </div>
         ) : (
-          <div className="overflow-x-auto rounded-lg border border-slate-200 dark:border-slate-700">
+          <div className="overflow-x-auto rounded-lg border border-app-primary">
             <table className="w-full">
               <caption className="sr-only">Apontamentos recentes</caption>
-              <thead className="bg-slate-100 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700">
+              <thead className="bg-surface-secondary border-b border-app-primary">
                 <tr>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-slate-900 dark:text-slate-100" scope="col">
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-app-primary" scope="col">
                     Projeto
                   </th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-slate-900 dark:text-slate-100" scope="col">
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-app-primary" scope="col">
                     Data
                   </th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-slate-900 dark:text-slate-100" scope="col">
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-app-primary" scope="col">
                     Duração
                   </th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-slate-900 dark:text-slate-100" scope="col">
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-app-primary" scope="col">
                     Status
                   </th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-slate-900 dark:text-slate-100" scope="col">
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-app-primary" scope="col">
                     <span className="sr-only">Ações</span>
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
+              <tbody className="divide-y divide-table-divider">
                 {entries.map((entry) => (
                   <tr
                     key={entry.id}
                     onClick={() => handleRowClick(entry)}
-                    className="hover:bg-slate-50 dark:hover:bg-slate-800/50 cursor-pointer transition"
+                    className="hover:bg-hover-surface/50 cursor-pointer transition"
                   >
-                    <td className="px-6 py-4 text-sm text-slate-900 dark:text-slate-100">
+                    <td className="px-6 py-4 text-sm text-app-primary">
                       {entry.project?.name ?? '—'}
-                      {entry.phase && <span className="block text-xs text-slate-500 dark:text-slate-400">{entry.phase.name}</span>}
+                      {entry.phase && <span className="block text-xs text-app-muted">{entry.phase.name}</span>}
                     </td>
-                    <td className="px-6 py-4 text-sm text-slate-600 dark:text-slate-400">{formatDate(entry.entry_date)}</td>
-                    <td className="px-6 py-4 text-sm text-slate-600 dark:text-slate-400">{formatDuration(entry.duration_minutes)}</td>
+                    <td className="px-6 py-4 text-sm text-app-muted">{formatDate(entry.entry_date)}</td>
+                    <td className="px-6 py-4 text-sm text-app-muted">{formatDuration(entry.duration_minutes)}</td>
                     <td className="px-6 py-4">
                       <span className={getStatusBadge(entry.approval_status)}>
                         {getStatusLabel(entry.approval_status)}

@@ -18,8 +18,8 @@ export function TeamOverview({ summary, loading, error, onRetry }: TeamOverviewP
   if (loading) {
     return (
       <section aria-label="Equipe" className="space-y-4">
-        <h2 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">Equipe</h2>
-        <div className="h-32 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 animate-pulse" />
+        <h2 className="text-2xl font-semibold text-app-primary">Equipe</h2>
+        <div className="h-32 rounded-xl border border-app-primary bg-surface-secondary animate-pulse" />
       </section>
     );
   }
@@ -27,7 +27,7 @@ export function TeamOverview({ summary, loading, error, onRetry }: TeamOverviewP
   if (error || !summary) {
     return (
       <section aria-label="Equipe" className="space-y-4">
-        <h2 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">Equipe</h2>
+        <h2 className="text-2xl font-semibold text-app-primary">Equipe</h2>
         <div className="rounded-xl border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20 p-4">
           <div className="flex items-center justify-between">
             <p className="text-sm font-medium text-red-800 dark:text-red-400">Dados indisponíveis</p>
@@ -48,9 +48,9 @@ export function TeamOverview({ summary, loading, error, onRetry }: TeamOverviewP
   if (team.length === 0) {
     return (
       <section aria-label="Equipe" className="space-y-4">
-        <h2 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">Equipe</h2>
-        <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 p-6 text-center">
-          <p className="text-sm text-slate-500 dark:text-slate-400">
+        <h2 className="text-2xl font-semibold text-app-primary">Equipe</h2>
+        <div className="rounded-xl border border-app-primary bg-surface-primary p-6 text-center">
+          <p className="text-sm text-app-muted">
             Nenhuma hora aprovada no período selecionado
           </p>
         </div>
@@ -62,31 +62,31 @@ export function TeamOverview({ summary, loading, error, onRetry }: TeamOverviewP
 
   return (
     <section aria-label="Equipe" className="space-y-4">
-      <h2 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">Equipe</h2>
-      <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 overflow-hidden">
-        <ul className="divide-y divide-slate-100 dark:divide-slate-800">
+      <h2 className="text-2xl font-semibold text-app-primary">Equipe</h2>
+      <div className="rounded-xl border border-app-primary bg-surface-primary overflow-hidden">
+        <ul className="divide-y divide-table-divider">
           {team.map((member, idx) => (
             <li key={member.professional_id} className="px-4 py-3 flex items-center gap-4">
               <div className="flex items-center gap-3 min-w-0 flex-1">
                 <span className="text-sm text-slate-400 shrink-0 w-6">#{idx + 1}</span>
                 <div className="min-w-0 flex-1">
-                  <p className="text-sm font-medium text-slate-900 dark:text-slate-100 truncate">
+                  <p className="text-sm font-medium text-app-primary truncate">
                     {member.full_name}
                   </p>
-                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                  <p className="text-xs text-app-muted">
                     {member.entry_count} apontamento(s)
                   </p>
                 </div>
               </div>
               <div className="flex items-center gap-3 shrink-0">
-                <div className="hidden sm:block w-32 bg-slate-100 dark:bg-slate-800 rounded-full h-2 overflow-hidden">
+                <div className="hidden sm:block w-32 bg-surface-secondary rounded-full h-2 overflow-hidden">
                   <div
                     className="bg-focon-600 h-full rounded-full transition-all"
                     style={{ width: `${(member.approved_hours / maxHours) * 100}%` }}
                     aria-hidden="true"
                   />
                 </div>
-                <span className="text-sm font-medium text-slate-700 dark:text-slate-200 w-16 text-right">
+                <span className="text-sm font-medium text-app-secondary w-16 text-right">
                   {formatHours(member.approved_hours)}
                 </span>
               </div>
@@ -94,7 +94,7 @@ export function TeamOverview({ summary, loading, error, onRetry }: TeamOverviewP
           ))}
         </ul>
       </div>
-      <p className="text-xs text-slate-400 dark:text-slate-500">
+      <p className="text-xs text-app-muted">
         Horas aprovadas por profissional no período selecionado. Capacidade e utilização serão implementadas na Fase 4.
       </p>
     </section>

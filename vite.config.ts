@@ -13,8 +13,8 @@ export default defineConfig({
         name: 'FoconFlow — Fócon Engenharia',
         short_name: 'FoconFlow',
         description: 'Controle de Produção e Rentabilidade',
-        theme_color: '#0d9488',
-        background_color: '#0f172a',
+        theme_color: '#007678', /* focon-600 */
+        background_color: '#06100f', /* Fócon dark canvas */
         display: 'standalone',
         orientation: 'portrait',
         scope: '/',

@@ -42,7 +42,7 @@ export function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-950 via-teal-950 to-slate-950 py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-focon-950 via-teal-950 to-focon-950 py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
       {/* Animated gradient background */}
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute top-0 right-0 w-96 h-96 bg-teal-500 rounded-full mix-blend-screen filter blur-3xl opacity-30 animate-pulse"></div>
@@ -57,7 +57,7 @@ export function LoginPage() {
           <div className="absolute -inset-0.5 bg-gradient-to-r from-teal-600 to-cyan-600 rounded-3xl blur opacity-20 group-hover:opacity-40 transition duration-500"></div>
           
           {/* Card */}
-          <div className="relative bg-gradient-to-br from-slate-800/40 to-slate-900/40 backdrop-blur-xl rounded-3xl shadow-2xl p-8 border border-white/10 group-hover:border-white/20 transition">
+          <div className="relative bg-gradient-to-br from-focon-900/40 to-focon-950/40 backdrop-blur-xl rounded-3xl shadow-2xl p-8 border border-white/10 group-hover:border-white/20 transition">
             {/* Header with enhanced styling */}
             <div className="text-center mb-8">
               {/* Logo container with glow */}

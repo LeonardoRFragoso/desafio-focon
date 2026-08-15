@@ -15,7 +15,7 @@ export function ThemeToggle() {
     <button
       type="button"
       onClick={toggleTheme}
-      className="p-2 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition focus:outline-none focus:ring-2 focus:ring-focon-500"
+      className="p-2 rounded-lg text-app-secondary hover:bg-hover-surface transition focus:outline-none focus:ring-2 focus:ring-focon-500"
       aria-label={isDark ? 'Ativar tema claro' : 'Ativar tema escuro'}
       title={isDark ? 'Tema claro' : 'Tema escuro'}
       aria-pressed={isDark}

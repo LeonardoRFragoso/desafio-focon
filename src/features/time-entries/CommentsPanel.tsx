@@ -95,7 +95,7 @@ export function CommentsPanel({ entryId, isAdmin }: CommentsPanelProps) {
 
   return (
     <div className="space-y-4">
-      <h4 className="font-semibold text-slate-900 dark:text-slate-100">Comentários</h4>
+      <h4 className="font-semibold text-app-primary">Comentários</h4>
 
       {error && (
         <div className="rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 p-3">
@@ -109,7 +109,7 @@ export function CommentsPanel({ entryId, isAdmin }: CommentsPanelProps) {
           <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-focon-600"></div>
         </div>
       ) : comments.length === 0 ? (
-        <div className="text-center py-6 text-sm text-slate-500 dark:text-slate-400">
+        <div className="text-center py-6 text-sm text-app-muted">
           Nenhum comentário ainda. Seja o primeiro a comentar.
         </div>
       ) : (
@@ -123,23 +123,23 @@ export function CommentsPanel({ entryId, isAdmin }: CommentsPanelProps) {
                 className={`rounded-lg p-3 ${
                   isOwn
                     ? 'bg-focon-50 dark:bg-focon-900/20 border border-focon-200 dark:border-focon-800'
-                    : 'bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700'
+                    : 'bg-surface-secondary border border-app-primary'
                 }`}
               >
                 <div className="flex justify-between items-start gap-2 mb-1">
                   <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium text-slate-900 dark:text-slate-100">{authorName}</span>
+                    <span className="text-sm font-medium text-app-primary">{authorName}</span>
                     {isAdmin && !isOwn && (
-                      <span className="text-xs px-1.5 py-0.5 rounded bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300">
+                      <span className="text-xs px-1.5 py-0.5 rounded bg-surface-elevated text-app-secondary">
                         Admin
                       </span>
                     )}
                   </div>
-                  <span className="text-xs text-slate-400 dark:text-slate-500 flex-shrink-0">
+                  <span className="text-xs text-app-muted flex-shrink-0">
                     {formatDateTime(comment.created_at)}
                   </span>
                 </div>
-                <p className="text-sm text-slate-700 dark:text-slate-300 break-words whitespace-pre-wrap">{comment.body}</p>
+                <p className="text-sm text-app-secondary break-words whitespace-pre-wrap">{comment.body}</p>
                 {isOwn && (
                   <button
                     onClick={() => handleDelete(comment.id)}
@@ -168,7 +168,7 @@ export function CommentsPanel({ entryId, isAdmin }: CommentsPanelProps) {
           placeholder="Escreva um comentário..."
           maxLength={1000}
           disabled={submitting}
-          className="flex-1 px-3 py-2 border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-focon-600 disabled:opacity-50"
+          className="flex-1 px-3 py-2 border border-app-strong bg-surface-secondary text-app-primary rounded-lg focus:outline-none focus:ring-2 focus:ring-focon-600 disabled:opacity-50"
         />
         <button
           type="submit"

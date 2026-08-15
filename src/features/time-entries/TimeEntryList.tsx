@@ -300,7 +300,7 @@ export function TimeEntryList() {
       <div className="flex justify-center items-center py-12" role="status" aria-live="polite">
         <div className="flex flex-col items-center gap-3">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-focon-600"></div>
-          <p className="text-sm text-slate-600 dark:text-slate-400">Carregando apontamentos...</p>
+          <p className="text-sm text-app-muted">Carregando apontamentos...</p>
         </div>
       </div>
     );
@@ -322,9 +322,9 @@ export function TimeEntryList() {
 
   if (entries.length === 0 && !loading) {
     return (
-      <div className="rounded-xl border border-slate-200 dark:border-slate-700 p-12 text-center bg-slate-50 dark:bg-slate-800/50">
-        <p className="text-slate-600 dark:text-slate-300 mb-2">Nenhum apontamento encontrado</p>
-        <p className="text-sm text-slate-500 dark:text-slate-400">
+      <div className="rounded-xl border border-app-primary p-12 text-center bg-surface-secondary/50">
+        <p className="text-app-secondary mb-2">Nenhum apontamento encontrado</p>
+        <p className="text-sm text-app-muted">
           {search || projectFilter || statusFilter || startDate || endDate
             ? 'Tente ajustar os filtros de busca.'
             : 'Registre suas horas usando o formulário acima.'}
@@ -349,13 +349,13 @@ export function TimeEntryList() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Buscar por descrição ou projeto..."
-            className="flex-1 min-w-[180px] px-3 py-2 border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-focon-600"
+            className="flex-1 min-w-[180px] px-3 py-2 border border-app-strong bg-surface-secondary text-app-primary rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-focon-600"
             aria-label="Busca textual"
           />
           <select
             value={projectFilter}
             onChange={(e) => { setProjectFilter(e.target.value); setPhaseFilter(''); setTaskFilter(''); }}
-            className="px-3 py-2 border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-focon-600"
+            className="px-3 py-2 border border-app-strong bg-surface-secondary text-app-primary rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-focon-600"
             aria-label="Filtrar por projeto"
           >
             <option value="">Todos os projetos</option>
@@ -366,7 +366,7 @@ export function TimeEntryList() {
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="px-3 py-2 border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-focon-600"
+            className="px-3 py-2 border border-app-strong bg-surface-secondary text-app-primary rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-focon-600"
             aria-label="Filtrar por status"
           >
             <option value="">Todos os status</option>
@@ -380,7 +380,7 @@ export function TimeEntryList() {
             <select
               value={phaseFilter}
               onChange={(e) => setPhaseFilter(e.target.value)}
-              className="px-3 py-2 border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-focon-600"
+              className="px-3 py-2 border border-app-strong bg-surface-secondary text-app-primary rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-focon-600"
               aria-label="Filtrar por fase"
             >
               <option value="">Todas as fases</option>
@@ -393,7 +393,7 @@ export function TimeEntryList() {
             <select
               value={taskFilter}
               onChange={(e) => setTaskFilter(e.target.value)}
-              className="px-3 py-2 border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-focon-600"
+              className="px-3 py-2 border border-app-strong bg-surface-secondary text-app-primary rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-focon-600"
               aria-label="Filtrar por tarefa"
             >
               <option value="">Todas as tarefas</option>
@@ -406,20 +406,20 @@ export function TimeEntryList() {
             type="date"
             value={startDate}
             onChange={(e) => setStartDate(e.target.value)}
-            className="px-3 py-2 border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-focon-600"
+            className="px-3 py-2 border border-app-strong bg-surface-secondary text-app-primary rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-focon-600"
             aria-label="Data inicial"
           />
           <input
             type="date"
             value={endDate}
             onChange={(e) => setEndDate(e.target.value)}
-            className="px-3 py-2 border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-focon-600"
+            className="px-3 py-2 border border-app-strong bg-surface-secondary text-app-primary rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-focon-600"
             aria-label="Data final"
           />
           {(search || projectFilter || phaseFilter || taskFilter || statusFilter || startDate || endDate) && (
             <button
               onClick={handleClearFilters}
-              className="px-3 py-2 border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200 rounded-lg text-sm hover:bg-slate-100 dark:hover:bg-slate-800 transition"
+              className="px-3 py-2 border border-app-strong text-app-secondary rounded-lg text-sm hover:bg-hover-surface transition"
             >
               Limpar filtros
             </button>
@@ -427,45 +427,45 @@ export function TimeEntryList() {
         </div>
       </div>
 
-      <p className="text-sm text-slate-500 dark:text-slate-400">
+      <p className="text-sm text-app-muted">
         {total} apontamento{total !== 1 ? 's' : ''}
       </p>
 
-      <div className="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
+      <div className="overflow-x-auto rounded-xl border border-app-primary shadow-sm">
         <table className="w-full">
           <caption className="sr-only">Histórico de apontamentos de horas</caption>
           <thead>
-            <tr className="border-b border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800">
-              <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900 dark:text-slate-100" scope="col">Projeto</th>
-              <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900 dark:text-slate-100" scope="col">Fase</th>
-              <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900 dark:text-slate-100" scope="col">Tarefa</th>
-              <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900 dark:text-slate-100" scope="col">Data</th>
-              <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900 dark:text-slate-100" scope="col">Duração</th>
-              <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900 dark:text-slate-100" scope="col">Descrição</th>
-              <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900 dark:text-slate-100" scope="col">Status</th>
-              <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900 dark:text-slate-100" scope="col">Ações</th>
+            <tr className="border-b border-app-primary bg-surface-secondary">
+              <th className="px-4 py-3 text-left text-sm font-semibold text-app-primary" scope="col">Projeto</th>
+              <th className="px-4 py-3 text-left text-sm font-semibold text-app-primary" scope="col">Fase</th>
+              <th className="px-4 py-3 text-left text-sm font-semibold text-app-primary" scope="col">Tarefa</th>
+              <th className="px-4 py-3 text-left text-sm font-semibold text-app-primary" scope="col">Data</th>
+              <th className="px-4 py-3 text-left text-sm font-semibold text-app-primary" scope="col">Duração</th>
+              <th className="px-4 py-3 text-left text-sm font-semibold text-app-primary" scope="col">Descrição</th>
+              <th className="px-4 py-3 text-left text-sm font-semibold text-app-primary" scope="col">Status</th>
+              <th className="px-4 py-3 text-left text-sm font-semibold text-app-primary" scope="col">Ações</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
+          <tbody className="divide-y divide-table-divider">
             {entries.map((entry) => {
               const editable = canEditOrDelete(entry.approval_status);
               return (
                 <tr
                   key={entry.id}
                   onClick={() => setDialog({ kind: 'details', entry })}
-                  className="hover:bg-slate-50 dark:hover:bg-slate-800 transition cursor-pointer"
+                  className="hover:bg-hover-surface transition cursor-pointer"
                   role="button"
                   tabIndex={0}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter' || e.key === ' ') setDialog({ kind: 'details', entry });
                   }}
                 >
-                  <td className="px-4 py-3 text-sm text-slate-900 dark:text-slate-100">{entry.project?.name || '—'}</td>
-                  <td className="px-4 py-3 text-sm text-slate-600 dark:text-slate-400">{entry.phase?.name || '—'}</td>
-                  <td className="px-4 py-3 text-sm text-slate-600 dark:text-slate-400">{entry.task?.title || '—'}</td>
-                  <td className="px-4 py-3 text-sm text-slate-900 dark:text-slate-100 whitespace-nowrap">{formatDate(entry.entry_date)}</td>
-                  <td className="px-4 py-3 text-sm text-slate-900 dark:text-slate-100 whitespace-nowrap">{formatDuration(entry.duration_minutes)}</td>
-                  <td className="px-4 py-3 text-sm text-slate-600 dark:text-slate-400 min-w-[200px] max-w-[320px] truncate">
+                  <td className="px-4 py-3 text-sm text-app-primary">{entry.project?.name || '—'}</td>
+                  <td className="px-4 py-3 text-sm text-app-muted">{entry.phase?.name || '—'}</td>
+                  <td className="px-4 py-3 text-sm text-app-muted">{entry.task?.title || '—'}</td>
+                  <td className="px-4 py-3 text-sm text-app-primary whitespace-nowrap">{formatDate(entry.entry_date)}</td>
+                  <td className="px-4 py-3 text-sm text-app-primary whitespace-nowrap">{formatDuration(entry.duration_minutes)}</td>
+                  <td className="px-4 py-3 text-sm text-app-muted min-w-[200px] max-w-[320px] truncate">
                     {entry.description}
                   </td>
                   <td className="px-4 py-3 text-sm">{getStatusBadge(entry.approval_status)}</td>
@@ -474,7 +474,7 @@ export function TimeEntryList() {
                       <button
                         onClick={() => setDialog({ kind: 'edit', entry })}
                         disabled={!editable}
-                        className="px-2.5 py-1 rounded-md text-xs font-medium border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition disabled:opacity-40 disabled:cursor-not-allowed"
+                        className="px-2.5 py-1 rounded-md text-xs font-medium border border-app-strong text-app-secondary hover:bg-hover-surface transition disabled:opacity-40 disabled:cursor-not-allowed"
                         aria-disabled={!editable}
                         title={editable ? 'Editar apontamento' : 'Edição indisponível (não pendente)'}
                       >
@@ -572,10 +572,10 @@ export function TimeEntryList() {
           }}
           message={
             <>
-              <p className="text-sm text-slate-700 dark:text-slate-300">
+              <p className="text-sm text-app-secondary">
                 Tem certeza que deseja excluir este apontamento?
               </p>
-              <p className="mt-2 text-sm text-slate-900 dark:text-slate-100 font-medium">
+              <p className="mt-2 text-sm text-app-primary font-medium">
                 {dialog.entry.project?.name} — {formatDate(dialog.entry.entry_date)} —{' '}
                 {formatDuration(dialog.entry.duration_minutes)}
               </p>
@@ -643,7 +643,7 @@ function EditEntryModal({ entry, projects, onClose, onSaved, onError }: EditEntr
             type="button"
             onClick={onClose}
             disabled={submitting}
-            className="px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition disabled:opacity-50"
+            className="px-4 py-2 rounded-lg border border-app-strong text-app-secondary hover:bg-hover-surface transition disabled:opacity-50"
           >
             Cancelar
           </button>
@@ -660,13 +660,13 @@ function EditEntryModal({ entry, projects, onClose, onSaved, onError }: EditEntr
     >
       <form id="edit-entry-form" onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <div>
-          <label htmlFor="edit-projectId" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+          <label htmlFor="edit-projectId" className="block text-sm font-medium text-app-secondary mb-2">
             Projeto *
           </label>
           <select
             {...register('projectId')}
             id="edit-projectId"
-            className="w-full px-3 py-2.5 border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-focon-600"
+            className="w-full px-3 py-2.5 border border-app-strong bg-surface-secondary text-app-primary rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-focon-600"
           >
             {projects.map((p) => (
               <option key={p.id} value={p.id}>
@@ -678,19 +678,19 @@ function EditEntryModal({ entry, projects, onClose, onSaved, onError }: EditEntr
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label htmlFor="edit-entryDate" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+            <label htmlFor="edit-entryDate" className="block text-sm font-medium text-app-secondary mb-2">
               Data *
             </label>
             <input
               {...register('entryDate')}
               id="edit-entryDate"
               type="date"
-              className="w-full px-3 py-2.5 border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-focon-600"
+              className="w-full px-3 py-2.5 border border-app-strong bg-surface-secondary text-app-primary rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-focon-600"
             />
             {errors.entryDate && <p className="mt-1 text-sm text-red-600">{errors.entryDate.message}</p>}
           </div>
           <div>
-            <label htmlFor="edit-durationMinutes" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+            <label htmlFor="edit-durationMinutes" className="block text-sm font-medium text-app-secondary mb-2">
               Duração (minutos) *
             </label>
             <input
@@ -699,7 +699,7 @@ function EditEntryModal({ entry, projects, onClose, onSaved, onError }: EditEntr
               type="number"
               min="1"
               max="1440"
-              className="w-full px-3 py-2.5 border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-focon-600"
+              className="w-full px-3 py-2.5 border border-app-strong bg-surface-secondary text-app-primary rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-focon-600"
             />
             {errors.durationMinutes && (
               <p className="mt-1 text-sm text-red-600">{errors.durationMinutes.message}</p>
@@ -707,18 +707,18 @@ function EditEntryModal({ entry, projects, onClose, onSaved, onError }: EditEntr
           </div>
         </div>
         <div>
-          <label htmlFor="edit-description" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+          <label htmlFor="edit-description" className="block text-sm font-medium text-app-secondary mb-2">
             Descrição *
           </label>
           <textarea
             {...register('description')}
             id="edit-description"
             rows={3}
-            className="w-full px-3 py-2.5 border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-focon-600"
+            className="w-full px-3 py-2.5 border border-app-strong bg-surface-secondary text-app-primary rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-focon-600"
           />
           {errors.description && <p className="mt-1 text-sm text-red-600">{errors.description.message}</p>}
         </div>
-        <p className="text-xs text-slate-500 dark:text-slate-400">
+        <p className="text-xs text-app-muted">
           Apenas apontamentos pendentes podem ser editados. O valor/hora é recalculado
           automaticamente pelo sistema ao alterar a data.
         </p>
@@ -784,7 +784,7 @@ function DuplicateEntryModal({ entry, projects, onClose, onSaved, onError }: Dup
             type="button"
             onClick={onClose}
             disabled={submitting}
-            className="px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition disabled:opacity-50"
+            className="px-4 py-2 rounded-lg border border-app-strong text-app-secondary hover:bg-hover-surface transition disabled:opacity-50"
           >
             Cancelar
           </button>
@@ -800,18 +800,18 @@ function DuplicateEntryModal({ entry, projects, onClose, onSaved, onError }: Dup
       }
     >
       <form id="duplicate-entry-form" onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-        <p className="text-sm text-slate-600 dark:text-slate-400">
+        <p className="text-sm text-app-muted">
           Um novo apontamento <strong>pendente</strong> será criado copiando projeto, duração e
           descrição. A data pode ser ajustada abaixo. O valor/hora será definido pelo sistema.
         </p>
         <div>
-          <label htmlFor="dup-projectId" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+          <label htmlFor="dup-projectId" className="block text-sm font-medium text-app-secondary mb-2">
             Projeto *
           </label>
           <select
             {...register('projectId')}
             id="dup-projectId"
-            className="w-full px-3 py-2.5 border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-focon-600"
+            className="w-full px-3 py-2.5 border border-app-strong bg-surface-secondary text-app-primary rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-focon-600"
           >
             {projects.map((p) => (
               <option key={p.id} value={p.id}>
@@ -823,19 +823,19 @@ function DuplicateEntryModal({ entry, projects, onClose, onSaved, onError }: Dup
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label htmlFor="dup-entryDate" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+            <label htmlFor="dup-entryDate" className="block text-sm font-medium text-app-secondary mb-2">
               Nova data *
             </label>
             <input
               {...register('entryDate')}
               id="dup-entryDate"
               type="date"
-              className="w-full px-3 py-2.5 border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-focon-600"
+              className="w-full px-3 py-2.5 border border-app-strong bg-surface-secondary text-app-primary rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-focon-600"
             />
             {errors.entryDate && <p className="mt-1 text-sm text-red-600">{errors.entryDate.message}</p>}
           </div>
           <div>
-            <label htmlFor="dup-durationMinutes" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+            <label htmlFor="dup-durationMinutes" className="block text-sm font-medium text-app-secondary mb-2">
               Duração (minutos) *
             </label>
             <input
@@ -844,7 +844,7 @@ function DuplicateEntryModal({ entry, projects, onClose, onSaved, onError }: Dup
               type="number"
               min="1"
               max="1440"
-              className="w-full px-3 py-2.5 border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-focon-600"
+              className="w-full px-3 py-2.5 border border-app-strong bg-surface-secondary text-app-primary rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-focon-600"
             />
             {errors.durationMinutes && (
               <p className="mt-1 text-sm text-red-600">{errors.durationMinutes.message}</p>
@@ -852,14 +852,14 @@ function DuplicateEntryModal({ entry, projects, onClose, onSaved, onError }: Dup
           </div>
         </div>
         <div>
-          <label htmlFor="dup-description" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+          <label htmlFor="dup-description" className="block text-sm font-medium text-app-secondary mb-2">
             Descrição *
           </label>
           <textarea
             {...register('description')}
             id="dup-description"
             rows={3}
-            className="w-full px-3 py-2.5 border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-focon-600"
+            className="w-full px-3 py-2.5 border border-app-strong bg-surface-secondary text-app-primary rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-focon-600"
           />
           {errors.description && <p className="mt-1 text-sm text-red-600">{errors.description.message}</p>}
         </div>

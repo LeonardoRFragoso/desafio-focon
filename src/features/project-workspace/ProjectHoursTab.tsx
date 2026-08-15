@@ -78,7 +78,7 @@ export function ProjectHoursTab({ projectId }: ProjectHoursTabProps) {
 
   return (
     <div className="space-y-4">
-      <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Horas do Projeto</h3>
+      <h3 className="text-lg font-semibold text-app-primary">Horas do Projeto</h3>
 
       {error && (
         <div className="rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 p-4">
@@ -88,21 +88,21 @@ export function ProjectHoursTab({ projectId }: ProjectHoursTabProps) {
 
       {/* Summary cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-surface-primary p-4 shadow-sm">
-          <p className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase">Total</p>
-          <p className="mt-1 text-2xl font-bold text-slate-900 dark:text-slate-100">
+        <div className="rounded-xl border border-app-primary bg-surface-primary p-4 shadow-sm">
+          <p className="text-xs font-medium text-app-muted uppercase">Total</p>
+          <p className="mt-1 text-2xl font-bold text-app-primary">
             {formatHours(totalMinutes)}
           </p>
-          <p className="text-xs text-slate-500 dark:text-slate-400">{entries.length} apontamentos</p>
+          <p className="text-xs text-app-muted">{entries.length} apontamentos</p>
         </div>
-        <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-surface-primary p-4 shadow-sm">
-          <p className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase">Aprovadas</p>
+        <div className="rounded-xl border border-app-primary bg-surface-primary p-4 shadow-sm">
+          <p className="text-xs font-medium text-app-muted uppercase">Aprovadas</p>
           <p className="mt-1 text-2xl font-bold text-green-600 dark:text-green-400">
             {formatHours(approvedMinutes)}
           </p>
         </div>
-        <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-surface-primary p-4 shadow-sm">
-          <p className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase">Pendentes</p>
+        <div className="rounded-xl border border-app-primary bg-surface-primary p-4 shadow-sm">
+          <p className="text-xs font-medium text-app-muted uppercase">Pendentes</p>
           <p className="mt-1 text-2xl font-bold text-amber-600 dark:text-amber-400">
             {formatHours(totalMinutes - approvedMinutes)}
           </p>
@@ -114,7 +114,7 @@ export function ProjectHoursTab({ projectId }: ProjectHoursTabProps) {
         <select
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}
-          className="px-3 py-2 border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-focon-600"
+          className="px-3 py-2 border border-app-strong bg-surface-secondary text-app-primary rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-focon-600"
         >
           <option value="">Todos os status</option>
           <option value="pending">Pendente</option>
@@ -124,37 +124,37 @@ export function ProjectHoursTab({ projectId }: ProjectHoursTabProps) {
       </div>
 
       {entries.length === 0 ? (
-        <div className="rounded-xl border border-slate-200 dark:border-slate-700 p-12 text-center bg-slate-50 dark:bg-slate-800/50">
-          <p className="text-slate-600 dark:text-slate-400">Nenhum apontamento encontrado</p>
+        <div className="rounded-xl border border-app-primary p-12 text-center bg-surface-secondary/50">
+          <p className="text-app-muted">Nenhum apontamento encontrado</p>
         </div>
       ) : (
-        <div className="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
+        <div className="overflow-x-auto rounded-xl border border-app-primary shadow-sm">
           <table className="w-full">
-            <thead className="bg-slate-100 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700">
+            <thead className="bg-surface-secondary border-b border-app-primary">
               <tr>
-                <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900 dark:text-slate-100">Data</th>
-                <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900 dark:text-slate-100">Profissional</th>
-                <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900 dark:text-slate-100">Fase</th>
-                <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900 dark:text-slate-100">Tarefa</th>
-                <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900 dark:text-slate-100">Duração</th>
-                <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900 dark:text-slate-100">Status</th>
-                <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900 dark:text-slate-100">Descrição</th>
+                <th className="px-4 py-3 text-left text-sm font-semibold text-app-primary">Data</th>
+                <th className="px-4 py-3 text-left text-sm font-semibold text-app-primary">Profissional</th>
+                <th className="px-4 py-3 text-left text-sm font-semibold text-app-primary">Fase</th>
+                <th className="px-4 py-3 text-left text-sm font-semibold text-app-primary">Tarefa</th>
+                <th className="px-4 py-3 text-left text-sm font-semibold text-app-primary">Duração</th>
+                <th className="px-4 py-3 text-left text-sm font-semibold text-app-primary">Status</th>
+                <th className="px-4 py-3 text-left text-sm font-semibold text-app-primary">Descrição</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
+            <tbody className="divide-y divide-table-divider">
               {entries.map((e) => (
-                <tr key={e.id} className="hover:bg-slate-50 dark:hover:bg-slate-800 transition">
-                  <td className="px-4 py-3 text-sm text-slate-700 dark:text-slate-300">{formatDate(e.entry_date)}</td>
-                  <td className="px-4 py-3 text-sm text-slate-900 dark:text-slate-100 font-medium">
+                <tr key={e.id} className="hover:bg-hover-surface transition">
+                  <td className="px-4 py-3 text-sm text-app-secondary">{formatDate(e.entry_date)}</td>
+                  <td className="px-4 py-3 text-sm text-app-primary font-medium">
                     {e.professional?.full_name ?? '—'}
                   </td>
-                  <td className="px-4 py-3 text-sm text-slate-700 dark:text-slate-300">
+                  <td className="px-4 py-3 text-sm text-app-secondary">
                     {e.phase?.name ?? '—'}
                   </td>
-                  <td className="px-4 py-3 text-sm text-slate-700 dark:text-slate-300">
+                  <td className="px-4 py-3 text-sm text-app-secondary">
                     {e.task?.title ?? '—'}
                   </td>
-                  <td className="px-4 py-3 text-sm text-slate-900 dark:text-slate-100 font-medium">
+                  <td className="px-4 py-3 text-sm text-app-primary font-medium">
                     {formatHours(e.duration_minutes)}
                   </td>
                   <td className="px-4 py-3 text-sm">
@@ -174,7 +174,7 @@ export function ProjectHoursTab({ projectId }: ProjectHoursTabProps) {
                           : 'Rejeitado'}
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-sm text-slate-600 dark:text-slate-400 max-w-xs truncate">
+                  <td className="px-4 py-3 text-sm text-app-muted max-w-xs truncate">
                     {e.description}
                   </td>
                 </tr>

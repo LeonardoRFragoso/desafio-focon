@@ -30,7 +30,7 @@ export function PWAUpdatePrompt() {
 
   return (
     <div className="fixed bottom-4 right-4 z-50 max-w-sm">
-      <div className="bg-white dark:bg-slate-900 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 p-4">
+      <div className="bg-surface-primary rounded-xl shadow-lg border border-app-primary p-4">
         <div className="flex items-start gap-3">
           <div className="flex-shrink-0 w-10 h-10 rounded-lg bg-focon-100 dark:bg-focon-900/30 flex items-center justify-center">
             <svg className="w-5 h-5 text-focon-600 dark:text-focon-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -38,10 +38,10 @@ export function PWAUpdatePrompt() {
             </svg>
           </div>
           <div className="flex-1">
-            <p className="font-semibold text-slate-900 dark:text-slate-100 text-sm">
+            <p className="font-semibold text-app-primary text-sm">
               {needRefresh ? 'Nova versão disponível' : 'Pronto para uso offline'}
             </p>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+            <p className="text-xs text-app-muted mt-1">
               {needRefresh ? 'Atualize para a versão mais recente.' : 'O app pode ser usado offline.'}
             </p>
             <div className="flex gap-2 mt-3">
@@ -55,7 +55,7 @@ export function PWAUpdatePrompt() {
               )}
               <button
                 onClick={close}
-                className="px-3 py-1.5 border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200 rounded-lg text-xs font-medium transition hover:bg-slate-100 dark:hover:bg-slate-800"
+                className="px-3 py-1.5 border border-app-strong text-app-secondary rounded-lg text-xs font-medium transition hover:bg-hover-surface"
               >
                 Fechar
               </button>

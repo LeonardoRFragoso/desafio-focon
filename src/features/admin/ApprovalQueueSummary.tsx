@@ -19,8 +19,8 @@ export function ApprovalQueueSummary({ summary, loading, error, onRetry }: Appro
   if (loading) {
     return (
       <section aria-label="Fila de Aprovações" className="space-y-4">
-        <div className="h-6 w-48 bg-slate-100 dark:bg-slate-800 rounded animate-pulse" />
-        <div className="h-32 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 animate-pulse" />
+        <div className="h-6 w-48 bg-surface-secondary rounded animate-pulse" />
+        <div className="h-32 rounded-xl border border-app-primary bg-surface-secondary animate-pulse" />
       </section>
     );
   }
@@ -28,7 +28,7 @@ export function ApprovalQueueSummary({ summary, loading, error, onRetry }: Appro
   if (error || !summary) {
     return (
       <section aria-label="Fila de Aprovações" className="space-y-4">
-        <h2 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">Fila de Aprovações</h2>
+        <h2 className="text-2xl font-semibold text-app-primary">Fila de Aprovações</h2>
         <div className="rounded-xl border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20 p-4">
           <div className="flex items-center justify-between">
             <p className="text-sm font-medium text-red-800 dark:text-red-400">Dados indisponíveis</p>
@@ -50,7 +50,7 @@ export function ApprovalQueueSummary({ summary, loading, error, onRetry }: Appro
   if (pendingCount === 0) {
     return (
       <section aria-label="Fila de Aprovações" className="space-y-4">
-        <h2 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">Fila de Aprovações</h2>
+        <h2 className="text-2xl font-semibold text-app-primary">Fila de Aprovações</h2>
         <div className="rounded-xl border border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-900/20 p-4">
           <div className="flex items-center gap-3">
             <span className="text-xl">✓</span>
@@ -66,7 +66,7 @@ export function ApprovalQueueSummary({ summary, loading, error, onRetry }: Appro
   return (
     <section aria-label="Fila de Aprovações" className="space-y-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">
+        <h2 className="text-2xl font-semibold text-app-primary">
           Fila de Aprovações
         </h2>
         <button
@@ -77,21 +77,21 @@ export function ApprovalQueueSummary({ summary, loading, error, onRetry }: Appro
         </button>
       </div>
 
-      <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 overflow-hidden">
-        <div className="px-4 py-3 border-b border-slate-200 dark:border-slate-700 bg-amber-50 dark:bg-amber-900/20">
+      <div className="rounded-xl border border-app-primary bg-surface-primary overflow-hidden">
+        <div className="px-4 py-3 border-b border-app-primary bg-amber-50 dark:bg-amber-900/20">
           <p className="text-sm font-medium text-amber-800 dark:text-amber-300">
             {pendingCount} aguardando aprovação
           </p>
         </div>
 
-        <ul className="divide-y divide-slate-100 dark:divide-slate-800">
+        <ul className="divide-y divide-table-divider">
           {queue.map(entry => (
             <li key={entry.id} className="px-4 py-3 flex items-center justify-between gap-3">
               <div className="min-w-0 flex-1">
-                <p className="text-sm font-medium text-slate-900 dark:text-slate-100 truncate">
+                <p className="text-sm font-medium text-app-primary truncate">
                   {entry.professional_name} — {entry.project_name}
                 </p>
-                <p className="text-xs text-slate-500 dark:text-slate-400 truncate">
+                <p className="text-xs text-app-muted truncate">
                   {formatDate(entry.entry_date)} · {entry.duration_minutes}min · {entry.description}
                 </p>
               </div>
@@ -106,10 +106,10 @@ export function ApprovalQueueSummary({ summary, loading, error, onRetry }: Appro
         </ul>
 
         {pendingCount > queue.length && (
-          <div className="px-4 py-2 border-t border-slate-200 dark:border-slate-700 text-center">
+          <div className="px-4 py-2 border-t border-app-primary text-center">
             <button
               onClick={() => navigate('/admin/time-entries?status=pending')}
-              className="text-xs text-slate-500 dark:text-slate-400 hover:text-focon-600 dark:hover:text-focon-400 transition"
+              className="text-xs text-app-muted hover:text-focon-600 dark:hover:text-focon-400 transition"
             >
               +{pendingCount - queue.length} mais antigos
             </button>
