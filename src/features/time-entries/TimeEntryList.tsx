@@ -1,37 +1,35 @@
-import { useEffect, useState, useCallback, useMemo } from 'react';
+import { useEffect, useState, useCallback } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { supabase } from '@/lib/supabase/client';
-import { timeEntriesAPI } from '@/lib/supabase/api';
+import { timeEntriesAPI, projectPhasesAPI, projectTasksAPI } from '@/lib/supabase/api';
 import { useAuthContext } from '@/features/auth/useAuthContext';
 import { mapDatabaseError } from '@/lib/errors';
 import { Modal } from '@/components/Modal';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
 import { Pagination } from '@/components/Pagination';
-import { useDebounce, usePagination } from '@/hooks/usePagination';
-import { CommentsPanel } from '@/features/time-entries/CommentsPanel';
-import { AttachmentsPanel } from '@/features/time-entries/AttachmentsPanel';
+import { useDebounce } from '@/hooks/usePagination';
+import { TimeEntryDetailsModal, type TimeEntryDetail } from '@/features/time-entries/TimeEntryDetailsModal';
 import { timeEntrySchema, type TimeEntryInput } from '@/schemas/time-entry';
 
-const PAGE_SIZE = 10;
+const PAGE_SIZE = 20;
 
-interface TimeEntry {
-  id: string;
-  project_id: string;
-  project_name: string;
-  entry_date: string;
-  duration_minutes: number;
-  description: string;
-  approval_status: 'pending' | 'approved' | 'rejected';
-  rejection_reason: string | null;
-  rejected_by_profile?: { full_name: string } | null;
-  rejected_at: string | null;
-  created_at: string;
-}
+type TimeEntry = TimeEntryDetail;
 
 interface Project {
   id: string;
   name: string;
+}
+
+interface Phase {
+  id: string;
+  name: string;
+}
+
+interface Task {
+  id: string;
+  title: string;
 }
 
 type DialogState =
@@ -43,61 +41,54 @@ type DialogState =
 
 export function TimeEntryList() {
   const { user, isAdmin } = useAuthContext();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [entries, setEntries] = useState<TimeEntry[]>([]);
+  const [total, setTotal] = useState(0);
   const [projects, setProjects] = useState<Project[]>([]);
+  const [phases, setPhases] = useState<Phase[]>([]);
+  const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [dialog, setDialog] = useState<DialogState>(null);
   const [actionError, setActionError] = useState<string | null>(null);
   const [search, setSearch] = useState('');
   const [projectFilter, setProjectFilter] = useState('');
+  const [phaseFilter, setPhaseFilter] = useState('');
+  const [taskFilter, setTaskFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
+  const [startDate, setStartDate] = useState('');
+  const [endDate, setEndDate] = useState('');
+  const [page, setPage] = useState(1);
   const debouncedSearch = useDebounce(search, 300);
-  const { page, setPage, resetPage } = usePagination({ pageSize: PAGE_SIZE });
 
   const fetchEntries = useCallback(async () => {
     if (!user) return;
     try {
       setLoading(true);
       setError(null);
-      const { data, error: err } = await timeEntriesAPI.getByUser(user.id);
+      const params: Parameters<typeof timeEntriesAPI.queryUserEntries>[0] = {
+        userId: user.id,
+        page,
+        pageSize: PAGE_SIZE,
+      };
+      if (debouncedSearch) params.search = debouncedSearch;
+      if (projectFilter) params.projectId = projectFilter;
+      if (phaseFilter) params.phaseId = phaseFilter;
+      if (taskFilter) params.taskId = taskFilter;
+      if (statusFilter) params.status = statusFilter;
+      if (startDate) params.startDate = startDate;
+      if (endDate) params.endDate = endDate;
+      const { data, error: err, count } = await timeEntriesAPI.queryUserEntries(params);
       if (err) throw err;
-
-      interface RawTimeEntry {
-        id: string;
-        project_id: string;
-        projects: { name: string } | null;
-        entry_date: string;
-        duration_minutes: number;
-        description: string;
-        approval_status: 'pending' | 'approved' | 'rejected';
-        rejection_reason: string | null;
-        rejected_by_profile: { full_name: string } | null;
-        rejected_at: string | null;
-        created_at: string;
-      }
-
-      const formatted = ((data as unknown as RawTimeEntry[]) || []).map((entry) => ({
-        id: entry.id,
-        project_id: entry.project_id,
-        project_name: entry.projects?.name || 'Projeto desconhecido',
-        entry_date: entry.entry_date,
-        duration_minutes: entry.duration_minutes,
-        description: entry.description,
-        approval_status: entry.approval_status,
-        rejection_reason: entry.rejection_reason,
-        rejected_by_profile: entry.rejected_by_profile,
-        rejected_at: entry.rejected_at,
-        created_at: entry.created_at,
-      }));
-      setEntries(formatted);
+      setEntries((data as TimeEntry[]) || []);
+      setTotal(count || 0);
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Erro ao carregar apontamentos';
       setError(message);
     } finally {
       setLoading(false);
     }
-  }, [user]);
+  }, [user, debouncedSearch, projectFilter, phaseFilter, taskFilter, statusFilter, startDate, endDate, page]);
 
   const fetchProjects = useCallback(async () => {
     try {
@@ -119,35 +110,39 @@ export function TimeEntryList() {
     fetchProjects();
   }, [fetchEntries, fetchProjects]);
 
+  // Fetch phases/tasks when project filter changes
+  useEffect(() => {
+    if (!projectFilter) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setPhases([]);
+      setTasks([]);
+      return;
+    }
+    projectPhasesAPI.listByProject(projectFilter).then(({ data }) => {
+      if (data) setPhases(data as Phase[]);
+    });
+    projectTasksAPI.listByProject(projectFilter).then(({ data }) => {
+      if (data) setTasks((data as Task[]) || []);
+    });
+  }, [projectFilter]);
+
   // Reset page when filters change
   useEffect(() => {
-    resetPage();
-  }, [debouncedSearch, projectFilter, statusFilter, resetPage]);
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setPage(1);
+  }, [debouncedSearch, projectFilter, phaseFilter, taskFilter, statusFilter, startDate, endDate]);
 
-  // Filter and paginate entries
-  const filteredEntries = useMemo(() => {
-    let result = entries;
-    if (debouncedSearch) {
-      const q = debouncedSearch.toLowerCase();
-      result = result.filter(
-        (e) =>
-          e.description.toLowerCase().includes(q) ||
-          e.project_name.toLowerCase().includes(q)
-      );
+  // Deep-link: open entry from URL param
+  useEffect(() => {
+    const entryId = searchParams.get('entry');
+    if (entryId && user) {
+      timeEntriesAPI.getById(entryId).then(({ data }) => {
+        if (data) {
+          setDialog({ kind: 'details', entry: data as TimeEntry });
+        }
+      });
     }
-    if (projectFilter) {
-      result = result.filter((e) => e.project_id === projectFilter);
-    }
-    if (statusFilter) {
-      result = result.filter((e) => e.approval_status === statusFilter);
-    }
-    return result;
-  }, [entries, debouncedSearch, projectFilter, statusFilter]);
-
-  const paginatedEntries = useMemo(() => {
-    const start = (page - 1) * PAGE_SIZE;
-    return filteredEntries.slice(start, start + PAGE_SIZE);
-  }, [filteredEntries, page]);
+  }, [searchParams, user]);
 
   const formatDuration = (minutes: number) => {
     const hours = Math.floor(minutes / 60);
@@ -158,8 +153,6 @@ export function TimeEntryList() {
   };
 
   const formatDate = (date: string) => new Date(date).toLocaleDateString('pt-BR');
-  const formatDateTime = (date: string) =>
-    new Date(date).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' });
 
   const getStatusBadge = (status: TimeEntry['approval_status']) => {
     const styles: Record<string, string> = {
@@ -183,7 +176,18 @@ export function TimeEntryList() {
 
   const canEditOrDelete = (status: TimeEntry['approval_status']) => status === 'pending';
 
-  if (loading) {
+  const handleClearFilters = () => {
+    setSearch('');
+    setProjectFilter('');
+    setPhaseFilter('');
+    setTaskFilter('');
+    setStatusFilter('');
+    setStartDate('');
+    setEndDate('');
+    setPage(1);
+  };
+
+  if (loading && entries.length === 0) {
     return (
       <div className="flex justify-center items-center py-12" role="status" aria-live="polite">
         <div className="flex flex-col items-center gap-3">
@@ -208,11 +212,15 @@ export function TimeEntryList() {
     );
   }
 
-  if (entries.length === 0) {
+  if (entries.length === 0 && !loading) {
     return (
       <div className="rounded-xl border border-slate-200 dark:border-slate-700 p-12 text-center bg-slate-50 dark:bg-slate-800/50">
-        <p className="text-slate-600 dark:text-slate-300 mb-2">Nenhum apontamento registrado</p>
-        <p className="text-sm text-slate-500 dark:text-slate-400">Registre suas horas usando o formulário acima</p>
+        <p className="text-slate-600 dark:text-slate-300 mb-2">Nenhum apontamento encontrado</p>
+        <p className="text-sm text-slate-500 dark:text-slate-400">
+          {search || projectFilter || statusFilter || startDate || endDate
+            ? 'Tente ajustar os filtros de busca.'
+            : 'Registre suas horas usando o formulário acima.'}
+        </p>
       </div>
     );
   }
@@ -226,41 +234,103 @@ export function TimeEntryList() {
       )}
 
       {/* Search and filters */}
-      <div className="flex flex-wrap gap-2">
-        <input
-          type="text"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="Buscar por descrição ou projeto..."
-          className="flex-1 min-w-[180px] px-3 py-2 border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-focon-600"
-        />
-        <select
-          value={projectFilter}
-          onChange={(e) => setProjectFilter(e.target.value)}
-          className="px-3 py-2 border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-focon-600"
-        >
-          <option value="">Todos os projetos</option>
-          {projects.map((p) => (
-            <option key={p.id} value={p.id}>{p.name}</option>
-          ))}
-        </select>
-        <select
-          value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value)}
-          className="px-3 py-2 border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-focon-600"
-        >
-          <option value="">Todos os status</option>
-          <option value="pending">Pendente</option>
-          <option value="approved">Aprovado</option>
-          <option value="rejected">Rejeitado</option>
-        </select>
+      <div className="space-y-2">
+        <div className="flex flex-wrap gap-2">
+          <input
+            type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Buscar por descrição ou projeto..."
+            className="flex-1 min-w-[180px] px-3 py-2 border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-focon-600"
+            aria-label="Busca textual"
+          />
+          <select
+            value={projectFilter}
+            onChange={(e) => { setProjectFilter(e.target.value); setPhaseFilter(''); setTaskFilter(''); }}
+            className="px-3 py-2 border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-focon-600"
+            aria-label="Filtrar por projeto"
+          >
+            <option value="">Todos os projetos</option>
+            {projects.map((p) => (
+              <option key={p.id} value={p.id}>{p.name}</option>
+            ))}
+          </select>
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            className="px-3 py-2 border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-focon-600"
+            aria-label="Filtrar por status"
+          >
+            <option value="">Todos os status</option>
+            <option value="pending">Pendente</option>
+            <option value="approved">Aprovado</option>
+            <option value="rejected">Rejeitado</option>
+          </select>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {projectFilter && (
+            <select
+              value={phaseFilter}
+              onChange={(e) => setPhaseFilter(e.target.value)}
+              className="px-3 py-2 border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-focon-600"
+              aria-label="Filtrar por fase"
+            >
+              <option value="">Todas as fases</option>
+              {phases.map((p) => (
+                <option key={p.id} value={p.id}>{p.name}</option>
+              ))}
+            </select>
+          )}
+          {projectFilter && (
+            <select
+              value={taskFilter}
+              onChange={(e) => setTaskFilter(e.target.value)}
+              className="px-3 py-2 border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-focon-600"
+              aria-label="Filtrar por tarefa"
+            >
+              <option value="">Todas as tarefas</option>
+              {tasks.map((t) => (
+                <option key={t.id} value={t.id}>{t.title}</option>
+              ))}
+            </select>
+          )}
+          <input
+            type="date"
+            value={startDate}
+            onChange={(e) => setStartDate(e.target.value)}
+            className="px-3 py-2 border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-focon-600"
+            aria-label="Data inicial"
+          />
+          <input
+            type="date"
+            value={endDate}
+            onChange={(e) => setEndDate(e.target.value)}
+            className="px-3 py-2 border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-focon-600"
+            aria-label="Data final"
+          />
+          {(search || projectFilter || phaseFilter || taskFilter || statusFilter || startDate || endDate) && (
+            <button
+              onClick={handleClearFilters}
+              className="px-3 py-2 border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200 rounded-lg text-sm hover:bg-slate-100 dark:hover:bg-slate-800 transition"
+            >
+              Limpar filtros
+            </button>
+          )}
+        </div>
       </div>
+
+      <p className="text-sm text-slate-500 dark:text-slate-400">
+        {total} apontamento{total !== 1 ? 's' : ''}
+      </p>
+
       <div className="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
         <table className="w-full">
           <caption className="sr-only">Histórico de apontamentos de horas</caption>
           <thead>
             <tr className="border-b border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800">
               <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900 dark:text-slate-100" scope="col">Projeto</th>
+              <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900 dark:text-slate-100" scope="col">Fase</th>
+              <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900 dark:text-slate-100" scope="col">Tarefa</th>
               <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900 dark:text-slate-100" scope="col">Data</th>
               <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900 dark:text-slate-100" scope="col">Duração</th>
               <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900 dark:text-slate-100" scope="col">Descrição</th>
@@ -269,7 +339,7 @@ export function TimeEntryList() {
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
-            {paginatedEntries.map((entry) => {
+            {entries.map((entry) => {
               const editable = canEditOrDelete(entry.approval_status);
               return (
                 <tr
@@ -282,7 +352,9 @@ export function TimeEntryList() {
                     if (e.key === 'Enter' || e.key === ' ') setDialog({ kind: 'details', entry });
                   }}
                 >
-                  <td className="px-4 py-3 text-sm text-slate-900 dark:text-slate-100">{entry.project_name}</td>
+                  <td className="px-4 py-3 text-sm text-slate-900 dark:text-slate-100">{entry.project?.name || '—'}</td>
+                  <td className="px-4 py-3 text-sm text-slate-600 dark:text-slate-400">{entry.phase?.name || '—'}</td>
+                  <td className="px-4 py-3 text-sm text-slate-600 dark:text-slate-400">{entry.task?.title || '—'}</td>
                   <td className="px-4 py-3 text-sm text-slate-900 dark:text-slate-100 whitespace-nowrap">{formatDate(entry.entry_date)}</td>
                   <td className="px-4 py-3 text-sm text-slate-900 dark:text-slate-100 whitespace-nowrap">{formatDuration(entry.duration_minutes)}</td>
                   <td className="px-4 py-3 text-sm text-slate-600 dark:text-slate-400 min-w-[200px] max-w-[320px] truncate">
@@ -325,19 +397,26 @@ export function TimeEntryList() {
         </table>
       </div>
 
-      {filteredEntries.length === 0 ? (
-        <p className="text-center text-sm text-slate-500 dark:text-slate-400 py-4">Nenhum apontamento encontrado com os filtros selecionados</p>
-      ) : (
-        <Pagination
-          page={page}
-          pageSize={PAGE_SIZE}
-          total={filteredEntries.length}
-          onPageChange={setPage}
-        />
-      )}
+      <Pagination
+        page={page}
+        pageSize={PAGE_SIZE}
+        total={total}
+        onPageChange={setPage}
+      />
 
       {dialog?.kind === 'details' && (
-        <DetailsModal entry={dialog.entry} onClose={() => setDialog(null)} formatDuration={formatDuration} formatDate={formatDate} formatDateTime={formatDateTime} isAdmin={isAdmin} />
+        <TimeEntryDetailsModal
+          entry={dialog.entry}
+          isOpen={true}
+          onClose={() => {
+            setDialog(null);
+            // Remove entry param from URL
+            const params = new URLSearchParams(searchParams);
+            params.delete('entry');
+            setSearchParams(params, { replace: true });
+          }}
+          isAdmin={isAdmin}
+        />
       )}
 
       {dialog?.kind === 'edit' && (
@@ -380,13 +459,16 @@ export function TimeEntryList() {
               setActionError(mapDatabaseError(err));
               return;
             }
-            await fetchEntries();
+            setDialog(null);
+            fetchEntries();
           }}
           message={
             <>
-              <p className="mb-2">Tem certeza que deseja excluir este apontamento?</p>
-              <p className="font-medium">
-                {dialog.entry.project_name} — {formatDate(dialog.entry.entry_date)} —{' '}
+              <p className="text-sm text-slate-700 dark:text-slate-300">
+                Tem certeza que deseja excluir este apontamento?
+              </p>
+              <p className="mt-2 text-sm text-slate-900 dark:text-slate-100 font-medium">
+                {dialog.entry.project?.name} — {formatDate(dialog.entry.entry_date)} —{' '}
                 {formatDuration(dialog.entry.duration_minutes)}
               </p>
               <p className="mt-3 text-red-700 dark:text-red-400">
@@ -397,69 +479,6 @@ export function TimeEntryList() {
         />
       )}
     </div>
-  );
-}
-
-interface DetailsModalProps {
-  entry: TimeEntry;
-  onClose: () => void;
-  formatDuration: (m: number) => string;
-  formatDate: (d: string) => string;
-  formatDateTime: (d: string) => string;
-  isAdmin: boolean;
-}
-
-function DetailsModal({ entry, onClose, formatDuration, formatDate, formatDateTime, isAdmin }: DetailsModalProps) {
-  return (
-    <Modal open onClose={onClose} title="Detalhes do Apontamento" maxWidth="max-w-2xl">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div>
-          <label className="block text-sm font-medium text-slate-600 dark:text-slate-400 mb-2">Projeto</label>
-          <p className="text-lg font-semibold text-slate-900 dark:text-slate-100">{entry.project_name}</p>
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-slate-600 dark:text-slate-400 mb-2">Data</label>
-          <p className="text-lg font-semibold text-slate-900 dark:text-slate-100">{formatDate(entry.entry_date)}</p>
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-slate-600 dark:text-slate-400 mb-2">Duração</label>
-          <p className="text-lg font-semibold text-slate-900 dark:text-slate-100">{formatDuration(entry.duration_minutes)}</p>
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-slate-600 dark:text-slate-400 mb-2">Status</label>
-          <p className="text-lg font-semibold text-slate-900 dark:text-slate-100 capitalize">{entry.approval_status}</p>
-        </div>
-        <div className="md:col-span-2">
-          <label className="block text-sm font-medium text-slate-600 dark:text-slate-400 mb-2">Descrição</label>
-          <p className="text-slate-900 dark:text-slate-100 whitespace-pre-wrap break-words">{entry.description}</p>
-        </div>
-      </div>
-
-      {entry.approval_status === 'rejected' && entry.rejection_reason && (
-        <div className="mt-4 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 p-4">
-          <p className="text-sm font-semibold text-red-800 dark:text-red-400 mb-1">Rejeitado</p>
-          <p className="text-sm text-red-700 dark:text-red-400">
-            <span className="font-medium">Motivo:</span> {entry.rejection_reason}
-          </p>
-          {entry.rejected_by_profile?.full_name && (
-            <p className="text-sm text-red-700 dark:text-red-400 mt-1">
-              <span className="font-medium">Rejeitado por:</span> {entry.rejected_by_profile.full_name}
-            </p>
-          )}
-          {entry.rejected_at && (
-            <p className="text-sm text-red-700 dark:text-red-400 mt-1">
-              <span className="font-medium">Data:</span> {formatDateTime(entry.rejected_at)}
-            </p>
-          )}
-        </div>
-      )}
-
-      {/* Comments and Attachments */}
-      <div className="mt-6 border-t border-slate-200 dark:border-slate-700 pt-6 space-y-6">
-        <CommentsPanel entryId={entry.id} isAdmin={isAdmin} />
-        <AttachmentsPanel entryId={entry.id} />
-      </div>
-    </Modal>
   );
 }
 

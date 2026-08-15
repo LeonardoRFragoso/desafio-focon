@@ -23,6 +23,7 @@ import { ChartsPage } from '@/pages/admin/ChartsPage';
 import { ProfitabilityAlertsPage } from '@/pages/admin/ProfitabilityAlertsPage';
 import { SystemStatusPage } from '@/pages/admin/SystemStatusPage';
 import { ProjectWorkspacePage } from '@/pages/admin/ProjectWorkspacePage';
+import { AdminTimeEntriesPage } from '@/pages/admin/AdminTimeEntriesPage';
 import { ProtectedRoute } from './ProtectedRoute';
 
 /**
@@ -140,6 +141,14 @@ export function AppRoutes() {
             element={
               <ProtectedRoute requiredRole="admin">
                 <AuditLogPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/time-entries"
+            element={
+              <ProtectedRoute requiredRole="admin">
+                <AdminTimeEntriesPage />
               </ProtectedRoute>
             }
           />

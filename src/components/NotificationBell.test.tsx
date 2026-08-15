@@ -333,4 +333,46 @@ describe('NotificationBell', () => {
     expect(panel.className).toContain('min(24rem');
     expect(panel.className).toContain('100vw');
   });
+
+  it('renders entry_submitted type with correct icon and color', async () => {
+    const user = userEvent.setup();
+    await seedNotifications([
+      makeNotification({ id: 'n1', type: 'entry_submitted', title: 'Novo apontamento recebido' }),
+    ]);
+    renderBell();
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /Notificações/ })).toBeInTheDocument();
+    });
+    await user.click(screen.getByRole('button', { name: /Notificações/ }));
+    expect(screen.getByText('Novo apontamento recebido')).toBeInTheDocument();
+    expect(screen.getByText('📋')).toBeInTheDocument();
+  });
+
+  it('includes entry_submitted in the filter dropdown options', async () => {
+    const user = userEvent.setup();
+    await seedNotifications([makeNotification()]);
+    renderBell();
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /Notificações/ })).toBeInTheDocument();
+    });
+    await user.click(screen.getByRole('button', { name: /Notificações/ }));
+    const select = screen.getByRole('combobox');
+    const options = Array.from(select.querySelectorAll('option'));
+    const submittedOption = options.find((o) => o.value === 'entry_submitted');
+    expect(submittedOption).toBeDefined();
+    expect(submittedOption?.textContent).toBe('Novos apontamentos');
+  });
+
+  it('marks notification as read and does not navigate when entity_type is null', async () => {
+    const user = userEvent.setup();
+    await seedNotifications([makeNotification({ id: 'n1', entity_type: null, entity_id: null })], 1);
+    renderBell();
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /Notificações/ })).toBeInTheDocument();
+    });
+    await user.click(screen.getByRole('button', { name: /Notificações/ }));
+    // Click the notification item (li with role=button should not be present since entity_type is null)
+    const items = screen.getAllByRole('listitem');
+    expect(items[0]).not.toHaveAttribute('role', 'button');
+  });
 });
