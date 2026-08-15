@@ -25,18 +25,18 @@ export function Layout({ children }: LayoutProps) {
       {/* Mobile sidebar backdrop */}
       {sidebarOpen && (
         <div
-          className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"
+          className="fixed inset-0 bg-black bg-opacity-50 z-[55] md:hidden"
           onClick={closeSidebar}
         />
       )}
 
       {/* Sidebar */}
       <aside
-        className={`fixed left-0 top-0 h-screen w-64 bg-focon-950 text-white transform transition-transform duration-300 z-50 md:translate-x-0 md:sticky md:top-0 md:shrink-0 ${
+        className={`fixed left-0 top-0 h-screen w-64 bg-focon-950 text-white flex flex-col transform transition-transform duration-300 z-[60] md:translate-x-0 md:sticky md:top-0 md:shrink-0 ${
           sidebarOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
-        <div className="p-6 border-b border-focon-900">
+        <div className="shrink-0 p-6 border-b border-focon-900">
           <img
             src="/brand/focon-logo-white.png"
             alt="Fócon Engenharia"
@@ -45,7 +45,10 @@ export function Layout({ children }: LayoutProps) {
           <h1 className="mt-4 text-2xl font-bold text-white">FoconFlow</h1>
         </div>
 
-        <nav className="p-6 space-y-2 overflow-y-auto" style={{ maxHeight: 'calc(100vh - 220px)' }}>
+        <nav
+          className="flex-1 min-h-0 p-6 space-y-2 overflow-y-auto sidebar-scrollbar"
+          aria-label="Navegação principal"
+        >
           {isAdmin ? (
             <>
               <NavLink
@@ -263,7 +266,7 @@ export function Layout({ children }: LayoutProps) {
           )}
         </nav>
 
-        <div className="absolute bottom-0 left-0 right-0 p-6 border-t border-focon-900">
+        <div className="shrink-0 p-6 border-t border-focon-900">
           <p className="text-sm text-slate-400 mb-4 truncate">
             {user?.email}
           </p>
@@ -279,8 +282,8 @@ export function Layout({ children }: LayoutProps) {
       {/* Main content wrapper */}
       <div className="min-w-0 flex-1">
         {/* Header */}
-        <header className="bg-surface-primary border-b border-app-primary border-t-4 border-t-focon-600 dark:border-slate-700 sticky top-0 z-40 print:hidden">
-          <div className="flex items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
+        <header className="bg-surface-primary border-b border-app-primary border-t-4 border-t-focon-600 dark:border-slate-700 sticky top-0 z-30 print:hidden">
+          <div className="flex items-center px-4 py-4 sm:px-6 lg:px-8">
             <button
               onClick={() => setSidebarOpen(!sidebarOpen)}
               className="md:hidden p-2 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition"
@@ -300,7 +303,7 @@ export function Layout({ children }: LayoutProps) {
                 />
               </svg>
             </button>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 ml-auto">
               <NotificationBell />
               <ThemeToggle />
               <span className="text-sm text-slate-600 dark:text-slate-300">
