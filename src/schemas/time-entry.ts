@@ -1,12 +1,9 @@
 import { z } from 'zod';
+import { businessTodayStr, businessDaysLate } from '../lib/businessDate';
 
-const todayStr = () => new Date().toISOString().slice(0, 10);
+const todayStr = () => businessTodayStr();
 
-const daysLate = (dateStr: string): number => {
-  const entry = new Date(dateStr + 'T00:00:00');
-  const today = new Date(todayStr() + 'T00:00:00');
-  return Math.round((today.getTime() - entry.getTime()) / (1000 * 60 * 60 * 24));
-};
+const daysLate = (dateStr: string): number => businessDaysLate(dateStr);
 
 export const timeEntrySchema = z
   .object({
