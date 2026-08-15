@@ -409,6 +409,21 @@ export interface ProjectMilestone {
   completed_task_count?: number;
 }
 
+/**
+ * Health status values returned by the Project Health RPCs.
+ *
+ * IMPORTANT distinction (DB ↔ TypeScript contract):
+ *   - `null` (not represented in this union) means the health state has NOT
+ *     been calculated yet for this project (no row in project_health_states).
+ *     The UI must show "Não calculado" — NOT "Não Aplicável".
+ *   - `'not_applicable'` means the project is completed or cancelled, so a
+ *     health score is meaningless. The UI shows "Não Aplicável".
+ *
+ * The RPC get_projects_health_summary returns `health_status: null` for the
+ * missing case and also returns `has_calculated_state: false`; for the
+ * not_applicable case it returns `health_status: 'not_applicable'` and
+ * `has_calculated_state: true`.
+ */
 export type HealthStatus = 'healthy' | 'attention' | 'at_risk' | 'not_applicable';
 
 export interface HealthDrivers {
@@ -449,6 +464,13 @@ export interface HealthDrivers {
   reason?: string;
 }
 
+/**
+ * Canonical project health state (from get_project_health RPC).
+ *
+ * `status` is `null` when no state has been calculated yet (missing). It is
+ * `'not_applicable'` for completed/cancelled projects. The two cases MUST be
+ * distinguished in the UI.
+ */
 export interface ProjectHealthState {
   score: number | null;
   status: HealthStatus | null;
@@ -460,17 +482,31 @@ export interface ProjectHealthState {
   calculated_at: string | null;
 }
 
+/**
+ * Health transition event (from get_project_health_history RPC).
+ *
+ * `new_status` can be `'not_applicable'` (active → completed/cancelled
+ * transition); `new_score` is then `null`. `previous_status` is `null` for
+ * the first event ever recorded for a project.
+ */
 export interface ProjectHealthEvent {
   id: string;
   project_id: string;
   previous_status: HealthStatus | null;
   new_status: HealthStatus;
   previous_score: number | null;
-  new_score: number;
+  new_score: number | null;
   drivers: HealthDrivers | null;
   created_at: string;
 }
 
+/**
+ * Summary item (from get_projects_health_summary RPC).
+ *
+ * `health_status` is `null` when no state has been calculated yet (missing).
+ * `has_calculated_state` distinguishes "not calculated" (false) from
+ * "not_applicable" (true, health_status = 'not_applicable').
+ */
 export interface ProjectHealthSummaryItem {
   id: string;
   name: string;
@@ -479,7 +515,8 @@ export interface ProjectHealthSummaryItem {
   start_date: string;
   end_date: string;
   health_score: number | null;
-  health_status: HealthStatus;
+  health_status: HealthStatus | null;
+  has_calculated_state: boolean;
   progress_percent: number | null;
   budget_utilization: number | null;
   forecast_completion_date: string | null;

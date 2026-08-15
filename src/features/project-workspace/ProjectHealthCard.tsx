@@ -36,6 +36,24 @@ const HEALTH_STYLES: Record<HealthStatus, { badge: string; label: string; icon: 
   },
 };
 
+/**
+ * Resolve the display key for a health state. `not_calculated` is a
+ * synthetic key used when `status` is null (no state row exists yet). It
+ * MUST be shown as "Não calculado" — distinct from `not_applicable`
+ * ("Não Aplicável", used for completed/cancelled projects).
+ */
+function displayStatus(status: HealthStatus | null): HealthStatus | 'not_calculated' {
+  if (status === null) return 'not_calculated';
+  return status;
+}
+
+const NOT_CALCULATED_STYLE = {
+  badge: 'bg-slate-100 text-slate-500 bg-surface-secondary text-app-muted',
+  label: 'Não calculado',
+  icon: '❓',
+  bar: 'bg-slate-300',
+} as const;
+
 function formatCurrency(value: number | null): string {
   if (value === null || value === undefined) return '—';
   return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value);
@@ -70,7 +88,8 @@ export function ProjectHealthCard({ projectId, isAdmin, onOpenDetails }: Project
       setError(null);
       const { data, error: err } = await projectHealthAPI.get(projectId);
       if (err) throw err;
-      setHealth(data as unknown as ProjectHealthState);
+      // RPC returns JSONB; cast through unknown because Supabase types it as Json.
+      setHealth(data as unknown as ProjectHealthState | null);
     } catch (err) {
       setError(err instanceof Error ? mapDatabaseError(err) : 'Erro ao carregar saúde do projeto');
     } finally {
@@ -133,8 +152,10 @@ export function ProjectHealthCard({ projectId, isAdmin, onOpenDetails }: Project
     );
   }
 
-  const style = HEALTH_STYLES[health.status] ?? HEALTH_STYLES.not_applicable;
-  const score = health.score ?? 0;
+  const statusKey = displayStatus(health.status);
+  const style = statusKey === 'not_calculated' ? NOT_CALCULATED_STYLE : HEALTH_STYLES[health.status];
+  const isNotApplicable = health.status === 'not_applicable';
+  const score = isNotApplicable ? null : health.score;
 
   return (
     <div className="rounded-xl border border-app-primary bg-surface-primary p-4 space-y-3">
@@ -166,8 +187,14 @@ export function ProjectHealthCard({ projectId, isAdmin, onOpenDetails }: Project
       <div className="flex items-center gap-4">
         <div className="flex-1">
           <div className="flex items-baseline gap-2">
-            <span className="text-3xl font-bold text-app-primary">{score}</span>
-            <span className="text-sm text-app-muted">/100</span>
+            {isNotApplicable ? (
+              <span className="text-3xl font-bold text-app-muted">—</span>
+            ) : (
+              <>
+                <span className="text-3xl font-bold text-app-primary">{score}</span>
+                <span className="text-sm text-app-muted">/100</span>
+              </>
+            )}
           </div>
           <div className="mt-1">
             <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold ${style.badge}`}>
@@ -179,7 +206,7 @@ export function ProjectHealthCard({ projectId, isAdmin, onOpenDetails }: Project
           <div className="h-2 rounded-full bg-surface-secondary overflow-hidden">
             <div
               className={`h-full rounded-full transition-all ${style.bar}`}
-              style={{ width: `${score}%` }}
+              style={{ width: isNotApplicable ? '0%' : `${score ?? 0}%` }}
             />
           </div>
           {health.progress !== null && (

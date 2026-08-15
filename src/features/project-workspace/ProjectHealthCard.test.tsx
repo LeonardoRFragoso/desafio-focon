@@ -142,6 +142,42 @@ describe('ProjectHealthCard', () => {
     });
   });
 
+  it('shows not_applicable status with em-dash score (not 0) for completed/cancelled', async () => {
+    vi.spyOn(projectHealthAPI, 'get').mockResolvedValue({
+      data: {
+        score: null,
+        status: 'not_applicable',
+        progress: null,
+        budget_utilization: null,
+        forecast_completion_date: null,
+        forecast_labor_cost: null,
+        drivers: { hard_override: 'project_not_active' },
+        calculated_at: '2024-08-15T17:40:45.576899+00:00',
+      } as any,
+      error: null,
+    } as any);
+    renderCard({ isAdmin: true });
+    await waitFor(() => {
+      expect(screen.getByText(/Não Aplicável/)).toBeInTheDocument();
+    });
+    // Score must be em-dash, NOT 0 (not_applicable has no score)
+    expect(screen.getByText('—')).toBeInTheDocument();
+    expect(screen.queryByText('0')).not.toBeInTheDocument();
+    // Must NOT show "Não calculado" (that is the missing-state case)
+    expect(screen.queryByText(/Não calculado/)).not.toBeInTheDocument();
+  });
+
+  it('distinguishes not_calculated (null status) from not_applicable', async () => {
+    // null status = missing state = "Saúde ainda não calculada"
+    vi.spyOn(projectHealthAPI, 'get').mockResolvedValue({ data: { score: null, status: null } as any, error: null } as any);
+    renderCard({ isAdmin: true });
+    await waitFor(() => {
+      expect(screen.getByText(/Saúde ainda não calculada/)).toBeInTheDocument();
+    });
+    // Must NOT show "Não Aplicável" for the missing-state case
+    expect(screen.queryByText(/Não Aplicável/)).not.toBeInTheDocument();
+  });
+
   it('shows error on API failure', async () => {
     vi.spyOn(projectHealthAPI, 'get').mockResolvedValue({ data: null, error: new Error('RPC fail') } as any);
     renderCard();

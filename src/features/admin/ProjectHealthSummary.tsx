@@ -21,6 +21,7 @@ export function ProjectHealthSummary() {
       setError(null);
       const { data, error: rpcError } = await projectHealthAPI.getSummary();
       if (rpcError) throw rpcError;
+      // RPC returns JSONB; cast through unknown because Supabase types it as Json.
       setItems((data as unknown as ProjectHealthSummaryItem[]) ?? []);
     } catch (err) {
       setError(err instanceof Error ? mapDatabaseError(err) : 'Erro ao carregar saúde');

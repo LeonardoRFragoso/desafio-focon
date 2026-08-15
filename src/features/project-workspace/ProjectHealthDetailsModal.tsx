@@ -24,6 +24,12 @@ const HEALTH_STYLES: Record<HealthStatus, { badge: string; label: string; icon: 
   not_applicable: { badge: 'bg-slate-100 text-slate-600 bg-surface-secondary text-app-muted', label: 'Não Aplicável', icon: '⚪' },
 };
 
+const NOT_CALCULATED_STYLE = {
+  badge: 'bg-slate-100 text-slate-500 bg-surface-secondary text-app-muted',
+  label: 'Não calculado',
+  icon: '❓',
+} as const;
+
 const OVERRIDE_LABELS: Record<string, string> = {
   budget_over_110: 'Orçamento excedeu 110%',
   critical_milestone_overdue_7d: 'Marco crítico atrasado há mais de 7 dias',
@@ -66,7 +72,8 @@ export function ProjectHealthDetailsModal({
       ]);
       if (healthRes.error) throw healthRes.error;
       if (historyRes.error) throw historyRes.error;
-      setHealth(healthRes.data as unknown as ProjectHealthState);
+      // RPCs return JSONB; cast through unknown because Supabase types it as Json.
+      setHealth(healthRes.data as unknown as ProjectHealthState | null);
       setHistory((historyRes.data as unknown as ProjectHealthEvent[]) ?? []);
     } catch (err) {
       setError(err instanceof Error ? mapDatabaseError(err) : 'Erro ao carregar detalhes');
@@ -153,12 +160,21 @@ export function ProjectHealthDetailsModal({
           {/* Score + Status */}
           <div className="flex items-center gap-4">
             <div className="text-center">
-              <div className="text-4xl font-bold text-app-primary">{health.score ?? 0}</div>
-              <div className="text-xs text-app-muted">/100</div>
+              {health.status === 'not_applicable' ? (
+                <>
+                  <div className="text-4xl font-bold text-app-muted">—</div>
+                  <div className="text-xs text-app-muted">n/a</div>
+                </>
+              ) : (
+                <>
+                  <div className="text-4xl font-bold text-app-primary">{health.score ?? 0}</div>
+                  <div className="text-xs text-app-muted">/100</div>
+                </>
+              )}
             </div>
             <div className="flex-1">
-              <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-bold ${HEALTH_STYLES[health.status]?.badge}`}>
-                {HEALTH_STYLES[health.status]?.icon} {HEALTH_STYLES[health.status]?.label}
+              <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-bold ${HEALTH_STYLES[health.status]?.badge ?? NOT_CALCULATED_STYLE.badge}`}>
+                {HEALTH_STYLES[health.status]?.icon ?? NOT_CALCULATED_STYLE.icon} {HEALTH_STYLES[health.status]?.label ?? NOT_CALCULATED_STYLE.label}
               </span>
               {health.progress !== null && (
                 <p className="text-sm text-app-muted mt-2">
@@ -268,7 +284,7 @@ export function ProjectHealthDetailsModal({
                       <span className="text-xs text-app-muted">{formatDateTime(evt.created_at)}</span>
                     </div>
                     <div className="flex items-center gap-4 mt-1 text-xs text-app-muted">
-                      <span>Score: {evt.previous_score ?? '—'} → {evt.new_score}</span>
+                      <span>Score: {evt.previous_score ?? '—'} → {evt.new_score ?? '—'}</span>
                     </div>
                   </div>
                 ))}

@@ -5,18 +5,36 @@ import { mapDatabaseError } from '@/lib/errors';
 import { ProjectHealthDetailsModal } from '@/features/project-workspace/ProjectHealthDetailsModal';
 import type { ProjectHealthSummaryItem, HealthStatus } from '@/types/database';
 
-const HEALTH_STYLES: Record<HealthStatus, { badge: string; label: string; icon: string }> = {
+/**
+ * Visual styles per health status. `not_calculated` is a synthetic key used
+ * when `health_status` is null (no state row exists yet). It MUST be shown
+ * as "Não calculado" — distinct from `not_applicable` ("Não Aplicável",
+ * used for completed/cancelled projects).
+ */
+const HEALTH_STYLES: Record<HealthStatus | 'not_calculated', { badge: string; label: string; icon: string }> = {
   healthy: { badge: 'bg-green-100 text-green-700 dark:bg-green-900/40 dark:text-green-300', label: 'Saudável', icon: '🟢' },
   attention: { badge: 'bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-300', label: 'Em Atenção', icon: '🟡' },
   at_risk: { badge: 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300', label: 'Em Risco', icon: '🔴' },
   not_applicable: { badge: 'bg-slate-100 text-slate-600 bg-surface-secondary text-app-muted', label: 'Não Aplicável', icon: '⚪' },
+  not_calculated: { badge: 'bg-slate-100 text-slate-500 bg-surface-secondary text-app-muted', label: 'Não calculado', icon: '❓' },
 };
+
+/**
+ * Resolve the display key for a summary item. Returns `not_calculated` when
+ * the project has no health state yet (health_status is null), otherwise
+ * returns the concrete status.
+ */
+function displayStatus(item: ProjectHealthSummaryItem): HealthStatus | 'not_calculated' {
+  if (item.health_status === null) return 'not_calculated';
+  return item.health_status;
+}
 
 const FILTER_OPTIONS: Array<{ value: string; label: string }> = [
   { value: '', label: 'Todos' },
   { value: 'at_risk', label: 'Em Risco' },
   { value: 'attention', label: 'Em Atenção' },
   { value: 'healthy', label: 'Saudável' },
+  { value: 'not_calculated', label: 'Não calculado' },
 ];
 
 function formatDate(d: string | null): string {
@@ -38,6 +56,7 @@ export function ProjectHealthPage() {
       setError(null);
       const { data, error: err } = await projectHealthAPI.getSummary(filter || undefined);
       if (err) throw err;
+      // RPC returns JSONB; cast through unknown because Supabase types it as Json.
       setItems((data as unknown as ProjectHealthSummaryItem[]) ?? []);
     } catch (err) {
       setError(err instanceof Error ? mapDatabaseError(err) : 'Erro ao carregar saúde dos projetos');
@@ -172,7 +191,7 @@ export function ProjectHealthPage() {
               </thead>
               <tbody>
                 {items.map((item) => {
-                  const style = HEALTH_STYLES[item.health_status] ?? HEALTH_STYLES.not_applicable;
+                  const style = HEALTH_STYLES[displayStatus(item)];
                   return (
                     <tr
                       key={item.id}
@@ -241,7 +260,7 @@ export function ProjectHealthPage() {
           {/* Mobile cards */}
           <div className="md:hidden space-y-3">
             {items.map((item) => {
-              const style = HEALTH_STYLES[item.health_status] ?? HEALTH_STYLES.not_applicable;
+              const style = HEALTH_STYLES[displayStatus(item)];
               return (
                 <div
                   key={item.id}
