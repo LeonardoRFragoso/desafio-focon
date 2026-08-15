@@ -4,7 +4,8 @@ import type { AdminCommandCenterSummary } from '@/lib/supabase/api';
 interface ApprovalQueueSummaryProps {
   summary: AdminCommandCenterSummary | null;
   loading: boolean;
-  onApprove?: (entryId: string) => Promise<void>;
+  error: string | null;
+  onRetry: () => void;
 }
 
 function formatDate(dateStr: string): string {
@@ -12,7 +13,7 @@ function formatDate(dateStr: string): string {
   return date.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
 }
 
-export function ApprovalQueueSummary({ summary, loading }: ApprovalQueueSummaryProps) {
+export function ApprovalQueueSummary({ summary, loading, error, onRetry }: ApprovalQueueSummaryProps) {
   const navigate = useNavigate();
 
   if (loading) {
@@ -24,7 +25,24 @@ export function ApprovalQueueSummary({ summary, loading }: ApprovalQueueSummaryP
     );
   }
 
-  if (!summary) return null;
+  if (error || !summary) {
+    return (
+      <section aria-label="Fila de Aprovações" className="space-y-4">
+        <h2 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">Fila de Aprovações</h2>
+        <div className="rounded-xl border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20 p-4">
+          <div className="flex items-center justify-between">
+            <p className="text-sm font-medium text-red-800 dark:text-red-400">Dados indisponíveis</p>
+            <button
+              onClick={onRetry}
+              className="ml-4 px-3 py-1.5 text-sm font-medium text-red-700 dark:text-red-300 bg-red-100 dark:bg-red-900/40 hover:bg-red-200 dark:hover:bg-red-900/60 rounded transition"
+            >
+              Tentar novamente
+            </button>
+          </div>
+        </div>
+      </section>
+    );
+  }
 
   const pendingCount = summary.kpis.pending_approvals;
   const queue = summary.pending_approvals;
@@ -32,6 +50,7 @@ export function ApprovalQueueSummary({ summary, loading }: ApprovalQueueSummaryP
   if (pendingCount === 0) {
     return (
       <section aria-label="Fila de Aprovações" className="space-y-4">
+        <h2 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">Fila de Aprovações</h2>
         <div className="rounded-xl border border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-900/20 p-4">
           <div className="flex items-center gap-3">
             <span className="text-xl">✓</span>

@@ -20,8 +20,6 @@ type PaletteItem = SearchResult | CommandItem;
 interface CommandPaletteProps {
   open: boolean;
   onClose: () => void;
-  onQuickEntry?: () => void;
-  onTimerStart?: () => void;
 }
 
 const ADMIN_COMMANDS: Omit<CommandItem, 'action'>[] = [
@@ -43,7 +41,7 @@ const PROFESSIONAL_COMMANDS: Omit<CommandItem, 'action'>[] = [
   { type: 'command', id: 'cmd-recurring', title: 'Regras Recorrentes', subtitle: 'Configurar apontamentos', icon: '🔁', href: '/recurring' },
 ];
 
-export function CommandPalette({ open, onClose, onQuickEntry, onTimerStart }: CommandPaletteProps) {
+export function CommandPalette({ open, onClose }: CommandPaletteProps) {
   const navigate = useNavigate();
   const { isAdmin } = useAuthContext();
   const [query, setQuery] = useState('');
@@ -119,20 +117,16 @@ export function CommandPalette({ open, onClose, onQuickEntry, onTimerStart }: Co
           c.subtitle.toLowerCase().includes(lowerQuery)
         );
 
-    // Add action commands for professional
+    // Add action commands for professional (deep link navigation)
     if (!isAdmin) {
-      if (onQuickEntry) {
-        filteredCommands.unshift({
-          type: 'command', id: 'cmd-quick-entry', title: 'Novo Apontamento',
-          subtitle: 'Criar apontamento rápido', icon: '⚡', href: '',
-        });
-      }
-      if (onTimerStart) {
-        filteredCommands.unshift({
-          type: 'command', id: 'cmd-timer', title: 'Iniciar Timer',
-          subtitle: 'Começar contagem de tempo', icon: '⏱️', href: '',
-        });
-      }
+      filteredCommands.unshift({
+        type: 'command' as const, id: 'cmd-quick-entry', title: 'Novo Apontamento',
+        subtitle: 'Criar apontamento rápido', icon: '⚡', href: '/my-dashboard?action=quick-entry',
+      });
+      filteredCommands.unshift({
+        type: 'command' as const, id: 'cmd-timer', title: 'Iniciar Timer',
+        subtitle: 'Começar contagem de tempo', icon: '⏱️', href: '/my-dashboard?action=start-timer',
+      });
     }
 
     items.push(...filteredCommands.map(c => ({ ...c, type: 'command' as const })));
@@ -146,7 +140,7 @@ export function CommandPalette({ open, onClose, onQuickEntry, onTimerStart }: Co
     }
 
     return items;
-  }, [query, results, isAdmin, onQuickEntry, onTimerStart]);
+  }, [query, results, isAdmin]);
 
   // Reset selected index when items change
   useEffect(() => {
@@ -157,23 +151,13 @@ export function CommandPalette({ open, onClose, onQuickEntry, onTimerStart }: Co
   const executeItem = useCallback((item: PaletteItem) => {
     if (item.type === 'command') {
       const cmd = item as CommandItem;
-      if (cmd.id === 'cmd-quick-entry' && onQuickEntry) {
-        onQuickEntry();
-        onClose();
-        return;
-      }
-      if (cmd.id === 'cmd-timer' && onTimerStart) {
-        onTimerStart();
-        onClose();
-        return;
-      }
       navigate(cmd.href);
     } else {
       const result = item as SearchResult;
       navigate(result.href);
     }
     onClose();
-  }, [navigate, onClose, onQuickEntry, onTimerStart]);
+  }, [navigate, onClose]);
 
   // Keyboard navigation
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {

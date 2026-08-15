@@ -994,6 +994,14 @@ export type Database = {
         }
         Returns: number
       }
+      get_project_realized_labor_cost_admin: {
+        Args: {
+          p_end_date?: string
+          p_project_id: string
+          p_start_date?: string
+        }
+        Returns: number
+      }
       get_project_workspace_summary: {
         Args: { p_project_id: string }
         Returns: {

@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { projectsAPI, projectWorkspaceAPI } from '@/lib/supabase/api';
 import { mapDatabaseError } from '@/lib/errors';
 import { useAuthContext } from '@/features/auth/useAuthContext';
@@ -20,15 +20,59 @@ const TAB_LABELS: Record<Tab, string> = {
   hours: 'Horas',
 };
 
+const VALID_TABS: Tab[] = ['overview', 'phases', 'tasks', 'team', 'hours'];
+
+function parseTab(value: string | null, isAdmin: boolean): Tab {
+  if (!value || !VALID_TABS.includes(value as Tab)) return 'overview';
+  const tab = value as Tab;
+  // Non-admins can't access phases or hours
+  if (!isAdmin && (tab === 'phases' || tab === 'hours')) return 'overview';
+  return tab;
+}
+
 export function ProjectWorkspacePage() {
   const { projectId } = useParams<{ projectId: string }>();
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { isAdmin } = useAuthContext();
   const [project, setProject] = useState<Project | null>(null);
   const [summary, setSummary] = useState<ProjectWorkspaceSummary | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<Tab>('overview');
+  const [activeTab, setActiveTab] = useState<Tab>(() => parseTab(searchParams.get('tab'), isAdmin));
+  const [highlightTaskId, setHighlightTaskId] = useState<string | null>(searchParams.get('task'));
+
+  // Sync tab to URL
+  const handleTabChange = useCallback((tab: Tab) => {
+    setActiveTab(tab);
+    const params = new URLSearchParams(searchParams);
+    if (tab !== 'overview') {
+      params.set('tab', tab);
+    } else {
+      params.delete('tab');
+    }
+    // Clear task highlight when switching away from tasks tab
+    if (tab !== 'tasks') {
+      params.delete('task');
+      setHighlightTaskId(null);
+    }
+    setSearchParams(params, { replace: true });
+  }, [searchParams, setSearchParams]);
+
+  // Read deep link params on mount and when URL changes
+  /* eslint-disable react-hooks/set-state-in-effect */
+  useEffect(() => {
+    const tabParam = searchParams.get('tab');
+    const taskParam = searchParams.get('task');
+    if (tabParam) {
+      const parsed = parseTab(tabParam, isAdmin);
+      setActiveTab(parsed);
+    }
+    if (taskParam) {
+      setHighlightTaskId(taskParam);
+    }
+  }, [searchParams, isAdmin]);
+  /* eslint-enable react-hooks/set-state-in-effect */
 
   const fetchProject = useCallback(async () => {
     if (!projectId) return;
@@ -137,7 +181,7 @@ export function ProjectWorkspacePage() {
           {tabs.map((tab) => (
             <button
               key={tab}
-              onClick={() => setActiveTab(tab)}
+              onClick={() => handleTabChange(tab)}
               className={`px-4 py-2.5 text-sm font-medium border-b-2 transition ${
                 activeTab === tab
                   ? 'border-focon-600 text-focon-600 dark:text-focon-400'
@@ -155,7 +199,19 @@ export function ProjectWorkspacePage() {
         <ProjectOverview project={project} summary={summary} isAdmin={isAdmin} />
       )}
       {activeTab === 'phases' && isAdmin && <ProjectPhasesTab projectId={project.id} />}
-      {activeTab === 'tasks' && <ProjectTasksTab projectId={project.id} isAdmin={isAdmin} />}
+      {activeTab === 'tasks' && (
+        <ProjectTasksTab
+          projectId={project.id}
+          isAdmin={isAdmin}
+          highlightTaskId={highlightTaskId}
+          onTaskHighlightCleared={() => {
+            setHighlightTaskId(null);
+            const params = new URLSearchParams(searchParams);
+            params.delete('task');
+            setSearchParams(params, { replace: true });
+          }}
+        />
+      )}
       {activeTab === 'team' && <ProjectTeamTab projectId={project.id} isAdmin={isAdmin} />}
       {activeTab === 'hours' && isAdmin && <ProjectHoursTab projectId={project.id} />}
     </div>

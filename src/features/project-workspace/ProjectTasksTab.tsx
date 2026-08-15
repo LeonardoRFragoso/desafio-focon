@@ -8,6 +8,8 @@ import type { ProjectTask, TaskStatus, TaskPriority, ProjectPhase, Profile } fro
 interface ProjectTasksTabProps {
   projectId: string;
   isAdmin: boolean;
+  highlightTaskId?: string | null;
+  onTaskHighlightCleared?: () => void;
 }
 
 const STATUS_LABELS: Record<TaskStatus, string> = {
@@ -42,7 +44,7 @@ const PRIORITY_COLORS: Record<TaskPriority, string> = {
 
 const KANBAN_COLUMNS: TaskStatus[] = ['todo', 'in_progress', 'blocked', 'done'];
 
-export function ProjectTasksTab({ projectId, isAdmin }: ProjectTasksTabProps) {
+export function ProjectTasksTab({ projectId, isAdmin, highlightTaskId, onTaskHighlightCleared }: ProjectTasksTabProps) {
   const [tasks, setTasks] = useState<ProjectTask[]>([]);
   const [phases, setPhases] = useState<ProjectPhase[]>([]);
   const [professionals, setProfessionals] = useState<Profile[]>([]);
@@ -84,6 +86,19 @@ export function ProjectTasksTab({ projectId, isAdmin }: ProjectTasksTabProps) {
       fetchMeta();
     }
   }, [fetchTasks, fetchMeta, isAdmin]);
+
+  // Scroll to highlighted task and auto-clear after 5s
+  useEffect(() => {
+    if (!highlightTaskId) return;
+    const el = document.getElementById(`task-${highlightTaskId}`);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+    const timer = setTimeout(() => {
+      onTaskHighlightCleared?.();
+    }, 5000);
+    return () => clearTimeout(timer);
+  }, [highlightTaskId, onTaskHighlightCleared]);
 
   const formatDate = (d: string | null) => (d ? new Date(d).toLocaleDateString('pt-BR') : '—');
   const formatHours = (m: number | null) => (m ? `${(m / 60).toFixed(1)}h` : '—');
@@ -197,7 +212,15 @@ export function ProjectTasksTab({ projectId, isAdmin }: ProjectTasksTabProps) {
             </thead>
             <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
               {tasks.map((t) => (
-                <tr key={t.id} className="hover:bg-slate-50 dark:hover:bg-slate-800 transition">
+                <tr
+                  key={t.id}
+                  id={`task-${t.id}`}
+                  className={`transition ${
+                    highlightTaskId === t.id
+                      ? 'bg-focon-50 dark:bg-focon-900/30 ring-2 ring-focon-400'
+                      : 'hover:bg-slate-50 dark:hover:bg-slate-800'
+                  }`}
+                >
                   <td className="px-4 py-3 text-sm text-slate-900 dark:text-slate-100 font-medium">{t.title}</td>
                   <td className="px-4 py-3 text-sm text-slate-700 dark:text-slate-300">
                     {t.phase?.name ?? '—'}

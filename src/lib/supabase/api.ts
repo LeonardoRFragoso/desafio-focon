@@ -919,6 +919,8 @@ export interface AdminCommandCenterSummary {
   };
   kpis: {
     total_revenue: number;
+    total_tax: number;
+    total_indirect_cost: number;
     total_labor_cost: number;
     total_result: number;
     total_margin: number;

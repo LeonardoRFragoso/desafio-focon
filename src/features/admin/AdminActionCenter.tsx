@@ -1,13 +1,11 @@
-import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { commandCenterAPI } from '@/lib/supabase/api';
 import type { AdminCommandCenterSummary } from '@/lib/supabase/api';
-import { mapDatabaseError } from '@/lib/errors';
 
 interface AdminActionCenterProps {
-  startDate?: string;
-  endDate?: string;
-  onRefreshKey?: number;
+  summary: AdminCommandCenterSummary | null;
+  loading: boolean;
+  error: string | null;
+  onRetry: () => void;
 }
 
 type Severity = 'info' | 'warning' | 'critical' | 'success';
@@ -43,30 +41,8 @@ const SEVERITY_LABEL: Record<Severity, string> = {
   success: 'OK',
 };
 
-export function AdminActionCenter({ startDate, endDate, onRefreshKey }: AdminActionCenterProps) {
+export function AdminActionCenter({ summary, loading, error, onRetry }: AdminActionCenterProps) {
   const navigate = useNavigate();
-  const [summary, setSummary] = useState<AdminCommandCenterSummary | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  const fetchSummary = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const { data, error: rpcError } = await commandCenterAPI.getAdminSummary(startDate, endDate);
-      if (rpcError) throw new Error(mapDatabaseError(rpcError));
-      setSummary(data as unknown as AdminCommandCenterSummary);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Erro ao carregar pendências');
-    } finally {
-      setLoading(false);
-    }
-  }, [startDate, endDate]);
-
-  useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    fetchSummary();
-  }, [fetchSummary, onRefreshKey]);
 
   if (loading) {
     return (
@@ -94,9 +70,9 @@ export function AdminActionCenter({ startDate, endDate, onRefreshKey }: AdminAct
         </h2>
         <div className="rounded-lg border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20 p-4">
           <div className="flex items-center justify-between">
-            <p className="text-sm font-medium text-red-800 dark:text-red-400">{error}</p>
+            <p className="text-sm font-medium text-red-800 dark:text-red-400">Dados indisponíveis</p>
             <button
-              onClick={fetchSummary}
+              onClick={onRetry}
               className="ml-4 px-3 py-1.5 text-sm font-medium text-red-700 dark:text-red-300 bg-red-100 dark:bg-red-900/40 hover:bg-red-200 dark:hover:bg-red-900/60 rounded transition"
             >
               Tentar novamente
@@ -112,7 +88,6 @@ export function AdminActionCenter({ startDate, endDate, onRefreshKey }: AdminAct
   const signals = summary.action_signals;
   const items: ActionSignal[] = [];
 
-  // A. Pending approvals
   if (signals.pending_count > 0) {
     items.push({
       id: 'pending',
@@ -127,7 +102,6 @@ export function AdminActionCenter({ startDate, endDate, onRefreshKey }: AdminAct
     });
   }
 
-  // C. Rejected recent
   if (signals.rejected_recent_count > 0) {
     items.push({
       id: 'rejected-recent',
@@ -140,7 +114,6 @@ export function AdminActionCenter({ startDate, endDate, onRefreshKey }: AdminAct
     });
   }
 
-  // D. Overbudget projects
   signals.overbudget_projects.forEach(p => {
     const util = p.utilization_percent;
     items.push({
@@ -154,7 +127,6 @@ export function AdminActionCenter({ startDate, endDate, onRefreshKey }: AdminAct
     });
   });
 
-  // E. Unacknowledged alerts
   if (signals.unack_alerts_count > 0) {
     items.push({
       id: 'alerts',
@@ -167,7 +139,6 @@ export function AdminActionCenter({ startDate, endDate, onRefreshKey }: AdminAct
     });
   }
 
-  // F. Overdue tasks
   if (signals.overdue_tasks_count > 0) {
     items.push({
       id: 'overdue-tasks',
@@ -180,7 +151,6 @@ export function AdminActionCenter({ startDate, endDate, onRefreshKey }: AdminAct
     });
   }
 
-  // G. Critical tasks
   if (signals.critical_tasks_count > 0) {
     items.push({
       id: 'critical-tasks',
@@ -193,7 +163,6 @@ export function AdminActionCenter({ startDate, endDate, onRefreshKey }: AdminAct
     });
   }
 
-  // H. Missing hourly rates
   if (signals.missing_rate_count > 0) {
     items.push({
       id: 'missing-rates',
@@ -206,7 +175,6 @@ export function AdminActionCenter({ startDate, endDate, onRefreshKey }: AdminAct
     });
   }
 
-  // I. Projects without team
   if (signals.projects_without_team_count > 0) {
     items.push({
       id: 'no-team',
