@@ -173,6 +173,54 @@ export type Database = {
           },
         ]
       }
+      professional_capacity_rules: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          professional_id: string
+          updated_at: string
+          valid_from: string
+          valid_until: string | null
+          weekly_capacity_minutes: number
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          professional_id: string
+          updated_at?: string
+          valid_from?: string
+          valid_until?: string | null
+          weekly_capacity_minutes: number
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          professional_id?: string
+          updated_at?: string
+          valid_from?: string
+          valid_until?: string | null
+          weekly_capacity_minutes?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "professional_capacity_rules_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "professional_capacity_rules_professional_id_fkey"
+            columns: ["professional_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           created_at: string
@@ -241,6 +289,70 @@ export type Database = {
           },
           {
             foreignKeyName: "profitability_alerts_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      project_allocations: {
+        Row: {
+          allocated_minutes: number
+          allocation_type: string
+          created_at: string
+          created_by: string | null
+          end_date: string
+          id: string
+          notes: string | null
+          professional_id: string
+          project_id: string
+          start_date: string
+          updated_at: string
+        }
+        Insert: {
+          allocated_minutes: number
+          allocation_type?: string
+          created_at?: string
+          created_by?: string | null
+          end_date: string
+          id?: string
+          notes?: string | null
+          professional_id: string
+          project_id: string
+          start_date: string
+          updated_at?: string
+        }
+        Update: {
+          allocated_minutes?: number
+          allocation_type?: string
+          created_at?: string
+          created_by?: string | null
+          end_date?: string
+          id?: string
+          notes?: string | null
+          professional_id?: string
+          project_id?: string
+          start_date?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_allocations_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_allocations_professional_id_fkey"
+            columns: ["professional_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_allocations_project_id_fkey"
             columns: ["project_id"]
             isOneToOne: false
             referencedRelation: "projects"
@@ -965,9 +1077,17 @@ export type Database = {
           total_tax: number
         }[]
       }
+      get_capacity_overview: {
+        Args: { p_end_date?: string; p_start_date?: string }
+        Returns: Json
+      }
       get_hourly_rate_for_date: {
         Args: { p_date: string; p_professional_id: string }
         Returns: number
+      }
+      get_my_allocations: {
+        Args: { p_end_date?: string; p_start_date?: string }
+        Returns: Json
       }
       get_professional_dashboard_stats: {
         Args: { p_user_id?: string }

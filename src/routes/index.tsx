@@ -24,6 +24,7 @@ import { ProfitabilityAlertsPage } from '@/pages/admin/ProfitabilityAlertsPage';
 import { SystemStatusPage } from '@/pages/admin/SystemStatusPage';
 import { ProjectWorkspacePage } from '@/pages/admin/ProjectWorkspacePage';
 import { AdminTimeEntriesPage } from '@/pages/admin/AdminTimeEntriesPage';
+import { CapacityPlanningPage } from '@/pages/admin/CapacityPlanningPage';
 import { ProtectedRoute } from './ProtectedRoute';
 
 /**
@@ -197,6 +198,14 @@ export function AppRoutes() {
             element={
               <ProtectedRoute requiredRole="admin">
                 <SystemStatusPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/capacity"
+            element={
+              <ProtectedRoute requiredRole="admin">
+                <CapacityPlanningPage />
               </ProtectedRoute>
             }
           />

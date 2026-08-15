@@ -8,8 +8,9 @@ import { ApprovalQueueSummary } from '@/features/admin/ApprovalQueueSummary';
 import { FinancialOverview } from '@/features/admin/FinancialOverview';
 import { TeamOverview } from '@/features/admin/TeamOverview';
 import { AdminExcelExportButton } from '@/features/admin/AdminExcelExportButton';
-import { commandCenterAPI } from '@/lib/supabase/api';
+import { commandCenterAPI, capacityAPI } from '@/lib/supabase/api';
 import type { AdminCommandCenterSummary } from '@/lib/supabase/api';
+import type { CapacityOverview } from '@/types/database';
 import { mapDatabaseError } from '@/lib/errors';
 
 export function DashboardPage() {
@@ -18,6 +19,7 @@ export function DashboardPage() {
   const [preset, setPreset] = useState<PeriodPreset>(initialPreset);
   const [range, setRange] = useState(() => getPeriodRange(initialPreset));
   const [summary, setSummary] = useState<AdminCommandCenterSummary | null>(null);
+  const [overloadedCount, setOverloadedCount] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
@@ -39,6 +41,7 @@ export function DashboardPage() {
   }, []);
 
   // Single fetch for admin summary — passed to all child components
+  // Also fetch capacity overview for the overloaded signal (non-blocking)
   /* eslint-disable react-hooks/set-state-in-effect */
   useEffect(() => {
     let cancelled = false;
@@ -59,6 +62,17 @@ export function DashboardPage() {
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
+      });
+    // Capacity overview (current week) — non-blocking, just for the signal
+    capacityAPI
+      .getOverview()
+      .then(({ data }) => {
+        if (cancelled) return;
+        const overview = data as CapacityOverview | null;
+        setOverloadedCount(overview?.summary?.overloaded_count ?? 0);
+      })
+      .catch(() => {
+        // Non-critical — don't surface capacity errors in the main dashboard
       });
     return () => { cancelled = true; };
   }, [range.start_date, range.end_date, refreshKey]);
@@ -105,6 +119,7 @@ export function DashboardPage() {
         loading={loading}
         error={error}
         onRetry={handleRefresh}
+        overloadedProfessionalsCount={overloadedCount}
       />
 
       {/* Executive KPIs — ERROR state shows error, not zeros */}

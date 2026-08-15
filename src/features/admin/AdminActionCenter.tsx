@@ -6,6 +6,7 @@ interface AdminActionCenterProps {
   loading: boolean;
   error: string | null;
   onRetry: () => void;
+  overloadedProfessionalsCount?: number;
 }
 
 type Severity = 'info' | 'warning' | 'critical' | 'success';
@@ -41,7 +42,7 @@ const SEVERITY_LABEL: Record<Severity, string> = {
   success: 'OK',
 };
 
-export function AdminActionCenter({ summary, loading, error, onRetry }: AdminActionCenterProps) {
+export function AdminActionCenter({ summary, loading, error, onRetry, overloadedProfessionalsCount = 0 }: AdminActionCenterProps) {
   const navigate = useNavigate();
 
   if (loading) {
@@ -184,6 +185,18 @@ export function AdminActionCenter({ summary, loading, error, onRetry }: AdminAct
       description: 'Projetos ativos sem membros da equipe',
       ctaLabel: 'Ver projetos',
       ctaHref: '/admin/projects',
+    });
+  }
+
+  if (overloadedProfessionalsCount > 0) {
+    items.push({
+      id: 'overloaded-capacity',
+      severity: 'critical',
+      icon: '⚠️',
+      title: `${overloadedProfessionalsCount} profissional(is) sobrecarregado(s)`,
+      description: 'Profissionais com alocação superior à capacidade semanal',
+      ctaLabel: 'Ver capacidade',
+      ctaHref: '/admin/capacity',
     });
   }
 

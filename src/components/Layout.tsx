@@ -235,6 +235,19 @@ export function Layout({ children }: LayoutProps) {
               >
                 Status do Sistema
               </NavLink>
+              <NavLink
+                to="/admin/capacity"
+                onClick={closeSidebar}
+                className={({ isActive }) =>
+                  `block px-4 py-3 rounded-lg font-medium transition ${
+                    isActive
+                      ? 'bg-focon-600 text-white'
+                      : 'text-slate-300 hover:bg-focon-800'
+                  }`
+                }
+              >
+                Capacidade
+              </NavLink>
             </>
           ) : (
             <>

@@ -287,3 +287,91 @@ export interface ProjectWorkspaceSummary {
   planned_minutes: number;
   logged_minutes: number;
 }
+
+// ============================================================================
+// Phase 4: Capacity Planning
+// ============================================================================
+
+export interface ProfessionalCapacityRule {
+  id: string;
+  professional_id: string;
+  weekly_capacity_minutes: number;
+  valid_from: string;
+  valid_until: string | null;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+  professional?: { full_name: string; role: string } | null;
+}
+
+export type AllocationType = 'planned' | 'confirmed' | 'tentative';
+
+export interface ProjectAllocation {
+  id: string;
+  project_id: string;
+  professional_id: string;
+  start_date: string;
+  end_date: string;
+  allocated_minutes: number;
+  allocation_type: AllocationType;
+  notes: string | null;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+  project?: { name: string } | null;
+  professional?: { full_name: string; role: string } | null;
+}
+
+export type CapacityStatus = 'available' | 'well_allocated' | 'overloaded' | 'no_capacity';
+
+export interface CapacityProfessional {
+  professional_id: string;
+  full_name: string;
+  role: string;
+  capacity_minutes: number | null;
+  allocated_minutes: number;
+  actual_minutes: number;
+  available_minutes: number | null;
+  utilization_percent: number | null;
+  status: CapacityStatus;
+  projects: Array<{
+    project_id: string;
+    project_name: string;
+    allocated_minutes: number;
+    start_date: string;
+    end_date: string;
+    allocation_type: AllocationType;
+  }>;
+}
+
+export interface CapacityOverview {
+  period: { start_date: string; end_date: string };
+  professionals: CapacityProfessional[];
+  summary: {
+    total_professionals: number;
+    overloaded_count: number;
+    well_allocated_count: number;
+    available_count: number;
+    no_capacity_count: number;
+  };
+}
+
+export interface MyAllocations {
+  period: { start_date: string; end_date: string };
+  capacity_minutes: number | null;
+  allocated_minutes: number;
+  actual_minutes: number;
+  available_minutes: number | null;
+  utilization_percent: number | null;
+  status: CapacityStatus;
+  allocations: Array<{
+    id: string;
+    project_id: string;
+    project_name: string;
+    start_date: string;
+    end_date: string;
+    allocated_minutes: number;
+    allocation_type: AllocationType;
+    notes: string | null;
+  }>;
+}
