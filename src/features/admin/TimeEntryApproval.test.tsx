@@ -251,4 +251,119 @@ describe('TimeEntryApproval', () => {
       });
     });
   });
+
+  describe('Future legacy entry behavior', () => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const futureEntry: any = {
+      ...mockEntry,
+      id: 'entry-future',
+      entry_date: '2099-12-31',
+      description: 'Future legacy entry for testing',
+    };
+
+    it('shows DATA FUTURA badge for future entry', async () => {
+      vi.spyOn(usePendingTimeEntriesModule, 'usePendingTimeEntries').mockReturnValue(
+        makeHookMock({ entries: [futureEntry] })
+      );
+
+      render(<TimeEntryApproval />);
+
+      await waitFor(() => {
+        expect(screen.getByText('DATA FUTURA')).toBeInTheDocument();
+      });
+    });
+
+    it('disables approve button for future entry', async () => {
+      const mockApprove = vi.fn().mockResolvedValue(true);
+      vi.spyOn(usePendingTimeEntriesModule, 'usePendingTimeEntries').mockReturnValue(
+        makeHookMock({ entries: [futureEntry], approve: mockApprove })
+      );
+
+      render(<TimeEntryApproval />);
+
+      await waitFor(() => {
+        expect(screen.getByText('DATA FUTURA')).toBeInTheDocument();
+      });
+
+      // The approve button should be disabled
+      const approveBtn = screen.getByText('Aprovar');
+      expect(approveBtn).toBeDisabled();
+      expect(approveBtn).toHaveAttribute('title', 'Apontamentos com data futura não podem ser aprovados.');
+    });
+
+    it('keeps reject button enabled for future entry', async () => {
+      vi.spyOn(usePendingTimeEntriesModule, 'usePendingTimeEntries').mockReturnValue(
+        makeHookMock({ entries: [futureEntry] })
+      );
+
+      render(<TimeEntryApproval />);
+
+      await waitFor(() => {
+        expect(screen.getByText('DATA FUTURA')).toBeInTheDocument();
+      });
+
+      const rejectBtn = screen.getByText('Rejeitar');
+      expect(rejectBtn).not.toBeDisabled();
+    });
+
+    it('does not call approve when approve button is disabled (future)', async () => {
+      const mockApprove = vi.fn().mockResolvedValue(true);
+      vi.spyOn(usePendingTimeEntriesModule, 'usePendingTimeEntries').mockReturnValue(
+        makeHookMock({ entries: [futureEntry], approve: mockApprove })
+      );
+
+      render(<TimeEntryApproval />);
+
+      await waitFor(() => {
+        expect(screen.getByText('DATA FUTURA')).toBeInTheDocument();
+      });
+
+      const approveBtn = screen.getByText('Aprovar');
+      fireEvent.click(approveBtn);
+      expect(mockApprove).not.toHaveBeenCalled();
+    });
+
+    it('shows future legacy count indicator', async () => {
+      vi.spyOn(usePendingTimeEntriesModule, 'usePendingTimeEntries').mockReturnValue(
+        makeHookMock({ entries: [futureEntry, mockEntry] })
+      );
+
+      render(<TimeEntryApproval />);
+
+      await waitFor(() => {
+        expect(screen.getByText(/1 com data futura/)).toBeInTheDocument();
+      });
+    });
+
+    it('excludes future entries from batch approve', async () => {
+      const mockBatchApprove = vi.fn().mockResolvedValue([
+        { entry_id: 'entry-1', status: 'approved', error: null },
+      ]);
+      vi.spyOn(usePendingTimeEntriesModule, 'usePendingTimeEntries').mockReturnValue(
+        makeHookMock({ entries: [futureEntry, mockEntry], batchApprove: mockBatchApprove })
+      );
+
+      render(<TimeEntryApproval />);
+
+      await waitFor(() => {
+        expect(screen.getByText('DATA FUTURA')).toBeInTheDocument();
+      });
+
+      // Select all
+      await fireEvent.click(screen.getByLabelText('Selecionar todos visíveis'));
+      // Click batch approve
+      await fireEvent.click(screen.getByText('Aprovar em lote'));
+      // Confirm in modal
+      expect(screen.getByText('Aprovar em lote', { selector: 'h2' })).toBeInTheDocument();
+      const confirmBtns = screen.getAllByText('Aprovar 2');
+      const confirmBtn = confirmBtns[0];
+      if (!confirmBtn) throw new Error('confirm button not found');
+      await fireEvent.click(confirmBtn);
+
+      await waitFor(() => {
+        // Should only call batchApprove with the non-future entry
+        expect(mockBatchApprove).toHaveBeenCalledWith(['entry-1']);
+      });
+    });
+  });
 });

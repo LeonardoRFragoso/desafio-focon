@@ -7,7 +7,7 @@ import { useAuthContext } from '@/features/auth/useAuthContext';
 import { Pagination } from '@/components/Pagination';
 import { useDebounce } from '@/hooks/usePagination';
 import { TimeEntryDetailsModal, type TimeEntryDetail } from '@/features/time-entries/TimeEntryDetailsModal';
-import { daysLate } from '@/features/time-entries/temporalRules';
+import { daysLate, isFutureDate } from '@/features/time-entries/temporalRules';
 
 const PAGE_SIZE = 20;
 
@@ -35,6 +35,7 @@ export function AdminTimeEntriesPage() {
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [retroOnly, setRetroOnly] = useState(false);
+  const [futureOnly, setFutureOnly] = useState(false);
   const [projects, setProjects] = useState<Project[]>([]);
   const [professionals, setProfessionals] = useState<Professional[]>([]);
   const [phases, setPhases] = useState<Phase[]>([]);
@@ -155,13 +156,16 @@ export function AdminTimeEntriesPage() {
     setStartDate('');
     setEndDate('');
     setRetroOnly(false);
+    setFutureOnly(false);
     setPage(1);
   };
 
-  // Client-side filter for retroactive entries (3+ days late)
-  const displayedEntries = retroOnly
-    ? entries.filter((e) => daysLate(e.entry_date) >= 3)
-    : entries;
+  // Client-side filter for retroactive entries (3+ days late) and/or future entries
+  const displayedEntries = entries.filter((e) => {
+    if (retroOnly && daysLate(e.entry_date) < 3) return false;
+    if (futureOnly && !isFutureDate(e.entry_date)) return false;
+    return true;
+  });
 
   const formatDate = (d: string) => new Date(d).toLocaleDateString('pt-BR');
   const formatDuration = (m: number) => {
@@ -306,6 +310,18 @@ export function AdminTimeEntriesPage() {
             />
             <span>Retroativos</span>
           </label>
+          <label className="flex items-center gap-1.5 text-sm text-app-secondary cursor-pointer">
+            <input
+              type="checkbox"
+              checked={futureOnly}
+              onChange={(e) => {
+                setFutureOnly(e.target.checked);
+                setPage(1);
+              }}
+              className="rounded border-app-strong text-focon-600 focus:ring-focon-600"
+            />
+            <span>Futuros inválidos</span>
+          </label>
           <button
             onClick={handleClearFilters}
             className="px-3 py-2 border border-app-strong text-app-secondary rounded-lg text-sm hover:bg-hover-surface transition"
@@ -369,6 +385,14 @@ export function AdminTimeEntriesPage() {
                     <td className="px-4 py-3 text-sm text-app-secondary">{entry.task?.title || '—'}</td>
                     <td className="px-4 py-3 text-sm text-app-secondary whitespace-nowrap">
                       {formatDate(entry.entry_date)}
+                      {isFutureDate(entry.entry_date) && (
+                        <span
+                          className="ml-1.5 inline-block px-1.5 py-0.5 rounded text-[10px] font-semibold bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400"
+                          title="Apontamento com data futura — não pode ser aprovado"
+                        >
+                          DATA FUTURA
+                        </span>
+                      )}
                       {daysLate(entry.entry_date) >= 3 && (
                         <span
                           className="ml-1.5 inline-block px-1.5 py-0.5 rounded text-[10px] font-semibold bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400"
@@ -407,7 +431,9 @@ export function AdminTimeEntriesPage() {
                                 setActionError(err instanceof Error ? mapDatabaseError(err) : 'Erro ao aprovar');
                               }
                             }}
-                            className="px-2.5 py-1 rounded-md text-xs font-medium bg-green-600 hover:bg-green-700 text-white transition"
+                            disabled={isFutureDate(entry.entry_date)}
+                            title={isFutureDate(entry.entry_date) ? 'Apontamentos com data futura não podem ser aprovados.' : undefined}
+                            className="px-2.5 py-1 rounded-md text-xs font-medium bg-green-600 hover:bg-green-700 text-white transition disabled:opacity-50 disabled:cursor-not-allowed"
                           >
                             Aprovar
                           </button>
@@ -450,6 +476,11 @@ export function AdminTimeEntriesPage() {
                     </p>
                     <p className="text-xs text-app-muted">
                       {entry.project?.name || '—'} · {formatDate(entry.entry_date)} · {formatDuration(entry.duration_minutes)}
+                      {isFutureDate(entry.entry_date) && (
+                        <span className="ml-1 inline-block px-1.5 py-0.5 rounded text-[10px] font-semibold bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400">
+                          DATA FUTURA
+                        </span>
+                      )}
                       {daysLate(entry.entry_date) >= 3 && (
                         <span className="ml-1 inline-block px-1.5 py-0.5 rounded text-[10px] font-semibold bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400">
                           RETRO
@@ -484,7 +515,9 @@ export function AdminTimeEntriesPage() {
                           setActionError(err instanceof Error ? mapDatabaseError(err) : 'Erro ao aprovar');
                         }
                       }}
-                      className="px-3 py-1.5 rounded-lg text-xs font-medium bg-green-600 hover:bg-green-700 text-white transition"
+                      disabled={isFutureDate(entry.entry_date)}
+                      title={isFutureDate(entry.entry_date) ? 'Apontamentos com data futura não podem ser aprovados.' : undefined}
+                      className="px-3 py-1.5 rounded-lg text-xs font-medium bg-green-600 hover:bg-green-700 text-white transition disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                       Aprovar
                     </button>

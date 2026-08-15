@@ -4,6 +4,7 @@ import type { TimeEntryWithRelations, TimeEntryApprovalHistory } from '@/types/d
 import { Modal } from '@/components/Modal';
 import { timeEntriesAPI } from '@/lib/supabase/api';
 import { useDebounce } from '@/hooks/usePagination';
+import { isFutureDate } from '@/features/time-entries/temporalRules';
 
 interface TimeEntryApprovalProps {
   onStatusChanged?: () => void;
@@ -55,6 +56,12 @@ export function TimeEntryApproval({ onStatusChanged }: TimeEntryApprovalProps) {
     [filteredEntries, selectedIds]
   );
 
+  // Count of future legacy entries among filtered results
+  const futureLegacyCount = useMemo(
+    () => filteredEntries.filter((e) => isFutureDate(e.entry_date)).length,
+    [filteredEntries]
+  );
+
   const approveEntry = async (entryId: string) => {
     const ok = await approve(entryId);
     if (ok) onStatusChanged?.();
@@ -98,7 +105,21 @@ export function TimeEntryApproval({ onStatusChanged }: TimeEntryApprovalProps) {
 
   const confirmBatchApprove = async () => {
     const ids = Array.from(selectedIds);
-    const results = await batchApprove(ids);
+    // Filter out future legacy entries — they cannot be approved
+    const approvableIds = ids.filter((id) => {
+      const entry = entries.find((e) => e.id === id);
+      return entry && !isFutureDate(entry.entry_date);
+    });
+    if (approvableIds.length === 0) {
+      setBatchError('Nenhum dos apontamentos selecionados pode ser aprovado (todos possuem data futura).');
+      return;
+    }
+    if (approvableIds.length < ids.length) {
+      setBatchError(`${ids.length - approvableIds.length} apontamento(s) com data futura foram excluídos da aprovação em lote.`);
+    } else {
+      setBatchError(null);
+    }
+    const results = await batchApprove(approvableIds);
     if (results) {
       setSelectedIds(new Set());
       setBatchMode(null);
@@ -205,6 +226,11 @@ export function TimeEntryApproval({ onStatusChanged }: TimeEntryApprovalProps) {
             </label>
             <span className="text-sm text-app-muted">
               {selectedCount > 0 ? `${selectedCount} selecionado(s)` : 'Nenhum selecionado'}
+              {futureLegacyCount > 0 && (
+                <span className="ml-2 text-orange-600 dark:text-orange-400">
+                  · {futureLegacyCount} com data futura (não aprovável)
+                </span>
+              )}
             </span>
             <div className="ml-auto flex gap-2">
               <button
@@ -278,6 +304,14 @@ export function TimeEntryApproval({ onStatusChanged }: TimeEntryApprovalProps) {
                     </td>
                     <td className="px-4 py-4 text-sm text-app-primary whitespace-nowrap">
                       {formatDate(entry.entry_date)}
+                      {isFutureDate(entry.entry_date) && (
+                        <span
+                          className="ml-1.5 inline-block px-1.5 py-0.5 rounded text-[10px] font-semibold bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400"
+                          title="Apontamento com data futura — não pode ser aprovado"
+                        >
+                          DATA FUTURA
+                        </span>
+                      )}
                     </td>
                     <td className="px-4 py-4 text-sm text-app-primary whitespace-nowrap">
                       {formatDuration(entry.duration_minutes)}
@@ -291,7 +325,8 @@ export function TimeEntryApproval({ onStatusChanged }: TimeEntryApprovalProps) {
                     <td className="px-4 py-4 text-sm space-x-2 flex" onClick={(e) => e.stopPropagation()}>
                       <button
                         onClick={() => approveEntry(entry.id)}
-                        disabled={actionLoading === entry.id || batchBusy}
+                        disabled={actionLoading === entry.id || batchBusy || isFutureDate(entry.entry_date)}
+                        title={isFutureDate(entry.entry_date) ? 'Apontamentos com data futura não podem ser aprovados.' : undefined}
                         className="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white rounded-lg text-xs font-medium transition disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         {actionLoading === entry.id ? '...' : 'Aprovar'}
@@ -363,13 +398,21 @@ export function TimeEntryApproval({ onStatusChanged }: TimeEntryApprovalProps) {
             </div>
             <ApprovalHistorySection entryId={selectedEntry.id} />
             <div className="flex justify-end gap-3 border-t border-app-primary pt-4">
+              {isFutureDate(selectedEntry.entry_date) && (
+                <div className="mr-auto rounded-lg bg-orange-50 dark:bg-orange-900/20 border border-orange-300 dark:border-orange-700 px-3 py-2">
+                  <p className="text-xs text-orange-800 dark:text-orange-400">
+                    ⚠ Data futura — não pode ser aprovado. Corrija a data ou rejeite.
+                  </p>
+                </div>
+              )}
               <button
                 onClick={() => {
                   approveEntry(selectedEntry.id);
                   setSelectedEntry(null);
                 }}
-                disabled={actionLoading === selectedEntry.id}
-                className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-medium transition disabled:opacity-50"
+                disabled={actionLoading === selectedEntry.id || isFutureDate(selectedEntry.entry_date)}
+                title={isFutureDate(selectedEntry.entry_date) ? 'Apontamentos com data futura não podem ser aprovados.' : undefined}
+                className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-medium transition disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Aprovar
               </button>

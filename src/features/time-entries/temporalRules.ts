@@ -24,6 +24,37 @@ export function requiresLateReason(entryDate: string): boolean {
   return daysLate(entryDate) >= 3;
 }
 
+/**
+ * Whether the entry date is in the future (after today).
+ * Uses calendar-date comparison (not timestamp) to avoid timezone bugs.
+ * entry_date is a DATE column (YYYY-MM-DD), so we compare as calendar dates.
+ */
+export function isFutureDate(entryDate: string): boolean {
+  return daysLate(entryDate) < 0;
+}
+
+/**
+ * Classifies a time entry into a temporal category for UI display.
+ *
+ * Categories:
+ *   - 'today'          — entry_date === today
+ *   - 'past_normal'    — entry_date in the past, < 3 days late
+ *   - 'retroactive'    — entry_date >= 3 days in the past
+ *   - 'future_legacy'  — entry_date in the future (should not exist but may be legacy)
+ *
+ * This helper centralizes temporal classification so components don't
+ * scatter `new Date(entry.entry_date) > new Date()` checks.
+ */
+export type TimeEntryTemporalState = 'today' | 'past_normal' | 'retroactive' | 'future_legacy';
+
+export function getTimeEntryTemporalState(entryDate: string): TimeEntryTemporalState {
+  const late = daysLate(entryDate);
+  if (late < 0) return 'future_legacy';
+  if (late === 0) return 'today';
+  if (late >= 3) return 'retroactive';
+  return 'past_normal';
+}
+
 /** Minimum length for a valid late submission reason. */
 export const LATE_REASON_MIN_LENGTH = 10;
 /** Maximum length for a valid late submission reason. */
