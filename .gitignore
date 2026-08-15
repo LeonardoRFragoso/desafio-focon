@@ -44,3 +44,4 @@ supabase/.temp/
 # Confidential documents
 *.pdf
 Desafio_Tecnico_*.pdf
+deno.lock
