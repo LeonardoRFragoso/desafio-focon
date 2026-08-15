@@ -102,13 +102,13 @@ export function ProfessionalDashboard() {
     const baseClasses = 'px-3 py-1 rounded-full text-xs font-semibold';
     switch (status) {
       case 'approved':
-        return `${baseClasses} bg-green-100 text-green-800`;
+        return `${baseClasses} bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400`;
       case 'pending':
-        return `${baseClasses} bg-yellow-100 text-yellow-800`;
+        return `${baseClasses} bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400`;
       case 'rejected':
-        return `${baseClasses} bg-red-100 text-red-800`;
+        return `${baseClasses} bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400`;
       default:
-        return `${baseClasses} bg-slate-100 text-slate-800`;
+        return `${baseClasses} bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-300`;
     }
   };
 
@@ -136,8 +136,8 @@ export function ProfessionalDashboard() {
   return (
     <div className="space-y-8">
       {error && (
-        <div className="rounded-lg bg-red-50 border border-red-200 p-4">
-          <p className="text-sm font-medium text-red-800">{error}</p>
+        <div className="rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 p-4">
+          <p className="text-sm font-medium text-red-800 dark:text-red-400">{error}</p>
         </div>
       )}
 
@@ -168,42 +168,42 @@ export function ProfessionalDashboard() {
       <HourGoalWidget />
 
       {/* Entries Table */}
-      <div className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
-        <h2 className="text-2xl font-semibold text-slate-900 mb-6">Meus Apontamentos</h2>
+      <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 p-6 shadow-sm">
+        <h2 className="text-2xl font-semibold text-slate-900 dark:text-slate-100 mb-6">Meus Apontamentos</h2>
 
         {entries.length === 0 ? (
-          <div className="rounded-lg bg-slate-50 border border-slate-200 p-8 text-center">
-            <p className="text-slate-600">Nenhum apontamento registrado</p>
+          <div className="rounded-lg bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 p-8 text-center">
+            <p className="text-slate-600 dark:text-slate-400">Nenhum apontamento registrado</p>
           </div>
         ) : (
-          <div className="overflow-x-auto rounded-lg border border-slate-200">
+          <div className="overflow-x-auto rounded-lg border border-slate-200 dark:border-slate-700">
             <table className="w-full">
-              <thead className="bg-slate-100 border-b border-slate-200">
+              <thead className="bg-slate-100 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700">
                 <tr>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-slate-900">
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-slate-900 dark:text-slate-100">
                     Projeto
                   </th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-slate-900">
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-slate-900 dark:text-slate-100">
                     Data
                   </th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-slate-900">
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-slate-900 dark:text-slate-100">
                     Duração
                   </th>
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-slate-900">
+                  <th className="px-6 py-4 text-left text-sm font-semibold text-slate-900 dark:text-slate-100">
                     Status
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-200">
+              <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
                 {entries.map((entry) => (
-                  <tr key={entry.id} className="hover:bg-slate-50 transition">
-                    <td className="px-6 py-4 text-sm text-slate-900">
+                  <tr key={entry.id} className="hover:bg-slate-50 dark:hover:bg-slate-800 transition">
+                    <td className="px-6 py-4 text-sm text-slate-900 dark:text-slate-100">
                       {entry.project?.name || 'Desconhecido'}
                     </td>
-                    <td className="px-6 py-4 text-sm text-slate-900">
+                    <td className="px-6 py-4 text-sm text-slate-900 dark:text-slate-100">
                       {formatDate(entry.entry_date)}
                     </td>
-                    <td className="px-6 py-4 text-sm text-slate-900">
+                    <td className="px-6 py-4 text-sm text-slate-900 dark:text-slate-100">
                       {formatDuration(entry.duration_minutes)}
                     </td>
                     <td className="px-6 py-4 text-sm">

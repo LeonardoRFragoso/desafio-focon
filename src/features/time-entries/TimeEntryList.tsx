@@ -163,9 +163,9 @@ export function TimeEntryList() {
 
   const getStatusBadge = (status: TimeEntry['approval_status']) => {
     const styles: Record<string, string> = {
-      pending: 'bg-yellow-100 text-yellow-800',
-      approved: 'bg-green-100 text-green-800',
-      rejected: 'bg-red-100 text-red-800',
+      pending: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400',
+      approved: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400',
+      rejected: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400',
     };
     const labels: Record<string, string> = {
       pending: 'Pendente',
@@ -188,7 +188,7 @@ export function TimeEntryList() {
       <div className="flex justify-center items-center py-12" role="status" aria-live="polite">
         <div className="flex flex-col items-center gap-3">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-focon-600"></div>
-          <p className="text-sm text-slate-600">Carregando apontamentos...</p>
+          <p className="text-sm text-slate-600 dark:text-slate-400">Carregando apontamentos...</p>
         </div>
       </div>
     );
@@ -196,11 +196,11 @@ export function TimeEntryList() {
 
   if (error) {
     return (
-      <div className="rounded-xl bg-red-50 border border-red-200 p-4" role="alert">
-        <p className="text-sm font-medium text-red-800 mb-3">{error}</p>
+      <div className="rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 p-4" role="alert">
+        <p className="text-sm font-medium text-red-800 dark:text-red-400 mb-3">{error}</p>
         <button
           onClick={fetchEntries}
-          className="text-sm font-medium text-red-700 hover:text-red-800 underline"
+          className="text-sm font-medium text-red-700 dark:text-red-300 hover:text-red-800 dark:hover:text-red-200 underline"
         >
           Tentar novamente
         </button>
@@ -210,9 +210,9 @@ export function TimeEntryList() {
 
   if (entries.length === 0) {
     return (
-      <div className="rounded-xl border border-slate-200 p-12 text-center bg-slate-50">
-        <p className="text-slate-600 mb-2">Nenhum apontamento registrado</p>
-        <p className="text-sm text-slate-500">Registre suas horas usando o formulário acima</p>
+      <div className="rounded-xl border border-slate-200 dark:border-slate-700 p-12 text-center bg-slate-50 dark:bg-slate-800/50">
+        <p className="text-slate-600 dark:text-slate-300 mb-2">Nenhum apontamento registrado</p>
+        <p className="text-sm text-slate-500 dark:text-slate-400">Registre suas horas usando o formulário acima</p>
       </div>
     );
   }
@@ -220,8 +220,8 @@ export function TimeEntryList() {
   return (
     <div className="space-y-3">
       {actionError && (
-        <div className="rounded-lg bg-red-50 border border-red-200 p-3" role="alert">
-          <p className="text-sm text-red-800">{actionError}</p>
+        <div className="rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 p-3" role="alert">
+          <p className="text-sm text-red-800 dark:text-red-400">{actionError}</p>
         </div>
       )}
 
@@ -255,37 +255,37 @@ export function TimeEntryList() {
           <option value="rejected">Rejeitado</option>
         </select>
       </div>
-      <div className="overflow-x-auto rounded-xl border border-slate-200 shadow-sm">
+      <div className="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
         <table className="w-full">
           <caption className="sr-only">Histórico de apontamentos de horas</caption>
           <thead>
-            <tr className="border-b border-slate-200 bg-slate-100">
-              <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900" scope="col">Projeto</th>
-              <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900" scope="col">Data</th>
-              <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900" scope="col">Duração</th>
-              <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900" scope="col">Descrição</th>
-              <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900" scope="col">Status</th>
-              <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900" scope="col">Ações</th>
+            <tr className="border-b border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800">
+              <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900 dark:text-slate-100" scope="col">Projeto</th>
+              <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900 dark:text-slate-100" scope="col">Data</th>
+              <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900 dark:text-slate-100" scope="col">Duração</th>
+              <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900 dark:text-slate-100" scope="col">Descrição</th>
+              <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900 dark:text-slate-100" scope="col">Status</th>
+              <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900 dark:text-slate-100" scope="col">Ações</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-slate-200">
+          <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
             {paginatedEntries.map((entry) => {
               const editable = canEditOrDelete(entry.approval_status);
               return (
                 <tr
                   key={entry.id}
                   onClick={() => setDialog({ kind: 'details', entry })}
-                  className="hover:bg-slate-50 transition cursor-pointer"
+                  className="hover:bg-slate-50 dark:hover:bg-slate-800 transition cursor-pointer"
                   role="button"
                   tabIndex={0}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter' || e.key === ' ') setDialog({ kind: 'details', entry });
                   }}
                 >
-                  <td className="px-4 py-3 text-sm text-slate-900">{entry.project_name}</td>
-                  <td className="px-4 py-3 text-sm text-slate-900 whitespace-nowrap">{formatDate(entry.entry_date)}</td>
-                  <td className="px-4 py-3 text-sm text-slate-900 whitespace-nowrap">{formatDuration(entry.duration_minutes)}</td>
-                  <td className="px-4 py-3 text-sm text-slate-600 min-w-[200px] max-w-[320px] truncate">
+                  <td className="px-4 py-3 text-sm text-slate-900 dark:text-slate-100">{entry.project_name}</td>
+                  <td className="px-4 py-3 text-sm text-slate-900 dark:text-slate-100 whitespace-nowrap">{formatDate(entry.entry_date)}</td>
+                  <td className="px-4 py-3 text-sm text-slate-900 dark:text-slate-100 whitespace-nowrap">{formatDuration(entry.duration_minutes)}</td>
+                  <td className="px-4 py-3 text-sm text-slate-600 dark:text-slate-400 min-w-[200px] max-w-[320px] truncate">
                     {entry.description}
                   </td>
                   <td className="px-4 py-3 text-sm">{getStatusBadge(entry.approval_status)}</td>
@@ -294,7 +294,7 @@ export function TimeEntryList() {
                       <button
                         onClick={() => setDialog({ kind: 'edit', entry })}
                         disabled={!editable}
-                        className="px-2.5 py-1 rounded-md text-xs font-medium border border-slate-300 text-slate-700 hover:bg-slate-100 transition disabled:opacity-40 disabled:cursor-not-allowed"
+                        className="px-2.5 py-1 rounded-md text-xs font-medium border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition disabled:opacity-40 disabled:cursor-not-allowed"
                         aria-disabled={!editable}
                         title={editable ? 'Editar apontamento' : 'Edição indisponível (não pendente)'}
                       >
@@ -303,7 +303,7 @@ export function TimeEntryList() {
                       <button
                         onClick={() => setDialog({ kind: 'delete', entry })}
                         disabled={!editable}
-                        className="px-2.5 py-1 rounded-md text-xs font-medium border border-red-300 text-red-700 hover:bg-red-50 transition disabled:opacity-40 disabled:cursor-not-allowed"
+                        className="px-2.5 py-1 rounded-md text-xs font-medium border border-red-300 dark:border-red-700 text-red-700 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition disabled:opacity-40 disabled:cursor-not-allowed"
                         aria-disabled={!editable}
                         title={editable ? 'Excluir apontamento' : 'Exclusão indisponível (não pendente)'}
                       >
@@ -311,7 +311,7 @@ export function TimeEntryList() {
                       </button>
                       <button
                         onClick={() => setDialog({ kind: 'duplicate', entry })}
-                        className="px-2.5 py-1 rounded-md text-xs font-medium border border-focon-300 text-focon-700 hover:bg-focon-50 transition"
+                        className="px-2.5 py-1 rounded-md text-xs font-medium border border-focon-300 dark:border-focon-700 text-focon-700 dark:text-focon-400 hover:bg-focon-50 dark:hover:bg-focon-900/20 transition"
                         title={entry.approval_status === 'rejected' ? 'Corrigir criando novo apontamento' : 'Duplicar apontamento'}
                       >
                         {entry.approval_status === 'rejected' ? 'Corrigir' : 'Duplicar'}
@@ -326,7 +326,7 @@ export function TimeEntryList() {
       </div>
 
       {filteredEntries.length === 0 ? (
-        <p className="text-center text-sm text-slate-500 py-4">Nenhum apontamento encontrado com os filtros selecionados</p>
+        <p className="text-center text-sm text-slate-500 dark:text-slate-400 py-4">Nenhum apontamento encontrado com os filtros selecionados</p>
       ) : (
         <Pagination
           page={page}
@@ -389,7 +389,7 @@ export function TimeEntryList() {
                 {dialog.entry.project_name} — {formatDate(dialog.entry.entry_date)} —{' '}
                 {formatDuration(dialog.entry.duration_minutes)}
               </p>
-              <p className="mt-3 text-red-700">
+              <p className="mt-3 text-red-700 dark:text-red-400">
                 Esta operação não poderá ser desfeita.
               </p>
             </>
@@ -414,40 +414,40 @@ function DetailsModal({ entry, onClose, formatDuration, formatDate, formatDateTi
     <Modal open onClose={onClose} title="Detalhes do Apontamento" maxWidth="max-w-2xl">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
-          <label className="block text-sm font-medium text-slate-600 mb-2">Projeto</label>
-          <p className="text-lg font-semibold text-slate-900">{entry.project_name}</p>
+          <label className="block text-sm font-medium text-slate-600 dark:text-slate-400 mb-2">Projeto</label>
+          <p className="text-lg font-semibold text-slate-900 dark:text-slate-100">{entry.project_name}</p>
         </div>
         <div>
-          <label className="block text-sm font-medium text-slate-600 mb-2">Data</label>
-          <p className="text-lg font-semibold text-slate-900">{formatDate(entry.entry_date)}</p>
+          <label className="block text-sm font-medium text-slate-600 dark:text-slate-400 mb-2">Data</label>
+          <p className="text-lg font-semibold text-slate-900 dark:text-slate-100">{formatDate(entry.entry_date)}</p>
         </div>
         <div>
-          <label className="block text-sm font-medium text-slate-600 mb-2">Duração</label>
-          <p className="text-lg font-semibold text-slate-900">{formatDuration(entry.duration_minutes)}</p>
+          <label className="block text-sm font-medium text-slate-600 dark:text-slate-400 mb-2">Duração</label>
+          <p className="text-lg font-semibold text-slate-900 dark:text-slate-100">{formatDuration(entry.duration_minutes)}</p>
         </div>
         <div>
-          <label className="block text-sm font-medium text-slate-600 mb-2">Status</label>
-          <p className="text-lg font-semibold text-slate-900 capitalize">{entry.approval_status}</p>
+          <label className="block text-sm font-medium text-slate-600 dark:text-slate-400 mb-2">Status</label>
+          <p className="text-lg font-semibold text-slate-900 dark:text-slate-100 capitalize">{entry.approval_status}</p>
         </div>
         <div className="md:col-span-2">
-          <label className="block text-sm font-medium text-slate-600 mb-2">Descrição</label>
-          <p className="text-slate-900 whitespace-pre-wrap break-words">{entry.description}</p>
+          <label className="block text-sm font-medium text-slate-600 dark:text-slate-400 mb-2">Descrição</label>
+          <p className="text-slate-900 dark:text-slate-100 whitespace-pre-wrap break-words">{entry.description}</p>
         </div>
       </div>
 
       {entry.approval_status === 'rejected' && entry.rejection_reason && (
-        <div className="mt-4 rounded-lg bg-red-50 border border-red-200 p-4">
-          <p className="text-sm font-semibold text-red-800 mb-1">Rejeitado</p>
-          <p className="text-sm text-red-700">
+        <div className="mt-4 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 p-4">
+          <p className="text-sm font-semibold text-red-800 dark:text-red-400 mb-1">Rejeitado</p>
+          <p className="text-sm text-red-700 dark:text-red-400">
             <span className="font-medium">Motivo:</span> {entry.rejection_reason}
           </p>
           {entry.rejected_by_profile?.full_name && (
-            <p className="text-sm text-red-700 mt-1">
+            <p className="text-sm text-red-700 dark:text-red-400 mt-1">
               <span className="font-medium">Rejeitado por:</span> {entry.rejected_by_profile.full_name}
             </p>
           )}
           {entry.rejected_at && (
-            <p className="text-sm text-red-700 mt-1">
+            <p className="text-sm text-red-700 dark:text-red-400 mt-1">
               <span className="font-medium">Data:</span> {formatDateTime(entry.rejected_at)}
             </p>
           )}
@@ -516,7 +516,7 @@ function EditEntryModal({ entry, projects, onClose, onSaved, onError }: EditEntr
             type="button"
             onClick={onClose}
             disabled={submitting}
-            className="px-4 py-2 rounded-lg border border-slate-300 text-slate-700 hover:bg-slate-100 transition disabled:opacity-50"
+            className="px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition disabled:opacity-50"
           >
             Cancelar
           </button>
@@ -533,13 +533,13 @@ function EditEntryModal({ entry, projects, onClose, onSaved, onError }: EditEntr
     >
       <form id="edit-entry-form" onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <div>
-          <label htmlFor="edit-projectId" className="block text-sm font-medium text-slate-700 mb-2">
+          <label htmlFor="edit-projectId" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
             Projeto *
           </label>
           <select
             {...register('projectId')}
             id="edit-projectId"
-            className="w-full px-3 py-2.5 border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-focon-600"
+            className="w-full px-3 py-2.5 border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-focon-600"
           >
             {projects.map((p) => (
               <option key={p.id} value={p.id}>
@@ -551,19 +551,19 @@ function EditEntryModal({ entry, projects, onClose, onSaved, onError }: EditEntr
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label htmlFor="edit-entryDate" className="block text-sm font-medium text-slate-700 mb-2">
+            <label htmlFor="edit-entryDate" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
               Data *
             </label>
             <input
               {...register('entryDate')}
               id="edit-entryDate"
               type="date"
-              className="w-full px-3 py-2.5 border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-focon-600"
+              className="w-full px-3 py-2.5 border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-focon-600"
             />
             {errors.entryDate && <p className="mt-1 text-sm text-red-600">{errors.entryDate.message}</p>}
           </div>
           <div>
-            <label htmlFor="edit-durationMinutes" className="block text-sm font-medium text-slate-700 mb-2">
+            <label htmlFor="edit-durationMinutes" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
               Duração (minutos) *
             </label>
             <input
@@ -572,7 +572,7 @@ function EditEntryModal({ entry, projects, onClose, onSaved, onError }: EditEntr
               type="number"
               min="1"
               max="1440"
-              className="w-full px-3 py-2.5 border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-focon-600"
+              className="w-full px-3 py-2.5 border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-focon-600"
             />
             {errors.durationMinutes && (
               <p className="mt-1 text-sm text-red-600">{errors.durationMinutes.message}</p>
@@ -580,18 +580,18 @@ function EditEntryModal({ entry, projects, onClose, onSaved, onError }: EditEntr
           </div>
         </div>
         <div>
-          <label htmlFor="edit-description" className="block text-sm font-medium text-slate-700 mb-2">
+          <label htmlFor="edit-description" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
             Descrição *
           </label>
           <textarea
             {...register('description')}
             id="edit-description"
             rows={3}
-            className="w-full px-3 py-2.5 border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-focon-600"
+            className="w-full px-3 py-2.5 border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-focon-600"
           />
           {errors.description && <p className="mt-1 text-sm text-red-600">{errors.description.message}</p>}
         </div>
-        <p className="text-xs text-slate-500">
+        <p className="text-xs text-slate-500 dark:text-slate-400">
           Apenas apontamentos pendentes podem ser editados. O valor/hora é recalculado
           automaticamente pelo sistema ao alterar a data.
         </p>
@@ -657,7 +657,7 @@ function DuplicateEntryModal({ entry, projects, onClose, onSaved, onError }: Dup
             type="button"
             onClick={onClose}
             disabled={submitting}
-            className="px-4 py-2 rounded-lg border border-slate-300 text-slate-700 hover:bg-slate-100 transition disabled:opacity-50"
+            className="px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition disabled:opacity-50"
           >
             Cancelar
           </button>
@@ -673,18 +673,18 @@ function DuplicateEntryModal({ entry, projects, onClose, onSaved, onError }: Dup
       }
     >
       <form id="duplicate-entry-form" onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-        <p className="text-sm text-slate-600">
+        <p className="text-sm text-slate-600 dark:text-slate-400">
           Um novo apontamento <strong>pendente</strong> será criado copiando projeto, duração e
           descrição. A data pode ser ajustada abaixo. O valor/hora será definido pelo sistema.
         </p>
         <div>
-          <label htmlFor="dup-projectId" className="block text-sm font-medium text-slate-700 mb-2">
+          <label htmlFor="dup-projectId" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
             Projeto *
           </label>
           <select
             {...register('projectId')}
             id="dup-projectId"
-            className="w-full px-3 py-2.5 border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-focon-600"
+            className="w-full px-3 py-2.5 border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-focon-600"
           >
             {projects.map((p) => (
               <option key={p.id} value={p.id}>
@@ -696,19 +696,19 @@ function DuplicateEntryModal({ entry, projects, onClose, onSaved, onError }: Dup
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label htmlFor="dup-entryDate" className="block text-sm font-medium text-slate-700 mb-2">
+            <label htmlFor="dup-entryDate" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
               Nova data *
             </label>
             <input
               {...register('entryDate')}
               id="dup-entryDate"
               type="date"
-              className="w-full px-3 py-2.5 border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-focon-600"
+              className="w-full px-3 py-2.5 border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-focon-600"
             />
             {errors.entryDate && <p className="mt-1 text-sm text-red-600">{errors.entryDate.message}</p>}
           </div>
           <div>
-            <label htmlFor="dup-durationMinutes" className="block text-sm font-medium text-slate-700 mb-2">
+            <label htmlFor="dup-durationMinutes" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
               Duração (minutos) *
             </label>
             <input
@@ -717,7 +717,7 @@ function DuplicateEntryModal({ entry, projects, onClose, onSaved, onError }: Dup
               type="number"
               min="1"
               max="1440"
-              className="w-full px-3 py-2.5 border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-focon-600"
+              className="w-full px-3 py-2.5 border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-focon-600"
             />
             {errors.durationMinutes && (
               <p className="mt-1 text-sm text-red-600">{errors.durationMinutes.message}</p>
@@ -725,14 +725,14 @@ function DuplicateEntryModal({ entry, projects, onClose, onSaved, onError }: Dup
           </div>
         </div>
         <div>
-          <label htmlFor="dup-description" className="block text-sm font-medium text-slate-700 mb-2">
+          <label htmlFor="dup-description" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
             Descrição *
           </label>
           <textarea
             {...register('description')}
             id="dup-description"
             rows={3}
-            className="w-full px-3 py-2.5 border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-focon-600"
+            className="w-full px-3 py-2.5 border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-focon-600"
           />
           {errors.description && <p className="mt-1 text-sm text-red-600">{errors.description.message}</p>}
         </div>
