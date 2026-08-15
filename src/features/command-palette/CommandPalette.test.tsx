@@ -132,3 +132,65 @@ describe('CommandPalette', () => {
     expect(screen.getByRole('listbox')).toHaveAttribute('aria-label', 'Resultados da busca');
   });
 });
+
+// ==========================================================================
+// A12: Command Palette sequential actions
+// The palette must remain usable across close/reopen cycles. The A12 bug
+// itself (sticky actionHandled ref) lives in ProfessionalDashboard, but the
+// palette must not introduce its own sticky state. These tests verify the
+// palette can be toggled repeatedly and commands remain available.
+// ==========================================================================
+describe('CommandPalette — sequential actions across close/reopen', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.spyOn(commandCenterAPI, 'searchGlobal').mockResolvedValue({
+      data: { projects: [], tasks: [], professionals: [], time_entries: [] },
+      error: null,
+    } as any);
+  });
+
+  it('commands remain available after close and reopen (no sticky state)', () => {
+    const { rerender } = render(
+      <MemoryRouter>
+        <CommandPalette open={true} onClose={vi.fn()} />
+      </MemoryRouter>
+    );
+    // Admin command present on first open
+    expect(screen.getByText('Novo Projeto')).toBeInTheDocument();
+    // Close
+    rerender(
+      <MemoryRouter>
+        <CommandPalette open={false} onClose={vi.fn()} />
+      </MemoryRouter>
+    );
+    expect(screen.queryByText('Novo Projeto')).not.toBeInTheDocument();
+    // Reopen — command must still be present (no sticky flag blocking it)
+    rerender(
+      <MemoryRouter>
+        <CommandPalette open={true} onClose={vi.fn()} />
+      </MemoryRouter>
+    );
+    expect(screen.getByText('Novo Projeto')).toBeInTheDocument();
+  });
+
+  it('can be closed and reopened multiple times with commands still present', () => {
+    const { rerender } = render(
+      <MemoryRouter>
+        <CommandPalette open={true} onClose={vi.fn()} />
+      </MemoryRouter>
+    );
+    for (let i = 0; i < 3; i++) {
+      rerender(
+        <MemoryRouter>
+          <CommandPalette open={false} onClose={vi.fn()} />
+        </MemoryRouter>
+      );
+      rerender(
+        <MemoryRouter>
+          <CommandPalette open={true} onClose={vi.fn()} />
+        </MemoryRouter>
+      );
+      expect(screen.getByText('Novo Projeto')).toBeInTheDocument();
+    }
+  });
+});

@@ -20,7 +20,7 @@ interface ProfessionalStats {
 }
 
 export function ProfessionalDashboard() {
-  const { user } = useAuthContext();
+  const { user, isAdmin } = useAuthContext();
   const [searchParams, setSearchParams] = useSearchParams();
   const [entries, setEntries] = useState<TimeEntryWithRelations[]>([]);
   const [stats, setStats] = useState<ProfessionalStats>({
@@ -35,18 +35,20 @@ export function ProfessionalDashboard() {
   const [quickEntryOpen, setQuickEntryOpen] = useState(false);
   const [selectedEntry, setSelectedEntry] = useState<TimeEntryDetail | null>(null);
   const [toast, setToast] = useState<string | null>(null);
+  const [goalEditorSignal, setGoalEditorSignal] = useState(0);
   const timerRef = useRef<HTMLDivElement>(null);
-  const actionHandled = useRef(false);
 
-  // Handle deep link actions from Command Palette (?action=quick-entry or ?action=start-timer)
+  // Handle deep link actions from Command Palette (?action=quick-entry or ?action=start-timer).
+  // We key off the URL param itself (not a sticky ref) so repeated navigations
+  // to the same action type work across multiple Command Palette invocations.
+  // The param is removed from the URL after handling, so a fresh navigation
+  // with the same param will be handled again.
   useEffect(() => {
-    if (actionHandled.current) return;
     const action = searchParams.get('action');
+    if (!action) return;
     if (action === 'quick-entry') {
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setQuickEntryOpen(true);
-      actionHandled.current = true;
-      // Clean URL
       const params = new URLSearchParams(searchParams);
       params.delete('action');
       setSearchParams(params, { replace: true });
@@ -55,7 +57,6 @@ export function ProfessionalDashboard() {
       requestAnimationFrame(() => {
         timerRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
       });
-      actionHandled.current = true;
       const params = new URLSearchParams(searchParams);
       params.delete('action');
       setSearchParams(params, { replace: true });
@@ -291,7 +292,11 @@ export function ProfessionalDashboard() {
       </div>
 
       {/* Minhas Pendências — Action Center for professionals */}
-      <ProfessionalActionCenter stats={dashboardStats} loading={false} />
+      <ProfessionalActionCenter
+        stats={dashboardStats}
+        loading={false}
+        onDefineGoal={() => setGoalEditorSignal((n) => n + 1)}
+      />
 
       {/* Minhas Tarefas */}
       <MyTasks stats={dashboardStats} loading={false} />
@@ -309,13 +314,22 @@ export function ProfessionalDashboard() {
         </button>
         {user && (
           <div ref={timerRef}>
-            <Timer userId={user.id} onEntryCreated={handleTimerEntryCreated} />
+            <Timer userId={user.id} onEntryCreated={handleTimerEntryCreated} isAdmin={isAdmin} />
           </div>
         )}
       </div>
 
-      {/* Hour Goal Widget */}
-      <HourGoalWidget />
+      {/* Hour Goal Widget — consumes the same RPC weekly_goal block as the
+          Action Center (single source of truth). When the goal is saved or
+          removed, onGoalChanged triggers a full dashboard refetch so both
+          widgets update immediately without a manual page reload. */}
+      <div id="hour-goal-widget">
+        <HourGoalWidget
+          weeklyGoal={dashboardStats?.weekly_goal ?? null}
+          openEditorSignal={goalEditorSignal}
+          onGoalChanged={fetchUserEntries}
+        />
+      </div>
 
       {/* Entries Table */}
       <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 p-6 shadow-sm">

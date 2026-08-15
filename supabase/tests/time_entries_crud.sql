@@ -429,7 +429,11 @@ BEGIN
   -- TEST 25: closed period blocks member insert
   -- ====================================================================
   SET LOCAL ROLE service_role;
-  INSERT INTO accounting_periods (period_key, status) VALUES ('2024-04', 'open');
+  -- Idempotent: reset the period to 'open' so the close below works on
+  -- repeated runs (the test runner may execute this file more than once
+  -- against the same database without a reset in between).
+  INSERT INTO accounting_periods (period_key, status) VALUES ('2024-04', 'open')
+  ON CONFLICT (period_key) DO UPDATE SET status = 'open';
   RESET ROLE;
   -- close April 2024 as admin
   PERFORM pg_temp.assert_true(

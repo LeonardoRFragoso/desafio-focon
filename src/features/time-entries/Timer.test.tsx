@@ -4,6 +4,12 @@ import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import { Timer } from '@/features/time-entries/Timer';
 
+const navigateMock = vi.fn();
+vi.mock('react-router-dom', async () => {
+  const actual = await vi.importActual<typeof import('react-router-dom')>('react-router-dom');
+  return { ...actual, useNavigate: () => navigateMock };
+});
+
 // Mock the API
 vi.mock('@/lib/supabase/client', () => ({
   supabase: {
@@ -17,15 +23,18 @@ vi.mock('@/lib/supabase/client', () => ({
   },
 }));
 
+const phasesMock = vi.fn();
+const tasksMock = vi.fn();
+
 vi.mock('@/lib/supabase/api', () => ({
   timeEntriesAPI: {
     create: vi.fn().mockResolvedValue({ error: null }),
   },
   projectPhasesAPI: {
-    listByProject: vi.fn().mockResolvedValue({ data: [] }),
+    listByProject: (...args: unknown[]) => phasesMock(...args),
   },
   projectTasksAPI: {
-    listByProject: vi.fn().mockResolvedValue({ data: [] }),
+    listByProject: (...args: unknown[]) => tasksMock(...args),
   },
 }));
 
@@ -44,6 +53,9 @@ function renderTimer(props: Partial<Parameters<typeof Timer>[0]> = {}) {
 describe('Timer', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    // Restore default implementations after clearAllMocks
+    phasesMock.mockResolvedValue({ data: [] });
+    tasksMock.mockResolvedValue({ data: [] });
     localStorage.clear();
   });
 
@@ -185,5 +197,147 @@ describe('Timer', () => {
     renderTimer();
     await waitFor(() => expect(screen.getByText('Pausado')).toBeInTheDocument());
     expect(screen.getByText('Continuar')).toBeInTheDocument();
+  });
+
+  // ========================================================================
+  // A9-A11: empty states, admin CTA, task filtering rules
+  // ========================================================================
+  describe('empty states and admin CTA', () => {
+    beforeEach(() => {
+      phasesMock.mockResolvedValue({ data: [] });
+      tasksMock.mockResolvedValue({ data: [] });
+    });
+
+    it('shows info text when project has no phases', async () => {
+      const user = userEvent.setup();
+      renderTimer();
+      await user.click(screen.getByText('Iniciar Timer'));
+      const projectSelect = screen.getByLabelText('Projeto *');
+      await user.selectOptions(projectSelect, 'p1');
+      await waitFor(() => {
+        expect(screen.getByText('Este projeto ainda não possui fases cadastradas.')).toBeInTheDocument();
+      });
+    });
+
+    it('shows info text when project has no tasks', async () => {
+      const user = userEvent.setup();
+      renderTimer();
+      await user.click(screen.getByText('Iniciar Timer'));
+      const projectSelect = screen.getByLabelText('Projeto *');
+      await user.selectOptions(projectSelect, 'p1');
+      await waitFor(() => {
+        expect(screen.getByText('Este projeto ainda não possui tarefas disponíveis.')).toBeInTheDocument();
+      });
+    });
+
+    it('shows admin "Gerenciar fases" CTA when isAdmin and project has no phases', async () => {
+      const user = userEvent.setup();
+      renderTimer({ isAdmin: true });
+      await user.click(screen.getByText('Iniciar Timer'));
+      const projectSelect = screen.getByLabelText('Projeto *');
+      await user.selectOptions(projectSelect, 'p1');
+      await waitFor(() => {
+        expect(screen.getByText('Gerenciar fases →')).toBeInTheDocument();
+      });
+    });
+
+    it('shows admin "Gerenciar tarefas" CTA when isAdmin and project has no tasks', async () => {
+      const user = userEvent.setup();
+      renderTimer({ isAdmin: true });
+      await user.click(screen.getByText('Iniciar Timer'));
+      const projectSelect = screen.getByLabelText('Projeto *');
+      await user.selectOptions(projectSelect, 'p1');
+      await waitFor(() => {
+        expect(screen.getByText('Gerenciar tarefas →')).toBeInTheDocument();
+      });
+    });
+
+    it('does NOT show admin CTA for non-admin members', async () => {
+      const user = userEvent.setup();
+      renderTimer({ isAdmin: false });
+      await user.click(screen.getByText('Iniciar Timer'));
+      const projectSelect = screen.getByLabelText('Projeto *');
+      await user.selectOptions(projectSelect, 'p1');
+      await waitFor(() => {
+        expect(screen.getByText('Este projeto ainda não possui fases cadastradas.')).toBeInTheDocument();
+      });
+      expect(screen.queryByText('Gerenciar fases →')).not.toBeInTheDocument();
+      expect(screen.queryByText('Gerenciar tarefas →')).not.toBeInTheDocument();
+    });
+
+    it('navigates to project phases tab when admin clicks Gerenciar fases', async () => {
+      navigateMock.mockReset();
+      const user = userEvent.setup();
+      renderTimer({ isAdmin: true });
+      await user.click(screen.getByText('Iniciar Timer'));
+      const projectSelect = screen.getByLabelText('Projeto *');
+      await user.selectOptions(projectSelect, 'p1');
+      await waitFor(() => expect(screen.getByText('Gerenciar fases →')).toBeInTheDocument());
+      await user.click(screen.getByText('Gerenciar fases →'));
+      expect(navigateMock).toHaveBeenCalledWith('/projects/p1?tab=phases');
+    });
+  });
+
+  describe('task filtering rules', () => {
+    beforeEach(() => {
+      phasesMock.mockResolvedValue({
+        data: [{ id: 'phase-1', name: 'Foundation' }],
+      });
+      tasksMock.mockResolvedValue({
+        data: [
+          { id: 'task-1', title: 'Excavation', phase_id: 'phase-1' },
+          { id: 'task-2', title: 'Design (no phase)', phase_id: null },
+        ],
+      });
+    });
+
+    it('shows ALL tasks of the project when no phase is selected', async () => {
+      const user = userEvent.setup();
+      renderTimer();
+      await user.click(screen.getByText('Iniciar Timer'));
+      const projectSelect = screen.getByLabelText('Projeto *');
+      await user.selectOptions(projectSelect, 'p1');
+      await waitFor(() => {
+        const taskSelect = screen.getByLabelText('Tarefa') as HTMLSelectElement;
+        // Both tasks should be present (no phase filter)
+        expect(taskSelect.querySelector('option[value="task-1"]')).not.toBeNull();
+        expect(taskSelect.querySelector('option[value="task-2"]')).not.toBeNull();
+      });
+    });
+
+    it('shows only tasks of the selected phase when a phase is selected', async () => {
+      const user = userEvent.setup();
+      renderTimer();
+      await user.click(screen.getByText('Iniciar Timer'));
+      const projectSelect = screen.getByLabelText('Projeto *');
+      await user.selectOptions(projectSelect, 'p1');
+      await waitFor(() => expect(screen.getByLabelText('Fase')).not.toBeDisabled());
+      const phaseSelect = screen.getByLabelText('Fase');
+      await user.selectOptions(phaseSelect, 'phase-1');
+      const taskSelect = screen.getByLabelText('Tarefa') as HTMLSelectElement;
+      await waitFor(() => {
+        expect(taskSelect.querySelector('option[value="task-1"]')).not.toBeNull();
+        expect(taskSelect.querySelector('option[value="task-2"]')).toBeNull();
+      });
+    });
+
+    it('clears the selected task when it no longer belongs to the filter', async () => {
+      const user = userEvent.setup();
+      renderTimer();
+      await user.click(screen.getByText('Iniciar Timer'));
+      const projectSelect = screen.getByLabelText('Projeto *');
+      await user.selectOptions(projectSelect, 'p1');
+      await waitFor(() => expect(screen.getByLabelText('Tarefa')).not.toBeDisabled());
+      const taskSelect = screen.getByLabelText('Tarefa') as HTMLSelectElement;
+      // Select task-2 (no phase) while no phase is selected
+      await user.selectOptions(taskSelect, 'task-2');
+      expect(taskSelect.value).toBe('task-2');
+      // Now select phase-1 -> task-2 is not in phase-1, so it should be cleared
+      const phaseSelect = screen.getByLabelText('Fase');
+      await user.selectOptions(phaseSelect, 'phase-1');
+      await waitFor(() => {
+        expect((screen.getByLabelText('Tarefa') as HTMLSelectElement).value).toBe('');
+      });
+    });
   });
 });

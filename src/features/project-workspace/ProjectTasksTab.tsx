@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { projectTasksAPI, projectPhasesAPI, profilesAPI } from '@/lib/supabase/api';
 import { mapDatabaseError } from '@/lib/errors';
 import { Modal } from '@/components/Modal';
@@ -87,18 +87,52 @@ export function ProjectTasksTab({ projectId, isAdmin, highlightTaskId, onTaskHig
     }
   }, [fetchTasks, fetchMeta, isAdmin]);
 
-  // Scroll to highlighted task and auto-clear after 5s
+  // Scroll to highlighted task and auto-clear after 5s.
+  // Uses React state (loading + tasks) instead of DOM polling (rAF) for
+  // deterministic behavior: the scroll fires exactly once when the task list
+  // has loaded AND the target task is present. If the task doesn't exist
+  // (deleted, wrong project), the highlight is cleared after a timeout.
+  const hasScrolledRef = useRef(false);
   useEffect(() => {
-    if (!highlightTaskId) return;
-    const el = document.getElementById(`task-${highlightTaskId}`);
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    if (!highlightTaskId) return undefined;
+
+    // If tasks are still loading, wait — the effect will re-run when `tasks`
+    // or `loading` changes.
+    if (loading) return undefined;
+
+    const targetExists = tasks.some((t) => t.id === highlightTaskId);
+
+    if (targetExists && !hasScrolledRef.current) {
+      hasScrolledRef.current = true;
+      // Use rAF for one frame so the DOM is committed before scrolling.
+      requestAnimationFrame(() => {
+        const el = document.getElementById(`task-${highlightTaskId}`);
+        el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      });
+      // Auto-clear the highlight after 5s (starts after scroll).
+      const clearTimer = setTimeout(() => {
+        onTaskHighlightCleared?.();
+      }, 5000);
+      return () => clearTimeout(clearTimer);
     }
-    const timer = setTimeout(() => {
-      onTaskHighlightCleared?.();
-    }, 5000);
-    return () => clearTimeout(timer);
-  }, [highlightTaskId, onTaskHighlightCleared]);
+
+    if (!targetExists && !hasScrolledRef.current) {
+      // Task not found after load completed — clear the highlight so the URL
+      // doesn't stay stuck on a non-existent task.
+      hasScrolledRef.current = true;
+      const clearTimer = setTimeout(() => {
+        onTaskHighlightCleared?.();
+      }, 1000);
+      return () => clearTimeout(clearTimer);
+    }
+
+    return undefined;
+  }, [highlightTaskId, tasks, loading, onTaskHighlightCleared]);
+
+  // Reset the scroll guard when the highlight target changes.
+  useEffect(() => {
+    hasScrolledRef.current = false;
+  }, [highlightTaskId]);
 
   const formatDate = (d: string | null) => (d ? new Date(d).toLocaleDateString('pt-BR') : '—');
   const formatHours = (m: number | null) => (m ? `${(m / 60).toFixed(1)}h` : '—');

@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -51,14 +51,27 @@ export function TimeEntryList() {
   const [error, setError] = useState<string | null>(null);
   const [dialog, setDialog] = useState<DialogState>(null);
   const [actionError, setActionError] = useState<string | null>(null);
-  const [search, setSearch] = useState('');
-  const [projectFilter, setProjectFilter] = useState('');
-  const [phaseFilter, setPhaseFilter] = useState('');
-  const [taskFilter, setTaskFilter] = useState('');
-  const [statusFilter, setStatusFilter] = useState('');
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
-  const [page, setPage] = useState(1);
+  // Initialize filters from URL query params (deep-link support).
+  // Reads: status, project, phase, task, startDate, endDate, page, search.
+  // Validates: status must be one of pending|approved|rejected (else empty);
+  //             page must be a finite integer >= 1 (else 1).
+  const VALID_STATUSES = ['pending', 'approved', 'rejected'] as const;
+  const isValidStatus = (s: string) => (VALID_STATUSES as readonly string[]).includes(s);
+
+  const [search, setSearch] = useState(() => searchParams.get('search') ?? '');
+  const [projectFilter, setProjectFilter] = useState(() => searchParams.get('project') ?? '');
+  const [phaseFilter, setPhaseFilter] = useState(() => searchParams.get('phase') ?? '');
+  const [taskFilter, setTaskFilter] = useState(() => searchParams.get('task') ?? '');
+  const [statusFilter, setStatusFilter] = useState(() => {
+    const s = searchParams.get('status') ?? '';
+    return isValidStatus(s) ? s : '';
+  });
+  const [startDate, setStartDate] = useState(() => searchParams.get('startDate') ?? '');
+  const [endDate, setEndDate] = useState(() => searchParams.get('endDate') ?? '');
+  const [page, setPage] = useState(() => {
+    const p = Number.parseInt(searchParams.get('page') ?? '1', 10);
+    return Number.isFinite(p) && p > 0 ? p : 1;
+  });
   const debouncedSearch = useDebounce(search, 300);
 
   const fetchEntries = useCallback(async () => {
@@ -126,11 +139,106 @@ export function TimeEntryList() {
     });
   }, [projectFilter]);
 
-  // Reset page when filters change
+  // Reset page to 1 when the USER changes filters — but NOT on initial mount.
+  // On mount, the page is already initialized from the URL (e.g. ?page=3), so
+  // we must preserve it. We use a ref that starts false and flips to true after
+  // the first render, so only subsequent filter changes trigger the reset.
+  const mountedRef = useRef(false);
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
+    if (!mountedRef.current) {
+      mountedRef.current = true;
+      return;
+    }
     setPage(1);
   }, [debouncedSearch, projectFilter, phaseFilter, taskFilter, statusFilter, startDate, endDate]);
+
+  // Keep a ref to the latest searchParams so the sync effect below can read
+  // the current URL state (including the `entry` deep-link param) without
+  // depending on the searchParams reference (which changes on every URL
+  // update and would cause an infinite update loop).
+  const searchParamsRef = useRef(searchParams);
+  useEffect(() => {
+    searchParamsRef.current = searchParams;
+  }, [searchParams]);
+
+  // Sync filter state back to URL (replace, so we don't spam history).
+  // Preserves the `entry` param (deep-link to a specific entry modal) which is
+  // managed separately by the deep-link effect below.
+  // We guard with a ref tracking the last-serialized filter string so we only
+  // call setSearchParams when the filter values actually change — never in
+  // response to a searchParams reference change (which would loop).
+  const lastSyncedFiltersRef = useRef<string | null>(null);
+  useEffect(() => {
+    const filterKey = JSON.stringify({
+      s: debouncedSearch, p: projectFilter, ph: phaseFilter, t: taskFilter,
+      st: statusFilter, sd: startDate, ed: endDate, pg: page,
+    });
+    if (lastSyncedFiltersRef.current === filterKey) return;
+    lastSyncedFiltersRef.current = filterKey;
+
+    const current = searchParamsRef.current;
+    const params = new URLSearchParams(current);
+    const setParam = (key: string, value: string) => {
+      if (value) params.set(key, value);
+      else params.delete(key);
+    };
+    setParam('search', debouncedSearch);
+    setParam('project', projectFilter);
+    setParam('phase', phaseFilter);
+    setParam('task', taskFilter);
+    setParam('status', statusFilter);
+    setParam('startDate', startDate);
+    setParam('endDate', endDate);
+    setParam('page', page > 1 ? String(page) : '');
+    const next = params.toString();
+    if (next !== current.toString()) {
+      setSearchParams(params, { replace: true });
+    }
+  }, [debouncedSearch, projectFilter, phaseFilter, taskFilter, statusFilter, startDate, endDate, page, setSearchParams]);
+
+  // URL → state sync for browser Back/Forward navigation (item 9).
+  // When the user navigates with Back/Forward, searchParams changes but our
+  // filter state doesn't. We detect the mismatch and sync URL → state.
+  // This effect does NOT run on every searchParams change — only when the
+  // filter values in the URL differ from the current state, which happens
+  // exclusively on Back/Forward (our own setSearchParams calls use `replace`
+  // and are already in sync with state by the time they fire).
+  const lastUrlFiltersRef = useRef<string | null>(null);
+  useEffect(() => {
+    const urlSearch = searchParams.get('search') ?? '';
+    const urlProject = searchParams.get('project') ?? '';
+    const urlPhase = searchParams.get('phase') ?? '';
+    const urlTask = searchParams.get('task') ?? '';
+    const urlStatus = searchParams.get('status') ?? '';
+    const urlStartDate = searchParams.get('startDate') ?? '';
+    const urlEndDate = searchParams.get('endDate') ?? '';
+    const urlPageRaw = Number.parseInt(searchParams.get('page') ?? '1', 10);
+    const urlPage = Number.isFinite(urlPageRaw) && urlPageRaw > 0 ? urlPageRaw : 1;
+
+    const urlKey = JSON.stringify({
+      s: urlSearch, p: urlProject, ph: urlPhase, t: urlTask,
+      st: isValidStatus(urlStatus) ? urlStatus : '',
+      sd: urlStartDate, ed: urlEndDate, pg: urlPage,
+    });
+
+    // If the URL filter key hasn't changed, this is our own replace — skip.
+    if (lastUrlFiltersRef.current === urlKey) return;
+    lastUrlFiltersRef.current = urlKey;
+
+    // Sync URL → state (only update fields that actually differ)
+    /* eslint-disable react-hooks/set-state-in-effect */
+    const validUrlStatus = isValidStatus(urlStatus) ? urlStatus : '';
+    if (urlSearch !== search) setSearch(urlSearch);
+    if (urlProject !== projectFilter) setProjectFilter(urlProject);
+    if (urlPhase !== phaseFilter) setPhaseFilter(urlPhase);
+    if (urlTask !== taskFilter) setTaskFilter(urlTask);
+    if (validUrlStatus !== statusFilter) setStatusFilter(validUrlStatus);
+    if (urlStartDate !== startDate) setStartDate(urlStartDate);
+    if (urlEndDate !== endDate) setEndDate(urlEndDate);
+    if (urlPage !== page) setPage(urlPage);
+    /* eslint-enable react-hooks/set-state-in-effect */
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
 
   // Deep-link: open entry from URL param
   useEffect(() => {
