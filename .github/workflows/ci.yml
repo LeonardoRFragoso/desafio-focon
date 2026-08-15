@@ -44,6 +44,12 @@ jobs:
         run: npm run typecheck
 
       - name: Run frontend tests
+        env:
+          # The Supabase client throws at import time if these are missing.
+          # Tests that actually call Supabase mock the API module; these dummy
+          # values only satisfy the module-level guard in src/lib/supabase/client.ts.
+          VITE_SUPABASE_URL: 'https://ci-placeholder.supabase.co'
+          VITE_SUPABASE_ANON_KEY: 'ci-placeholder-anon-key'
         run: npm run test
 
       - name: Build
