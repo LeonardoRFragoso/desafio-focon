@@ -52,6 +52,12 @@ jobs:
           VITE_SUPABASE_ANON_KEY: 'ci-placeholder-anon-key'
         run: npm run test
 
+      - name: Run frontend tests with coverage
+        env:
+          VITE_SUPABASE_URL: 'https://ci-placeholder.supabase.co'
+          VITE_SUPABASE_ANON_KEY: 'ci-placeholder-anon-key'
+        run: npm run test:coverage
+
       - name: Build
         run: npm run build
 
