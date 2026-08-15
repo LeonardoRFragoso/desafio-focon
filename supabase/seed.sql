@@ -38,6 +38,51 @@ VALUES
   ('650e8400-e29b-41d4-a716-446655550003', '550e8400-e29b-41d4-a716-446655550003', 100.00, '2024-01-01', NULL, NOW(), NOW())
 ON CONFLICT DO NOTHING;
 
+-- ============================================================================
+-- Project Workspace seed: phases, tasks, members
+-- ============================================================================
+
+-- Project members (assign team to demo projects)
+INSERT INTO project_members (project_id, professional_id, project_role, created_by)
+VALUES
+  ('550e8400-e29b-41d4-a716-446655440001', '550e8400-e29b-41d4-a716-446655550099', 'manager', '550e8400-e29b-41d4-a716-446655550099'),
+  ('550e8400-e29b-41d4-a716-446655440001', '550e8400-e29b-41d4-a716-446655550001', 'professional', '550e8400-e29b-41d4-a716-446655550099'),
+  ('550e8400-e29b-41d4-a716-446655440001', '550e8400-e29b-41d4-a716-446655550002', 'technical_lead', '550e8400-e29b-41d4-a716-446655550099'),
+  ('550e8400-e29b-41d4-a716-446655440002', '550e8400-e29b-41d4-a716-446655550099', 'manager', '550e8400-e29b-41d4-a716-446655550099'),
+  ('550e8400-e29b-41d4-a716-446655440002', '550e8400-e29b-41d4-a716-446655550003', 'professional', '550e8400-e29b-41d4-a716-446655550099')
+ON CONFLICT (project_id, professional_id) DO NOTHING;
+
+-- Project phases for Residencial Aurora
+INSERT INTO project_phases (id, project_id, name, description, status, position, planned_minutes, start_date, due_date, created_by)
+VALUES
+  ('550e8400-e29b-41d4-a716-446655441001', '550e8400-e29b-41d4-a716-446655440001', 'Projeto Executivo', 'Desenvolvimento do projeto executivo', 'completed', 0, 4800, '2024-01-01', '2024-02-29', '550e8400-e29b-41d4-a716-446655550099'),
+  ('550e8400-e29b-41d4-a716-446655441002', '550e8400-e29b-41d4-a716-446655440001', 'Fundações', 'Execução das fundações', 'active', 1, 7200, '2024-03-01', '2024-05-31', '550e8400-e29b-41d4-a716-446655550099'),
+  ('550e8400-e29b-41d4-a716-446655441003', '550e8400-e29b-41d4-a716-446655440001', 'Estrutura', 'Execução da estrutura', 'planned', 2, 14400, '2024-06-01', '2024-09-30', '550e8400-e29b-41d4-a716-446655550099')
+ON CONFLICT DO NOTHING;
+
+-- Project phases for Edifício Horizonte
+INSERT INTO project_phases (id, project_id, name, description, status, position, planned_minutes, start_date, due_date, created_by)
+VALUES
+  ('550e8400-e29b-41d4-a716-446655441101', '550e8400-e29b-41d4-a716-446655440002', 'Levantamento', 'Levantamento de campo', 'completed', 0, 2400, '2024-02-01', '2024-02-29', '550e8400-e29b-41d4-a716-446655550099'),
+  ('550e8400-e29b-41d4-a716-446655441102', '550e8400-e29b-41d4-a716-446655440002', 'Execução', 'Execução dos serviços', 'active', 1, 9600, '2024-03-01', '2024-09-30', '550e8400-e29b-41d4-a716-446655550099')
+ON CONFLICT DO NOTHING;
+
+-- Project tasks for Residencial Aurora (phase: Fundações)
+INSERT INTO project_tasks (id, project_id, phase_id, title, description, status, priority, assignee_id, planned_minutes, due_date, created_by)
+VALUES
+  ('550e8400-e29b-41d4-a716-446655442001', '550e8400-e29b-41d4-a716-446655440001', '550e8400-e29b-41d4-a716-446655441002', 'Locação de obra', 'Locação das estacas e pilares', 'done', 'high', '550e8400-e29b-41d4-a716-446655550001', 1200, '2024-03-15', '550e8400-e29b-41d4-a716-446655550099'),
+  ('550e8400-e29b-41d4-a716-446655442002', '550e8400-e29b-41d4-a716-446655440001', '550e8400-e29b-41d4-a716-446655441002', 'Escavação', 'Escavação para fundações rasas', 'in_progress', 'critical', '550e8400-e29b-41d4-a716-446655550002', 2400, '2024-04-30', '550e8400-e29b-41d4-a716-446655550099'),
+  ('550e8400-e29b-41d4-a716-446655442003', '550e8400-e29b-41d4-a716-446655440001', '550e8400-e29b-41d4-a716-446655441002', 'Concretagem', 'Concretagem das fundações', 'todo', 'high', '550e8400-e29b-41d4-a716-446655550001', 1800, '2024-05-31', '550e8400-e29b-41d4-a716-446655550099'),
+  ('550e8400-e29b-41d4-a716-446655442004', '550e8400-e29b-41d4-a716-446655440001', '550e8400-e29b-41d4-a716-446655441003', 'Impermeabilização', 'Impermeabilização das fundações', 'todo', 'medium', NULL, 600, '2024-06-15', '550e8400-e29b-41d4-a716-446655550099')
+ON CONFLICT DO NOTHING;
+
+-- Project tasks for Edifício Horizonte (phase: Execução)
+INSERT INTO project_tasks (id, project_id, phase_id, title, description, status, priority, assignee_id, planned_minutes, due_date, created_by)
+VALUES
+  ('550e8400-e29b-41d4-a716-446655442101', '550e8400-e29b-41d4-a716-446655440002', '550e8400-e29b-41d4-a716-446655441102', 'Alvenaria', 'Execução de alvenaria', 'in_progress', 'high', '550e8400-e29b-41d4-a716-446655550003', 3600, '2024-06-30', '550e8400-e29b-41d4-a716-446655550099'),
+  ('550e8400-e29b-41d4-a716-446655442102', '550e8400-e29b-41d4-a716-446655440002', '550e8400-e29b-41d4-a716-446655441102', 'Revestimento', 'Revestimento de paredes', 'todo', 'medium', '550e8400-e29b-41d4-a716-446655550003', 3000, '2024-08-31', '550e8400-e29b-41d4-a716-446655550099')
+ON CONFLICT DO NOTHING;
+
 -- Time entries will be created manually via the application UI
 -- The constraint on duration_minutes requires values > 0 and <= 480 (8 hours)
 
