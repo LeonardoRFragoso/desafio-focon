@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -51,14 +51,19 @@ export function TimeEntryList() {
   const [error, setError] = useState<string | null>(null);
   const [dialog, setDialog] = useState<DialogState>(null);
   const [actionError, setActionError] = useState<string | null>(null);
-  const [search, setSearch] = useState('');
-  const [projectFilter, setProjectFilter] = useState('');
-  const [phaseFilter, setPhaseFilter] = useState('');
-  const [taskFilter, setTaskFilter] = useState('');
-  const [statusFilter, setStatusFilter] = useState('');
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
-  const [page, setPage] = useState(1);
+  // Initialize filters from URL query params (deep-link support).
+  // Reads: status, project, phase, task, startDate, endDate, page, search.
+  const [search, setSearch] = useState(() => searchParams.get('search') ?? '');
+  const [projectFilter, setProjectFilter] = useState(() => searchParams.get('project') ?? '');
+  const [phaseFilter, setPhaseFilter] = useState(() => searchParams.get('phase') ?? '');
+  const [taskFilter, setTaskFilter] = useState(() => searchParams.get('task') ?? '');
+  const [statusFilter, setStatusFilter] = useState(() => searchParams.get('status') ?? '');
+  const [startDate, setStartDate] = useState(() => searchParams.get('startDate') ?? '');
+  const [endDate, setEndDate] = useState(() => searchParams.get('endDate') ?? '');
+  const [page, setPage] = useState(() => {
+    const p = Number.parseInt(searchParams.get('page') ?? '1', 10);
+    return Number.isFinite(p) && p > 0 ? p : 1;
+  });
   const debouncedSearch = useDebounce(search, 300);
 
   const fetchEntries = useCallback(async () => {
@@ -131,6 +136,50 @@ export function TimeEntryList() {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setPage(1);
   }, [debouncedSearch, projectFilter, phaseFilter, taskFilter, statusFilter, startDate, endDate]);
+
+  // Keep a ref to the latest searchParams so the sync effect below can read
+  // the current URL state (including the `entry` deep-link param) without
+  // depending on the searchParams reference (which changes on every URL
+  // update and would cause an infinite update loop).
+  const searchParamsRef = useRef(searchParams);
+  useEffect(() => {
+    searchParamsRef.current = searchParams;
+  }, [searchParams]);
+
+  // Sync filter state back to URL (replace, so we don't spam history).
+  // Preserves the `entry` param (deep-link to a specific entry modal) which is
+  // managed separately by the deep-link effect below.
+  // We guard with a ref tracking the last-serialized filter string so we only
+  // call setSearchParams when the filter values actually change — never in
+  // response to a searchParams reference change (which would loop).
+  const lastSyncedFiltersRef = useRef<string | null>(null);
+  useEffect(() => {
+    const filterKey = JSON.stringify({
+      s: debouncedSearch, p: projectFilter, ph: phaseFilter, t: taskFilter,
+      st: statusFilter, sd: startDate, ed: endDate, pg: page,
+    });
+    if (lastSyncedFiltersRef.current === filterKey) return;
+    lastSyncedFiltersRef.current = filterKey;
+
+    const current = searchParamsRef.current;
+    const params = new URLSearchParams(current);
+    const setParam = (key: string, value: string) => {
+      if (value) params.set(key, value);
+      else params.delete(key);
+    };
+    setParam('search', debouncedSearch);
+    setParam('project', projectFilter);
+    setParam('phase', phaseFilter);
+    setParam('task', taskFilter);
+    setParam('status', statusFilter);
+    setParam('startDate', startDate);
+    setParam('endDate', endDate);
+    setParam('page', page > 1 ? String(page) : '');
+    const next = params.toString();
+    if (next !== current.toString()) {
+      setSearchParams(params, { replace: true });
+    }
+  }, [debouncedSearch, projectFilter, phaseFilter, taskFilter, statusFilter, startDate, endDate, page, setSearchParams]);
 
   // Deep-link: open entry from URL param
   useEffect(() => {

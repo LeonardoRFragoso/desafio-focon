@@ -31,7 +31,14 @@ interface GoalStats {
   remaining: number;
 }
 
-export function HourGoalWidget() {
+interface HourGoalWidgetProps {
+  /** When this number increments, the widget opens its goal editor. Used by
+   *  ProfessionalActionCenter's "Definir meta" CTA to reuse this form instead
+   *  of creating a second configuration UI. */
+  openEditorSignal?: number;
+}
+
+export function HourGoalWidget({ openEditorSignal }: HourGoalWidgetProps = {}) {
   const { user } = useAuthContext();
   const [goal, setGoal] = useState<number | null>(null);
   const [stats, setStats] = useState<GoalStats | null>(null);
@@ -76,7 +83,9 @@ export function HourGoalWidget() {
           (e) => e.entry_date >= startDateStr
         );
 
-        const registered = weekEntries.reduce((s, e) => s + e.duration_minutes, 0);
+        const registered = weekEntries
+          .filter((e) => e.approval_status === 'approved' || e.approval_status === 'pending')
+          .reduce((s, e) => s + e.duration_minutes, 0);
         const approved = weekEntries
           .filter((e) => e.approval_status === 'approved')
           .reduce((s, e) => s + e.duration_minutes, 0);
@@ -111,6 +120,14 @@ export function HourGoalWidget() {
       setLoading(false);
     }
   }, [goal, fetchStats]);
+
+  // External trigger to open the goal editor (reused by Action Center CTA).
+  useEffect(() => {
+    if (openEditorSignal && openEditorSignal > 0) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setEditing(true);
+    }
+  }, [openEditorSignal]);
 
   const handleSave = async () => {
     if (!user) return;

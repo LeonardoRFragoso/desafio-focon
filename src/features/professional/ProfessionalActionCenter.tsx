@@ -4,7 +4,10 @@ import type { ProfessionalDashboardStats } from '@/lib/supabase/api';
 interface ProfessionalActionCenterProps {
   stats: ProfessionalDashboardStats | null;
   loading: boolean;
-  weeklyGoalMinutes?: number;
+  /** Optional callback to open the existing goal-definition flow (HourGoalWidget).
+   *  When provided and the goal is not configured, the "Definir meta" CTA uses it
+   *  instead of navigating away. We reuse the existing form — no second form. */
+  onDefineGoal?: () => void;
 }
 
 type Severity = 'info' | 'warning' | 'critical' | 'success';
@@ -16,7 +19,15 @@ const SEVERITY_STYLES: Record<Severity, string> = {
   success: 'border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-900/20',
 };
 
-export function ProfessionalActionCenter({ stats, loading, weeklyGoalMinutes = 2400 }: ProfessionalActionCenterProps) {
+function formatHours(minutes: number): string {
+  const h = Math.floor(minutes / 60);
+  const m = minutes % 60;
+  if (h === 0) return `${m}m`;
+  if (m === 0) return `${h}h`;
+  return `${h}h${m.toString().padStart(2, '0')}`;
+}
+
+export function ProfessionalActionCenter({ stats, loading, onDefineGoal }: ProfessionalActionCenterProps) {
   const navigate = useNavigate();
 
   if (loading || !stats) {
@@ -32,18 +43,25 @@ export function ProfessionalActionCenter({ stats, loading, weeklyGoalMinutes = 2
     );
   }
 
-  const items: Array<{ id: string; severity: Severity; icon: string; title: string; description: string; cta?: string; href?: string }> = [];
+  const items: Array<{ id: string; severity: Severity; icon: string; title: string; description: string; cta?: string; href?: string; onClick?: () => void }> = [];
 
   // Rejected entries needing correction
   if (stats.stats.rejected_count > 0) {
+    const rejectedEntries = stats.rejected_entries ?? [];
+    // When exactly 1 rejected entry is known, deep-link straight to it so the
+    // details modal opens automatically with the rejection reason visible.
+    // When more than 1, just open the rejected filter list.
+    const singleEntry = rejectedEntries.length === 1 ? rejectedEntries[0] : null;
     items.push({
       id: 'rejected',
       severity: 'critical',
       icon: '❌',
       title: `${stats.stats.rejected_count} apontamento(s) rejeitado(s)`,
       description: 'Corrija e reenvie os apontamentos rejeitados',
-      cta: 'Ver rejeitados',
-      href: '/time-entries?status=rejected',
+      cta: singleEntry ? 'Ver rejeitado' : 'Ver rejeitados',
+      href: singleEntry
+        ? `/time-entries?status=rejected&entry=${singleEntry.id}`
+        : '/time-entries?status=rejected',
     });
   }
 
@@ -93,26 +111,52 @@ export function ProfessionalActionCenter({ stats, loading, weeklyGoalMinutes = 2
     });
   }
 
-  // Weekly goal progress
-  const approvedMinutes = stats.stats.approved_minutes;
-  const goalProgress = Math.min((approvedMinutes / weeklyGoalMinutes) * 100, 100);
-  const remainingMinutes = Math.max(weeklyGoalMinutes - approvedMinutes, 0);
-  if (remainingMinutes > 0) {
-    items.push({
+  // Weekly goal progress — single source of truth is stats.weekly_goal
+  // (returned by get_professional_dashboard_stats). No hardcoded 40h fallback.
+  // registered = approved + pending (rejected excluded from progress).
+  const wg = stats.weekly_goal;
+  if (wg && wg.configured && wg.goal_minutes !== null) {
+    const goalH = Math.floor(wg.goal_minutes / 60);
+    const registeredH = Math.floor(wg.registered_minutes / 60);
+    const approvedH = Math.floor(wg.approved_minutes / 60);
+    const pendingH = Math.floor(wg.pending_minutes / 60);
+    const remaining = wg.remaining_minutes ?? 0;
+    const progress = wg.progress_percent ?? 0;
+    if (remaining > 0) {
+      items.push({
+        id: 'weekly-goal',
+        severity: progress >= 75 ? 'info' : 'warning',
+        icon: '🎯',
+        title: `${Math.floor(remaining / 60)}h restantes para a meta semanal`,
+        description: `${progress.toFixed(0)}% registradas (${registeredH}h de ${goalH}h) — aprovadas ${approvedH}h / pendentes ${pendingH}h`,
+      });
+    } else {
+      items.push({
+        id: 'weekly-goal',
+        severity: 'success',
+        icon: '🎯',
+        title: 'Meta semanal atingida',
+        description: `${registeredH}h registradas na semana (meta ${goalH}h) — aprovadas ${approvedH}h / pendentes ${pendingH}h`,
+      });
+    }
+  } else if (wg && !wg.configured) {
+    // Goal not configured — informational card with CTA to define it.
+    // Reuse the existing HourGoalWidget form via onDefineGoal; no second form.
+    // Fallback: anchor-link to the widget on the same page.
+    const notConfiguredItem: { id: string; severity: Severity; icon: string; title: string; description: string; cta?: string; href?: string; onClick?: () => void } = {
       id: 'weekly-goal',
       severity: 'info',
       icon: '🎯',
-      title: `${Math.floor(remainingMinutes / 60)}h restantes para a meta semanal`,
-      description: `${goalProgress.toFixed(0)}% concluído (${Math.floor(approvedMinutes / 60)}h de ${Math.floor(weeklyGoalMinutes / 60)}h)`,
-    });
-  } else {
-    items.push({
-      id: 'weekly-goal',
-      severity: 'success',
-      icon: '🎯',
-      title: 'Meta semanal atingida',
-      description: `Você atingiu ${Math.floor(approvedMinutes / 60)}h de ${Math.floor(weeklyGoalMinutes / 60)}h`,
-    });
+      title: 'Meta semanal não definida',
+      description: `Registradas nesta semana: ${formatHours(wg.registered_minutes)}. Defina sua meta para acompanhar o progresso.`,
+      cta: 'Definir meta',
+      href: '#hour-goal-widget',
+    };
+    if (onDefineGoal) {
+      notConfiguredItem.onClick = onDefineGoal;
+      delete notConfiguredItem.href;
+    }
+    items.push(notConfiguredItem);
   }
 
   return (
@@ -145,9 +189,12 @@ export function ProfessionalActionCenter({ stats, loading, weeklyGoalMinutes = 2
                   <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
                     {item.description}
                   </p>
-                  {item.cta && item.href && (
+                  {item.cta && (item.href || item.onClick) && (
                     <button
-                      onClick={() => navigate(item.href!)}
+                      onClick={() => {
+                        if (item.onClick) item.onClick();
+                        else if (item.href) navigate(item.href);
+                      }}
                       className="mt-3 text-sm font-medium text-focon-600 dark:text-focon-400 hover:text-focon-700 dark:hover:text-focon-300 transition"
                     >
                       {item.cta} →

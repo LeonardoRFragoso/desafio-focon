@@ -992,6 +992,18 @@ export interface ProfessionalDashboardStats {
     due_soon: number;
   };
   unread_notifications: number;
+  weekly_goal: {
+    configured: boolean;
+    goal_minutes: number | null;
+    approved_minutes: number;
+    pending_minutes: number;
+    rejected_minutes: number;
+    registered_minutes: number;
+    remaining_minutes: number | null;
+    progress_percent: number | null;
+    week_start: string;
+    week_end: string;
+  };
 }
 
 export interface SearchResult {

@@ -68,7 +68,9 @@ describe('HourGoalWidget', () => {
     } as never);
     renderWithProviders(<HourGoalWidget />);
     await waitFor(() => {
-      const elements = screen.getAllByText('11h');
+      // registered = approved + pending = 480 + 120 = 600 min = 10h
+      // (rejected is excluded from progress per the unified goal rule)
+      const elements = screen.getAllByText('10h');
       expect(elements.length).toBeGreaterThan(0);
     });
     await waitFor(() => {

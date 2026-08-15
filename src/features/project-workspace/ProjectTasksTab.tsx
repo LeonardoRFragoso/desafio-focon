@@ -87,18 +87,45 @@ export function ProjectTasksTab({ projectId, isAdmin, highlightTaskId, onTaskHig
     }
   }, [fetchTasks, fetchMeta, isAdmin]);
 
-  // Scroll to highlighted task and auto-clear after 5s
+  // Scroll to highlighted task and auto-clear after 5s.
+  // The task list loads asynchronously, so the target element may not exist
+  // when the deep link first resolves. We poll briefly (rAF) until the element
+  // is present, then scroll. The 5s highlight timer starts only after the
+  // scroll actually happens, so the highlight is always visible to the user.
   useEffect(() => {
     if (!highlightTaskId) return;
-    const el = document.getElementById(`task-${highlightTaskId}`);
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }
-    const timer = setTimeout(() => {
-      onTaskHighlightCleared?.();
-    }, 5000);
-    return () => clearTimeout(timer);
-  }, [highlightTaskId, onTaskHighlightCleared]);
+    let cancelled = false;
+    let clearTimer: ReturnType<typeof setTimeout> | null = null;
+
+    const tryScroll = (attempts = 0) => {
+      if (cancelled) return;
+      const el = document.getElementById(`task-${highlightTaskId}`);
+      if (el) {
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        clearTimer = setTimeout(() => {
+          if (!cancelled) onTaskHighlightCleared?.();
+        }, 5000);
+        return;
+      }
+      // Element not rendered yet — retry on the next frame (up to ~2s).
+      if (attempts < 120) {
+        requestAnimationFrame(() => tryScroll(attempts + 1));
+      } else {
+        // Fallback: clear the highlight even if the task never appeared
+        // (e.g. it was deleted or belongs to another project).
+        clearTimer = setTimeout(() => {
+          if (!cancelled) onTaskHighlightCleared?.();
+        }, 5000);
+      }
+    };
+
+    tryScroll();
+
+    return () => {
+      cancelled = true;
+      if (clearTimer) clearTimeout(clearTimer);
+    };
+  }, [highlightTaskId, onTaskHighlightCleared, tasks]);
 
   const formatDate = (d: string | null) => (d ? new Date(d).toLocaleDateString('pt-BR') : '—');
   const formatHours = (m: number | null) => (m ? `${(m / 60).toFixed(1)}h` : '—');

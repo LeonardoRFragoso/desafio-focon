@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/lib/supabase/client';
 import { timeEntriesAPI, projectPhasesAPI, projectTasksAPI } from '@/lib/supabase/api';
 import { mapDatabaseError } from '@/lib/errors';
@@ -48,10 +49,11 @@ function formatTime(seconds: number): string {
 interface TimerProps {
   userId: string;
   onEntryCreated?: () => void;
+  isAdmin?: boolean;
 }
 
-export function Timer({ userId, onEntryCreated }: TimerProps) {
-  const [timerState, setTimerState] = useState<TimerState | null>(null);
+export function Timer({ userId, onEntryCreated, isAdmin = false }: TimerProps) {
+  const navigate = useNavigate();  const [timerState, setTimerState] = useState<TimerState | null>(null);
   const [elapsed, setElapsed] = useState(0);
   const [showStartModal, setShowStartModal] = useState(false);
   const [showFinishModal, setShowFinishModal] = useState(false);
@@ -127,7 +129,22 @@ export function Timer({ userId, onEntryCreated }: TimerProps) {
     setSelTask('');
   }, [selProject]);
 
+  // Task filtering rule:
+  //   * No phase selected -> show ALL tasks of the project.
+  //   * Phase selected    -> show only tasks of that phase.
   const filteredTasks = selPhase ? tasks.filter((t) => t.phase_id === selPhase) : tasks;
+
+  // If the selected task no longer belongs to the current filter (e.g. the
+  // user changed the phase, or the task's phase was changed in Project
+  // Workspace), clear the stale selection automatically.
+  useEffect(() => {
+    if (!selTask) return;
+    const stillValid = filteredTasks.some((t) => t.id === selTask);
+    if (!stillValid) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setSelTask('');
+    }
+  }, [filteredTasks, selTask]);
 
   const handleStart = () => {
     setError(null);
@@ -304,10 +321,27 @@ export function Timer({ userId, onEntryCreated }: TimerProps) {
                     className="w-full px-3 py-2.5 border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-focon-600 disabled:opacity-50"
                   >
                     <option value="">Sem fase</option>
+                    {phases.length === 0 && selProject ? (
+                      <option value="" disabled>Nenhuma fase cadastrada</option>
+                    ) : null}
                     {phases.map((p) => (
                       <option key={p.id} value={p.id}>{p.name}</option>
                     ))}
                   </select>
+                  {selProject && phases.length === 0 && (
+                    <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                      Este projeto ainda não possui fases cadastradas.
+                      {isAdmin && (
+                        <button
+                          type="button"
+                          onClick={() => navigate(`/projects/${selProject}?tab=phases`)}
+                          className="ml-1 text-focon-600 dark:text-focon-400 hover:underline"
+                        >
+                          Gerenciar fases →
+                        </button>
+                      )}
+                    </p>
+                  )}
                 </div>
                 <div>
                   <label htmlFor="timer-task" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
@@ -321,10 +355,27 @@ export function Timer({ userId, onEntryCreated }: TimerProps) {
                     className="w-full px-3 py-2.5 border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-focon-600 disabled:opacity-50"
                   >
                     <option value="">Sem tarefa</option>
+                    {filteredTasks.length === 0 && selProject ? (
+                      <option value="" disabled>Nenhuma tarefa cadastrada</option>
+                    ) : null}
                     {filteredTasks.map((t) => (
                       <option key={t.id} value={t.id}>{t.title}</option>
                     ))}
                   </select>
+                  {selProject && filteredTasks.length === 0 && (
+                    <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                      Este projeto ainda não possui tarefas disponíveis.
+                      {isAdmin && (
+                        <button
+                          type="button"
+                          onClick={() => navigate(`/projects/${selProject}?tab=tasks`)}
+                          className="ml-1 text-focon-600 dark:text-focon-400 hover:underline"
+                        >
+                          Gerenciar tarefas →
+                        </button>
+                      )}
+                    </p>
+                  )}
                 </div>
               </div>
               <p className="text-xs text-slate-500 dark:text-slate-400">
