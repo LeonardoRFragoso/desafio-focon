@@ -5,7 +5,7 @@ import { CommentsPanel } from '@/features/time-entries/CommentsPanel';
 import { AttachmentsPanel } from '@/features/time-entries/AttachmentsPanel';
 import { timeEntriesAPI } from '@/lib/supabase/api';
 import { mapDatabaseError } from '@/lib/errors';
-import { daysLate } from '@/features/time-entries/temporalRules';
+import { daysLate, isFutureDate } from '@/features/time-entries/temporalRules';
 
 export interface TimeEntryDetail {
   id: string;
@@ -155,6 +155,7 @@ export function TimeEntryDetailsModal({
       ? (entry.applied_hourly_rate / 60) * entry.duration_minutes
       : null;
 
+  const isFutureLegacy = isFutureDate(entry.entry_date);
   const canApproveReject = isAdmin && entry.approval_status === 'pending' && (onApprove || onReject);
 
   return (
@@ -176,8 +177,9 @@ export function TimeEntryDetailsModal({
             {onApprove && !showRejectForm && (
               <button
                 onClick={handleApprove}
-                disabled={actionLoading}
-                className="px-4 py-2 rounded-lg bg-green-600 hover:bg-green-700 text-white transition disabled:opacity-50"
+                disabled={actionLoading || isFutureLegacy}
+                title={isFutureLegacy ? 'Apontamentos com data futura não podem ser aprovados.' : undefined}
+                className="px-4 py-2 rounded-lg bg-green-600 hover:bg-green-700 text-white transition disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {actionLoading ? 'Aprovando...' : 'Aprovar'}
               </button>
@@ -199,6 +201,18 @@ export function TimeEntryDetailsModal({
         {actionError && (
           <div className="rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 p-3" role="alert">
             <p className="text-sm text-red-800 dark:text-red-400">{actionError}</p>
+          </div>
+        )}
+
+        {/* Future legacy warning banner */}
+        {isFutureLegacy && entry.approval_status === 'pending' && (
+          <div className="rounded-lg bg-orange-50 dark:bg-orange-900/20 border border-orange-300 dark:border-orange-700 p-4" role="alert">
+            <p className="text-sm font-semibold text-orange-800 dark:text-orange-400 mb-1">
+              ⚠ Data futura
+            </p>
+            <p className="text-sm text-orange-700 dark:text-orange-400">
+              Este apontamento possui uma data posterior à data atual. Ele precisa ser corrigido ou rejeitado antes de poder ser aprovado.
+            </p>
           </div>
         )}
 

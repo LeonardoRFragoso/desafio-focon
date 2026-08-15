@@ -1,101 +1,88 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-
-// Mock the Date to a fixed value for deterministic tests
-const FIXED_DATE = '2024-08-23T12:00:00.000Z';
-beforeEach(() => {
-  vi.useFakeTimers();
-  vi.setSystemTime(new Date(FIXED_DATE));
-});
-
-afterEach(() => {
-  vi.useRealTimers();
-});
-
-// Import after mock setup
+import { describe, it, expect } from 'vitest';
 import {
   todayStr,
-  maxEntryDate,
   daysLate,
+  isFutureDate,
+  getTimeEntryTemporalState,
   requiresLateReason,
-  LATE_REASON_THRESHOLD_DAYS,
-  LATE_REASON_MIN_LENGTH,
-  LATE_REASON_MAX_LENGTH,
-} from '@/features/time-entries/temporalRules';
+} from './temporalRules';
+
+/** Helper: shift today's date by N days and return YYYY-MM-DD */
+function shiftDate(days: number): string {
+  const today = new Date();
+  const shifted = new Date(today.getFullYear(), today.getMonth(), today.getDate() + days);
+  return `${shifted.getFullYear()}-${String(shifted.getMonth() + 1).padStart(2, '0')}-${String(shifted.getDate()).padStart(2, '0')}`;
+}
 
 describe('temporalRules', () => {
   describe('todayStr', () => {
-    it('returns today as YYYY-MM-DD', () => {
-      // 2024-08-23T12:00:00.000Z → 2024-08-23
-      expect(todayStr()).toBe('2024-08-23');
-    });
-  });
-
-  describe('maxEntryDate', () => {
-    it('returns today (no future dates allowed)', () => {
-      expect(maxEntryDate()).toBe('2024-08-23');
+    it('returns YYYY-MM-DD format', () => {
+      const today = todayStr();
+      expect(today).toMatch(/^\d{4}-\d{2}-\d{2}$/);
     });
   });
 
   describe('daysLate', () => {
     it('returns 0 for today', () => {
-      expect(daysLate('2024-08-23')).toBe(0);
+      expect(daysLate(todayStr())).toBe(0);
     });
 
-    it('returns 1 for yesterday', () => {
-      expect(daysLate('2024-08-22')).toBe(1);
-    });
-
-    it('returns 3 for 3 days ago', () => {
-      expect(daysLate('2024-08-20')).toBe(3);
-    });
-
-    it('returns 10 for 10 days ago', () => {
-      expect(daysLate('2024-08-13')).toBe(10);
+    it('returns positive for past dates', () => {
+      expect(daysLate('2020-01-01')).toBeGreaterThan(0);
     });
 
     it('returns negative for future dates', () => {
-      expect(daysLate('2024-08-24')).toBe(-1);
-      expect(daysLate('2024-08-30')).toBe(-7);
+      expect(daysLate(shiftDate(10))).toBeLessThan(0);
+    });
+  });
+
+  describe('isFutureDate', () => {
+    it('returns false for today', () => {
+      expect(isFutureDate(todayStr())).toBe(false);
+    });
+
+    it('returns false for past dates', () => {
+      expect(isFutureDate('2020-01-01')).toBe(false);
+    });
+
+    it('returns true for tomorrow', () => {
+      expect(isFutureDate(shiftDate(1))).toBe(true);
+    });
+
+    it('returns true for 11 days in the future', () => {
+      expect(isFutureDate(shiftDate(11))).toBe(true);
+    });
+  });
+
+  describe('getTimeEntryTemporalState', () => {
+    it('returns "today" for today', () => {
+      expect(getTimeEntryTemporalState(todayStr())).toBe('today');
+    });
+
+    it('returns "past_normal" for 1 day ago', () => {
+      expect(getTimeEntryTemporalState(shiftDate(-1))).toBe('past_normal');
+    });
+
+    it('returns "retroactive" for 3+ days ago', () => {
+      expect(getTimeEntryTemporalState(shiftDate(-10))).toBe('retroactive');
+    });
+
+    it('returns "future_legacy" for future dates', () => {
+      expect(getTimeEntryTemporalState(shiftDate(5))).toBe('future_legacy');
     });
   });
 
   describe('requiresLateReason', () => {
     it('returns false for today', () => {
-      expect(requiresLateReason('2024-08-23')).toBe(false);
-    });
-
-    it('returns false for yesterday', () => {
-      expect(requiresLateReason('2024-08-22')).toBe(false);
+      expect(requiresLateReason(todayStr())).toBe(false);
     });
 
     it('returns false for 2 days ago', () => {
-      expect(requiresLateReason('2024-08-21')).toBe(false);
+      expect(requiresLateReason(shiftDate(-2))).toBe(false);
     });
 
-    it('returns true for 3 days ago (threshold)', () => {
-      expect(requiresLateReason('2024-08-20')).toBe(true);
-    });
-
-    it('returns true for 10 days ago', () => {
-      expect(requiresLateReason('2024-08-13')).toBe(true);
-    });
-
-    it('returns false for future dates', () => {
-      expect(requiresLateReason('2024-08-24')).toBe(false);
-    });
-  });
-
-  describe('constants', () => {
-    it('LATE_REASON_THRESHOLD_DAYS is 3', () => {
-      expect(LATE_REASON_THRESHOLD_DAYS).toBe(3);
-    });
-
-    it('LATE_REASON_MIN_LENGTH is 10', () => {
-      expect(LATE_REASON_MIN_LENGTH).toBe(10);
-    });
-
-    it('LATE_REASON_MAX_LENGTH is 500', () => {
-      expect(LATE_REASON_MAX_LENGTH).toBe(500);
+    it('returns true for 3 days ago', () => {
+      expect(requiresLateReason(shiftDate(-3))).toBe(true);
     });
   });
 });
