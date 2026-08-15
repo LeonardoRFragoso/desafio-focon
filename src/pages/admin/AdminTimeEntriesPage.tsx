@@ -7,6 +7,7 @@ import { useAuthContext } from '@/features/auth/useAuthContext';
 import { Pagination } from '@/components/Pagination';
 import { useDebounce } from '@/hooks/usePagination';
 import { TimeEntryDetailsModal, type TimeEntryDetail } from '@/features/time-entries/TimeEntryDetailsModal';
+import { daysLate } from '@/features/time-entries/temporalRules';
 
 const PAGE_SIZE = 20;
 
@@ -33,6 +34,7 @@ export function AdminTimeEntriesPage() {
   const [statusFilter, setStatusFilter] = useState('');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
+  const [retroOnly, setRetroOnly] = useState(false);
   const [projects, setProjects] = useState<Project[]>([]);
   const [professionals, setProfessionals] = useState<Professional[]>([]);
   const [phases, setPhases] = useState<Phase[]>([]);
@@ -152,8 +154,14 @@ export function AdminTimeEntriesPage() {
     setStatusFilter('');
     setStartDate('');
     setEndDate('');
+    setRetroOnly(false);
     setPage(1);
   };
+
+  // Client-side filter for retroactive entries (3+ days late)
+  const displayedEntries = retroOnly
+    ? entries.filter((e) => daysLate(e.entry_date) >= 3)
+    : entries;
 
   const formatDate = (d: string) => new Date(d).toLocaleDateString('pt-BR');
   const formatDuration = (m: number) => {
@@ -286,6 +294,18 @@ export function AdminTimeEntriesPage() {
             className="px-3 py-2 border border-app-strong bg-surface-secondary text-app-primary rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-focon-600"
             aria-label="Data final"
           />
+          <label className="flex items-center gap-2 px-3 py-2 border border-app-strong bg-surface-secondary text-app-primary rounded-lg text-sm cursor-pointer">
+            <input
+              type="checkbox"
+              checked={retroOnly}
+              onChange={(e) => {
+                setRetroOnly(e.target.checked);
+                setPage(1);
+              }}
+              className="rounded border-app-strong text-focon-600 focus:ring-focon-600"
+            />
+            <span>Retroativos</span>
+          </label>
           <button
             onClick={handleClearFilters}
             className="px-3 py-2 border border-app-strong text-app-secondary rounded-lg text-sm hover:bg-hover-surface transition"
@@ -328,13 +348,36 @@ export function AdminTimeEntriesPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-table-divider">
-                {entries.map((entry) => (
-                  <tr key={entry.id} className="hover:bg-hover-surface transition">
+                {displayedEntries.map((entry) => (
+                  <tr
+                    key={entry.id}
+                    onClick={() => setSelectedEntry(entry)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        setSelectedEntry(entry);
+                      }
+                    }}
+                    tabIndex={0}
+                    role="button"
+                    aria-label={`Ver detalhes do apontamento de ${entry.professional?.full_name ?? ''}`}
+                    className="hover:bg-hover-surface transition cursor-pointer focus:outline-none focus:ring-2 focus:ring-inset focus:ring-focon-600"
+                  >
                     <td className="px-4 py-3 text-sm text-app-primary">{entry.professional?.full_name || '—'}</td>
                     <td className="px-4 py-3 text-sm text-app-secondary">{entry.project?.name || '—'}</td>
                     <td className="px-4 py-3 text-sm text-app-secondary">{entry.phase?.name || '—'}</td>
                     <td className="px-4 py-3 text-sm text-app-secondary">{entry.task?.title || '—'}</td>
-                    <td className="px-4 py-3 text-sm text-app-secondary whitespace-nowrap">{formatDate(entry.entry_date)}</td>
+                    <td className="px-4 py-3 text-sm text-app-secondary whitespace-nowrap">
+                      {formatDate(entry.entry_date)}
+                      {daysLate(entry.entry_date) >= 3 && (
+                        <span
+                          className="ml-1.5 inline-block px-1.5 py-0.5 rounded text-[10px] font-semibold bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400"
+                          title={entry.late_submission_reason ? `Justificativa: ${entry.late_submission_reason}` : 'Lançamento retroativo'}
+                        >
+                          RETRO
+                        </span>
+                      )}
+                    </td>
                     <td className="px-4 py-3 text-sm text-app-secondary whitespace-nowrap">{formatDuration(entry.duration_minutes)}</td>
                     <td className="px-4 py-3 text-sm">
                       <span className={`inline-block px-2.5 py-1 rounded-full text-xs font-semibold ${
@@ -347,7 +390,7 @@ export function AdminTimeEntriesPage() {
                         {entry.approval_status === 'approved' ? 'Aprovado' : entry.approval_status === 'pending' ? 'Pendente' : 'Rejeitado'}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-sm space-x-2">
+                    <td className="px-4 py-3 text-sm space-x-2" onClick={(e) => e.stopPropagation()}>
                       <button
                         onClick={() => setSelectedEntry(entry)}
                         className="px-2.5 py-1 rounded-md text-xs font-medium border border-app-strong text-app-secondary hover:bg-hover-surface transition"
@@ -385,10 +428,20 @@ export function AdminTimeEntriesPage() {
 
           {/* Mobile cards */}
           <div className="md:hidden space-y-3">
-            {entries.map((entry) => (
+            {displayedEntries.map((entry) => (
               <div
                 key={entry.id}
-                className="rounded-xl border border-app-primary bg-surface-primary p-4 shadow-sm"
+                onClick={() => setSelectedEntry(entry)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    setSelectedEntry(entry);
+                  }
+                }}
+                tabIndex={0}
+                role="button"
+                aria-label={`Ver detalhes do apontamento de ${entry.professional?.full_name ?? ''}`}
+                className="rounded-xl border border-app-primary bg-surface-primary p-4 shadow-sm cursor-pointer hover:bg-hover-surface/50 transition focus:outline-none focus:ring-2 focus:ring-focon-600"
               >
                 <div className="flex justify-between items-start mb-2">
                   <div className="min-w-0 flex-1">
@@ -397,6 +450,11 @@ export function AdminTimeEntriesPage() {
                     </p>
                     <p className="text-xs text-app-muted">
                       {entry.project?.name || '—'} · {formatDate(entry.entry_date)} · {formatDuration(entry.duration_minutes)}
+                      {daysLate(entry.entry_date) >= 3 && (
+                        <span className="ml-1 inline-block px-1.5 py-0.5 rounded text-[10px] font-semibold bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400">
+                          RETRO
+                        </span>
+                      )}
                     </p>
                   </div>
                   <span className={`shrink-0 ml-2 inline-block px-2.5 py-1 rounded-full text-xs font-semibold ${
@@ -410,7 +468,7 @@ export function AdminTimeEntriesPage() {
                   </span>
                 </div>
                 <p className="text-xs text-app-muted line-clamp-2 mb-3">{entry.description}</p>
-                <div className="flex gap-2">
+                <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
                   <button
                     onClick={() => setSelectedEntry(entry)}
                     className="flex-1 px-3 py-1.5 rounded-lg text-xs font-medium border border-app-strong text-app-secondary hover:bg-hover-surface transition"

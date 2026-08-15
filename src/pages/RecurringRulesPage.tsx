@@ -4,6 +4,7 @@ import { useAuthContext } from '@/features/auth/useAuthContext';
 import { mapDatabaseError } from '@/lib/errors';
 import { Modal } from '@/components/Modal';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
+import { maxEntryDate } from '@/features/time-entries/temporalRules';
 import type { RecurringTimeEntryRule, Project, RecurringFrequency } from '@/types/database';
 
 export function RecurringRulesPage() {
@@ -218,6 +219,10 @@ function RuleFormModal({ userId, projects, onClose, onSaved, onError }: RuleForm
       onError('Preencha todos os campos obrigatórios.');
       return;
     }
+    if (startDate > maxEntryDate()) {
+      onError('A data de início não pode ser uma data futura.');
+      return;
+    }
     const dur = parseInt(duration, 10);
     if (isNaN(dur) || dur <= 0 || dur > 1440) {
       onError('Duração inválida (1-1440 minutos).');
@@ -321,11 +326,11 @@ function RuleFormModal({ userId, projects, onClose, onSaved, onError }: RuleForm
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-app-secondary mb-1">Início *</label>
-            <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="w-full px-3 py-2.5 border border-app-strong bg-surface-secondary text-app-primary rounded-lg focus:outline-none focus:ring-2 focus:ring-focon-600" />
+            <input type="date" value={startDate} max={maxEntryDate()} onChange={(e) => setStartDate(e.target.value)} className="w-full px-3 py-2.5 border border-app-strong bg-surface-secondary text-app-primary rounded-lg focus:outline-none focus:ring-2 focus:ring-focon-600" />
           </div>
           <div>
             <label className="block text-sm font-medium text-app-secondary mb-1">Fim (opcional)</label>
-            <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="w-full px-3 py-2.5 border border-app-strong bg-surface-secondary text-app-primary rounded-lg focus:outline-none focus:ring-2 focus:ring-focon-600" />
+            <input type="date" value={endDate} min={startDate} onChange={(e) => setEndDate(e.target.value)} className="w-full px-3 py-2.5 border border-app-strong bg-surface-secondary text-app-primary rounded-lg focus:outline-none focus:ring-2 focus:ring-focon-600" />
           </div>
         </div>
         <p className="text-xs text-app-muted">

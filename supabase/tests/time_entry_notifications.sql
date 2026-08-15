@@ -101,7 +101,7 @@ BEGIN
   -- ====================================================================
   v_before_count := pg_temp.count_notifications('entry_submitted', v_admin);
   v_entry_id := pg_temp.auth_as_uuid(v_ana::text, format(
-    'INSERT INTO time_entries (project_id, professional_id, entry_date, duration_minutes, description, approval_status, applied_hourly_rate) VALUES (%L, %L, ''2024-08-15'', 90, ''Test notification entry'', ''pending'', 0) RETURNING id',
+    'INSERT INTO time_entries (project_id, professional_id, entry_date, duration_minutes, description, approval_status, applied_hourly_rate, late_submission_reason) VALUES (%L, %L, ''2024-08-15'', 90, ''Test notification entry'', ''pending'', 0, ''Test late submission reason for retroactive entry'') RETURNING id',
     v_proj1, v_ana
   ));
   v_after_count := pg_temp.count_notifications('entry_submitted', v_admin);
@@ -124,7 +124,7 @@ BEGIN
 
   -- Test rejection notification
   v_entry_id2 := pg_temp.auth_as_uuid(v_ana::text, format(
-    'INSERT INTO time_entries (project_id, professional_id, entry_date, duration_minutes, description, approval_status, applied_hourly_rate) VALUES (%L, %L, ''2024-08-15'', 60, ''Test rejection notification'', ''pending'', 0) RETURNING id',
+    'INSERT INTO time_entries (project_id, professional_id, entry_date, duration_minutes, description, approval_status, applied_hourly_rate, late_submission_reason) VALUES (%L, %L, ''2024-08-15'', 60, ''Test rejection notification'', ''pending'', 0, ''Test late submission reason for retroactive entry'') RETURNING id',
     v_proj1, v_ana
   ));
   v_before_count := pg_temp.count_notifications('entry_rejected', v_ana);
@@ -137,7 +137,7 @@ BEGIN
   -- ====================================================================
   -- Ana creates an entry
   v_entry_id := pg_temp.auth_as_uuid(v_ana::text, format(
-    'INSERT INTO time_entries (project_id, professional_id, entry_date, duration_minutes, description, approval_status, applied_hourly_rate) VALUES (%L, %L, ''2024-08-15'', 30, ''Cross-user visibility test'', ''pending'', 0) RETURNING id',
+    'INSERT INTO time_entries (project_id, professional_id, entry_date, duration_minutes, description, approval_status, applied_hourly_rate, late_submission_reason) VALUES (%L, %L, ''2024-08-15'', 30, ''Cross-user visibility test'', ''pending'', 0, ''Test late submission reason for retroactive entry'') RETURNING id',
     v_proj1, v_ana
   ));
   -- Bruno tries to read Ana's entry
@@ -177,7 +177,7 @@ BEGIN
   -- TEST 7: Phase/task linkage works on time entries
   -- ====================================================================
   v_entry_id := pg_temp.auth_as_uuid(v_ana::text, format(
-    'INSERT INTO time_entries (project_id, professional_id, entry_date, duration_minutes, description, approval_status, applied_hourly_rate, phase_id, task_id) VALUES (%L, %L, ''2024-08-15'', 45, ''Entry with phase and task link'', ''pending'', 0, ''%s'', ''%s'') RETURNING id',
+    'INSERT INTO time_entries (project_id, professional_id, entry_date, duration_minutes, description, approval_status, applied_hourly_rate, late_submission_reason, phase_id, task_id) VALUES (%L, %L, ''2024-08-15'', 45, ''Entry with phase and task link'', ''pending'', 0, ''Test late submission reason for retroactive entry'', ''%s'', ''%s'') RETURNING id',
     v_proj1, v_ana, '550e8400-e29b-41d4-a716-446655441002', '550e8400-e29b-41d4-a716-446655442002'
   ));
   PERFORM pg_temp.assert_true(v_entry_id IS NOT NULL, 'T7: entry with phase_id and task_id should be created');

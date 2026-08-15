@@ -6,11 +6,21 @@ import { Modal } from '@/components/Modal';
 import { useDebounce } from '@/hooks/usePagination';
 import type { Profile, UserRole } from '@/types/database';
 
+interface ProfessionalDetails {
+  currentRate: number | null;
+  totalMinutes: number;
+  approvedMinutes: number;
+  pendingMinutes: number;
+  rejectedMinutes: number;
+  projects: { id: string; name: string; project_role: string }[];
+}
+
 export function ProfessionalsPage() {
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [editTarget, setEditTarget] = useState<Profile | null>(null);
+  const [selectedProfile, setSelectedProfile] = useState<Profile | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
   const [inviteOpen, setInviteOpen] = useState(false);
   const [search, setSearch] = useState('');
@@ -127,7 +137,20 @@ export function ProfessionalsPage() {
                 <tr><td colSpan={4} className="px-4 py-8 text-center text-sm text-app-muted">Nenhum profissional encontrado</td></tr>
               ) : (
                 filteredProfiles.map((p) => (
-                <tr key={p.id} className="hover:bg-hover-surface transition">
+                <tr
+                  key={p.id}
+                  onClick={() => setSelectedProfile(p)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      setSelectedProfile(p);
+                    }
+                  }}
+                  tabIndex={0}
+                  role="button"
+                  aria-label={`Ver detalhes de ${p.full_name}`}
+                  className="hover:bg-hover-surface transition cursor-pointer focus:outline-none focus:ring-2 focus:ring-inset focus:ring-focon-600"
+                >
                   <td className="px-4 py-3 text-sm text-app-primary font-medium">{p.full_name}</td>
                   <td className="px-4 py-3 text-sm">
                     <span className={`inline-block px-2.5 py-1 rounded-full text-xs font-semibold ${p.role === 'admin' ? 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400' : 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400'}`}>
@@ -135,7 +158,7 @@ export function ProfessionalsPage() {
                     </span>
                   </td>
                   <td className="px-4 py-3 text-sm text-app-secondary">{formatDate(p.created_at)}</td>
-                  <td className="px-4 py-3 text-sm">
+                  <td className="px-4 py-3 text-sm" onClick={(e) => e.stopPropagation()}>
                     <button
                       onClick={() => setEditTarget(p)}
                       className="px-2.5 py-1 rounded-md text-xs font-medium border border-app-strong text-app-secondary hover:bg-hover-surface transition"
@@ -171,6 +194,13 @@ export function ProfessionalsPage() {
             fetchProfiles();
           }}
           onError={(msg) => setActionError(msg)}
+        />
+      )}
+
+      {selectedProfile && (
+        <ProfessionalDetailsModal
+          profile={selectedProfile}
+          onClose={() => setSelectedProfile(null)}
         />
       )}
     </div>
@@ -328,6 +358,164 @@ function RoleEditModal({ profile, onClose, onSaved, onError }: RoleEditModalProp
           profissionais, valor/hora, financeiro e fechamentos.
         </p>
       </form>
+    </Modal>
+  );
+}
+
+interface ProfessionalDetailsModalProps {
+  profile: Profile;
+  onClose: () => void;
+}
+
+function ProfessionalDetailsModal({ profile, onClose }: ProfessionalDetailsModalProps) {
+  const [details, setDetails] = useState<ProfessionalDetails | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const [rateRes, entriesRes, membersRes] = await Promise.all([
+          supabase
+            .from('hourly_rates')
+            .select('hourly_rate')
+            .eq('professional_id', profile.id)
+            .is('valid_until', null)
+            .maybeSingle(),
+          supabase
+            .from('time_entries')
+            .select('duration_minutes, approval_status')
+            .eq('professional_id', profile.id),
+          supabase
+            .from('project_members')
+            .select('id, project_id, project_role, project:projects!project_members_project_id_fkey(name)')
+            .eq('professional_id', profile.id),
+        ]);
+
+        if (cancelled) return;
+
+        const entries = (entriesRes.data as { duration_minutes: number; approval_status: string }[]) || [];
+        const totalMinutes = entries.reduce((s, e) => s + e.duration_minutes, 0);
+        const approvedMinutes = entries
+          .filter((e) => e.approval_status === 'approved')
+          .reduce((s, e) => s + e.duration_minutes, 0);
+        const pendingMinutes = entries
+          .filter((e) => e.approval_status === 'pending')
+          .reduce((s, e) => s + e.duration_minutes, 0);
+        const rejectedMinutes = entries
+          .filter((e) => e.approval_status === 'rejected')
+          .reduce((s, e) => s + e.duration_minutes, 0);
+
+        const members = (membersRes.data as { id: string; project_role: string; project?: { name: string } | null }[]) || [];
+        const projects = members.map((m) => ({
+          id: m.id,
+          name: m.project?.name ?? 'Desconhecido',
+          project_role: m.project_role,
+        }));
+
+        setDetails({
+          currentRate: rateRes.data ? (rateRes.data as { hourly_rate: number }).hourly_rate : null,
+          totalMinutes,
+          approvedMinutes,
+          pendingMinutes,
+          rejectedMinutes,
+          projects,
+        });
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [profile.id]);
+
+  const formatCurrency = (v: number) =>
+    new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v);
+  const formatDate = (d: string) => new Date(d).toLocaleDateString('pt-BR');
+  const formatDuration = (minutes: number) => {
+    const hours = Math.floor(minutes / 60);
+    const mins = minutes % 60;
+    return `${hours}h ${mins}m`;
+  };
+
+  const roleLabels: Record<string, string> = {
+    manager: 'Gerente',
+    technical_lead: 'Líder Técnico',
+    professional: 'Profissional',
+    observer: 'Observador',
+  };
+
+  return (
+    <Modal open onClose={onClose} title="Detalhes do Profissional" maxWidth="max-w-2xl">
+      {loading ? (
+        <div className="flex justify-center items-center py-8">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-focon-600"></div>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <p className="text-xs font-medium text-app-muted uppercase tracking-wide">Nome</p>
+              <p className="text-sm text-app-primary font-medium">{profile.full_name}</p>
+            </div>
+            <div>
+              <p className="text-xs font-medium text-app-muted uppercase tracking-wide">Papel</p>
+              <span className={`inline-block mt-1 px-2.5 py-1 rounded-full text-xs font-semibold ${profile.role === 'admin' ? 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400' : 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400'}`}>
+                {profile.role === 'admin' ? 'Administrador' : 'Profissional'}
+              </span>
+            </div>
+            <div>
+              <p className="text-xs font-medium text-app-muted uppercase tracking-wide">Valor/Hora Atual</p>
+              <p className="text-sm text-app-primary font-semibold">
+                {details?.currentRate != null ? formatCurrency(details.currentRate) : '—'}
+              </p>
+            </div>
+            <div>
+              <p className="text-xs font-medium text-app-muted uppercase tracking-wide">Criado em</p>
+              <p className="text-sm text-app-secondary">{formatDate(profile.created_at)}</p>
+            </div>
+          </div>
+
+          <div className="border-t border-app-primary pt-4">
+            <h3 className="text-sm font-semibold text-app-primary mb-3">Horas Apontadas</h3>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <div className="rounded-lg bg-surface-secondary p-3">
+                <p className="text-xs text-app-muted">Total</p>
+                <p className="text-sm font-semibold text-app-primary">{formatDuration(details?.totalMinutes ?? 0)}</p>
+              </div>
+              <div className="rounded-lg bg-green-50 dark:bg-green-900/20 p-3">
+                <p className="text-xs text-green-700 dark:text-green-400">Aprovadas</p>
+                <p className="text-sm font-semibold text-green-800 dark:text-green-300">{formatDuration(details?.approvedMinutes ?? 0)}</p>
+              </div>
+              <div className="rounded-lg bg-yellow-50 dark:bg-yellow-900/20 p-3">
+                <p className="text-xs text-yellow-700 dark:text-yellow-400">Pendentes</p>
+                <p className="text-sm font-semibold text-yellow-800 dark:text-yellow-300">{formatDuration(details?.pendingMinutes ?? 0)}</p>
+              </div>
+              <div className="rounded-lg bg-red-50 dark:bg-red-900/20 p-3">
+                <p className="text-xs text-red-700 dark:text-red-400">Rejeitadas</p>
+                <p className="text-sm font-semibold text-red-800 dark:text-red-300">{formatDuration(details?.rejectedMinutes ?? 0)}</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="border-t border-app-primary pt-4">
+            <h3 className="text-sm font-semibold text-app-primary mb-3">Projetos Vinculados</h3>
+            {details && details.projects.length > 0 ? (
+              <ul className="space-y-2">
+                {details.projects.map((proj) => (
+                  <li key={proj.id} className="flex justify-between items-center rounded-lg bg-surface-secondary px-3 py-2">
+                    <span className="text-sm text-app-primary font-medium">{proj.name}</span>
+                    <span className="text-xs text-app-muted">{roleLabels[proj.project_role] || proj.project_role}</span>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-sm text-app-muted">Nenhum projeto vinculado</p>
+            )}
+          </div>
+        </div>
+      )}
     </Modal>
   );
 }

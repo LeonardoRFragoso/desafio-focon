@@ -3,6 +3,7 @@ import { projectMembersAPI, profilesAPI } from '@/lib/supabase/api';
 import { mapDatabaseError } from '@/lib/errors';
 import { Modal } from '@/components/Modal';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
+import { ProjectMemberDetailsModal } from '@/features/project-workspace/ProjectMemberDetailsModal';
 import type { ProjectMember, ProjectRole, Profile } from '@/types/database';
 
 interface ProjectTeamTabProps {
@@ -31,6 +32,7 @@ export function ProjectTeamTab({ projectId, isAdmin }: ProjectTeamTabProps) {
   const [error, setError] = useState<string | null>(null);
   const [addOpen, setAddOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<ProjectMember | null>(null);
+  const [detailsTarget, setDetailsTarget] = useState<ProjectMember | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
 
   const fetchMembers = useCallback(async () => {
@@ -110,14 +112,27 @@ export function ProjectTeamTab({ projectId, isAdmin }: ProjectTeamTabProps) {
             </thead>
             <tbody className="divide-y divide-table-divider">
               {members.map((m) => (
-                <tr key={m.id} className="hover:bg-hover-surface transition">
+                <tr
+                  key={m.id}
+                  onClick={() => setDetailsTarget(m)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      setDetailsTarget(m);
+                    }
+                  }}
+                  tabIndex={0}
+                  role="button"
+                  aria-label={`Ver detalhes de ${m.professional?.full_name ?? 'membro'}`}
+                  className="hover:bg-hover-surface transition cursor-pointer focus:outline-none focus:ring-2 focus:ring-inset focus:ring-focon-600"
+                >
                   <td className="px-4 py-3 text-sm text-app-primary font-medium">
                     {m.professional?.full_name ?? '—'}
                   </td>
                   <td className="px-4 py-3 text-sm text-app-secondary">
                     {m.professional?.role === 'admin' ? 'Administrador' : 'Profissional'}
                   </td>
-                  <td className="px-4 py-3 text-sm">
+                  <td className="px-4 py-3 text-sm" onClick={(e) => e.stopPropagation()}>
                     {isAdmin ? (
                       <select
                         value={m.project_role}
@@ -146,7 +161,7 @@ export function ProjectTeamTab({ projectId, isAdmin }: ProjectTeamTabProps) {
                     )}
                   </td>
                   {isAdmin && (
-                    <td className="px-4 py-3 text-sm">
+                    <td className="px-4 py-3 text-sm" onClick={(e) => e.stopPropagation()}>
                       <button
                         onClick={() => setDeleteTarget(m)}
                         className="px-2.5 py-1 rounded-md text-xs font-medium border border-red-300 dark:border-red-700 text-red-700 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition"
@@ -197,6 +212,15 @@ export function ProjectTeamTab({ projectId, isAdmin }: ProjectTeamTabProps) {
               Tem certeza que deseja remover <strong>{deleteTarget.professional?.full_name}</strong> da equipe?
             </p>
           }
+        />
+      )}
+
+      {detailsTarget && (
+        <ProjectMemberDetailsModal
+          member={detailsTarget}
+          projectId={projectId}
+          isOpen={true}
+          onClose={() => setDetailsTarget(null)}
         />
       )}
     </div>

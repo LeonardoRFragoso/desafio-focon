@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { hourlyRatesAPI, profilesAPI } from '@/lib/supabase/api';
+import { supabase } from '@/lib/supabase/client';
 import { mapDatabaseError } from '@/lib/errors';
 import { Modal } from '@/components/Modal';
 import type { Profile } from '@/types/database';
@@ -15,12 +16,20 @@ interface HourlyRateRow {
   professional?: { full_name: string } | null;
 }
 
+interface RateHistoryEntry {
+  id: string;
+  hourly_rate: number;
+  valid_from: string;
+  valid_until: string | null;
+}
+
 export function HourlyRatesPage() {
   const [rates, setRates] = useState<HourlyRateRow[]>([]);
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
+  const [selectedRate, setSelectedRate] = useState<HourlyRateRow | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
 
   const fetchRates = useCallback(async () => {
@@ -110,7 +119,20 @@ export function HourlyRatesPage() {
             </thead>
             <tbody className="divide-y divide-table-divider">
               {rates.map((r) => (
-                <tr key={r.id} className="hover:bg-hover-surface transition">
+                <tr
+                  key={r.id}
+                  onClick={() => setSelectedRate(r)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      setSelectedRate(r);
+                    }
+                  }}
+                  tabIndex={0}
+                  role="button"
+                  aria-label={`Ver detalhes de ${r.professional?.full_name || 'profissional'}`}
+                  className="hover:bg-hover-surface transition cursor-pointer focus:outline-none focus:ring-2 focus:ring-inset focus:ring-focon-600"
+                >
                   <td className="px-4 py-3 text-sm text-app-primary font-medium">
                     {r.professional?.full_name || 'Desconhecido'}
                   </td>
@@ -140,6 +162,13 @@ export function HourlyRatesPage() {
             fetchRates();
           }}
           onError={(msg) => setActionError(msg)}
+        />
+      )}
+
+      {selectedRate && (
+        <HourlyRateDetailsModal
+          rate={selectedRate}
+          onClose={() => setSelectedRate(null)}
         />
       )}
     </div>
@@ -225,6 +254,101 @@ function RateFormModal({ profiles, onClose, onSaved, onError }: RateFormModalPro
           A taxa anterior vigente será automaticamente encerrada na data anterior ao início desta.
         </p>
       </form>
+    </Modal>
+  );
+}
+
+interface HourlyRateDetailsModalProps {
+  rate: HourlyRateRow;
+  onClose: () => void;
+}
+
+function HourlyRateDetailsModal({ rate, onClose }: HourlyRateDetailsModalProps) {
+  const [history, setHistory] = useState<RateHistoryEntry[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const { data } = await supabase
+          .from('hourly_rates')
+          .select('id, hourly_rate, valid_from, valid_until')
+          .eq('professional_id', rate.professional_id)
+          .order('valid_from', { ascending: false });
+        if (cancelled) return;
+        setHistory((data as RateHistoryEntry[]) || []);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [rate.professional_id]);
+
+  const formatCurrency = (v: number) =>
+    new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v);
+  const formatDate = (d: string) => new Date(d).toLocaleDateString('pt-BR');
+
+  const currentRate = history.find((h) => h.valid_until === null) ?? null;
+
+  return (
+    <Modal open onClose={onClose} title="Detalhes do Valor/Hora" maxWidth="max-w-2xl">
+      {loading ? (
+        <div className="flex justify-center items-center py-8">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-focon-600"></div>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <p className="text-xs font-medium text-app-muted uppercase tracking-wide">Profissional</p>
+              <p className="text-sm text-app-primary font-medium">{rate.professional?.full_name || 'Desconhecido'}</p>
+            </div>
+            <div>
+              <p className="text-xs font-medium text-app-muted uppercase tracking-wide">Taxa Atual</p>
+              <p className="text-sm text-app-primary font-semibold">
+                {currentRate ? formatCurrency(currentRate.hourly_rate) : '—'}
+              </p>
+            </div>
+          </div>
+
+          <div className="border-t border-app-primary pt-4">
+            <h3 className="text-sm font-semibold text-app-primary mb-3">Histórico de Taxas</h3>
+            {history.length > 0 ? (
+              <div className="overflow-x-auto rounded-lg border border-app-primary">
+                <table className="w-full">
+                  <thead className="bg-surface-secondary border-b border-app-primary">
+                    <tr>
+                      <th className="px-3 py-2 text-left text-xs font-semibold text-app-primary">Valor/Hora</th>
+                      <th className="px-3 py-2 text-left text-xs font-semibold text-app-primary">Válido de</th>
+                      <th className="px-3 py-2 text-left text-xs font-semibold text-app-primary">Válido até</th>
+                      <th className="px-3 py-2 text-left text-xs font-semibold text-app-primary">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-table-divider">
+                    {history.map((h) => (
+                      <tr key={h.id}>
+                        <td className="px-3 py-2 text-sm text-app-primary font-semibold">{formatCurrency(h.hourly_rate)}</td>
+                        <td className="px-3 py-2 text-sm text-app-secondary">{formatDate(h.valid_from)}</td>
+                        <td className="px-3 py-2 text-sm text-app-secondary">{h.valid_until ? formatDate(h.valid_until) : '—'}</td>
+                        <td className="px-3 py-2 text-sm">
+                          <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-semibold ${h.valid_until ? 'bg-slate-100 text-slate-700 bg-surface-secondary text-app-secondary' : 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'}`}>
+                            {h.valid_until ? 'Encerrada' : 'Vigente'}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <p className="text-sm text-app-muted">Nenhum histórico disponível</p>
+            )}
+          </div>
+        </div>
+      )}
     </Modal>
   );
 }

@@ -12,6 +12,7 @@ import { Pagination } from '@/components/Pagination';
 import { useDebounce } from '@/hooks/usePagination';
 import { TimeEntryDetailsModal, type TimeEntryDetail } from '@/features/time-entries/TimeEntryDetailsModal';
 import { timeEntrySchema, type TimeEntryInput } from '@/schemas/time-entry';
+import { maxEntryDate, requiresLateReason, daysLate } from '@/features/time-entries/temporalRules';
 
 const PAGE_SIZE = 20;
 
@@ -603,6 +604,7 @@ function EditEntryModal({ entry, projects, onClose, onSaved, onError }: EditEntr
   const {
     register,
     handleSubmit,
+    watch,
     formState: { errors },
   } = useForm<TimeEntryInput>({
     resolver: zodResolver(timeEntrySchema),
@@ -611,8 +613,13 @@ function EditEntryModal({ entry, projects, onClose, onSaved, onError }: EditEntr
       entryDate: entry.entry_date,
       durationMinutes: entry.duration_minutes,
       description: entry.description,
+      lateSubmissionReason: entry.late_submission_reason ?? '',
     },
   });
+
+  const entryDate = watch('entryDate');
+  const showLateReason = entryDate ? requiresLateReason(entryDate) : false;
+  const lateDays = entryDate ? daysLate(entryDate) : 0;
 
   const onSubmit = async (data: TimeEntryInput) => {
     setSubmitting(true);
@@ -622,6 +629,7 @@ function EditEntryModal({ entry, projects, onClose, onSaved, onError }: EditEntr
         entry_date: data.entryDate,
         duration_minutes: data.durationMinutes,
         description: data.description,
+        late_submission_reason: requiresLateReason(data.entryDate) ? (data.lateSubmissionReason?.trim() || null) : null,
       });
       if (err) throw err;
       onSaved();
@@ -685,6 +693,7 @@ function EditEntryModal({ entry, projects, onClose, onSaved, onError }: EditEntr
               {...register('entryDate')}
               id="edit-entryDate"
               type="date"
+              max={maxEntryDate()}
               className="w-full px-3 py-2.5 border border-app-strong bg-surface-secondary text-app-primary rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-focon-600"
             />
             {errors.entryDate && <p className="mt-1 text-sm text-red-600">{errors.entryDate.message}</p>}
@@ -718,6 +727,27 @@ function EditEntryModal({ entry, projects, onClose, onSaved, onError }: EditEntr
           />
           {errors.description && <p className="mt-1 text-sm text-red-600">{errors.description.message}</p>}
         </div>
+        {showLateReason && (
+          <div>
+            <label htmlFor="edit-lateReason" className="block text-sm font-medium text-app-secondary mb-2">
+              Justificativa do lançamento retroativo *
+            </label>
+            <p className="text-sm text-app-muted mb-2">
+              Este apontamento está sendo registrado com {lateDays} dias de atraso.
+              Informe o motivo do lançamento retroativo.
+            </p>
+            <textarea
+              {...register('lateSubmissionReason')}
+              id="edit-lateReason"
+              rows={3}
+              className="w-full px-3 py-2.5 border border-app-strong bg-surface-secondary text-app-primary rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-focon-600"
+              placeholder="Ex: Estava em campo durante a semana e não pude registrar no tempo adequado..."
+            />
+            {errors.lateSubmissionReason && (
+              <p className="mt-1 text-sm text-red-600">{errors.lateSubmissionReason.message}</p>
+            )}
+          </div>
+        )}
         <p className="text-xs text-app-muted">
           Apenas apontamentos pendentes podem ser editados. O valor/hora é recalculado
           automaticamente pelo sistema ao alterar a data.
@@ -742,6 +772,7 @@ function DuplicateEntryModal({ entry, projects, onClose, onSaved, onError }: Dup
   const {
     register,
     handleSubmit,
+    watch,
     formState: { errors },
   } = useForm<TimeEntryInput>({
     resolver: zodResolver(timeEntrySchema),
@@ -753,6 +784,10 @@ function DuplicateEntryModal({ entry, projects, onClose, onSaved, onError }: Dup
     },
   });
 
+  const entryDate = watch('entryDate');
+  const showLateReason = entryDate ? requiresLateReason(entryDate) : false;
+  const lateDays = entryDate ? daysLate(entryDate) : 0;
+
   const onSubmit = async (data: TimeEntryInput) => {
     if (!user) return;
     setSubmitting(true);
@@ -763,6 +798,8 @@ function DuplicateEntryModal({ entry, projects, onClose, onSaved, onError }: Dup
         duration_minutes: data.durationMinutes,
         description: data.description,
         entry_date: data.entryDate,
+        // Do NOT copy old late_submission_reason — the new date determines if a reason is needed
+        late_submission_reason: requiresLateReason(data.entryDate) ? (data.lateSubmissionReason?.trim() || null) : null,
       });
       if (err) throw err;
       onSaved();
@@ -830,6 +867,7 @@ function DuplicateEntryModal({ entry, projects, onClose, onSaved, onError }: Dup
               {...register('entryDate')}
               id="dup-entryDate"
               type="date"
+              max={maxEntryDate()}
               className="w-full px-3 py-2.5 border border-app-strong bg-surface-secondary text-app-primary rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-focon-600"
             />
             {errors.entryDate && <p className="mt-1 text-sm text-red-600">{errors.entryDate.message}</p>}
@@ -863,6 +901,27 @@ function DuplicateEntryModal({ entry, projects, onClose, onSaved, onError }: Dup
           />
           {errors.description && <p className="mt-1 text-sm text-red-600">{errors.description.message}</p>}
         </div>
+        {showLateReason && (
+          <div>
+            <label htmlFor="dup-lateReason" className="block text-sm font-medium text-app-secondary mb-2">
+              Justificativa do lançamento retroativo *
+            </label>
+            <p className="text-sm text-app-muted mb-2">
+              Este apontamento está sendo registrado com {lateDays} dias de atraso.
+              Informe o motivo do lançamento retroativo.
+            </p>
+            <textarea
+              {...register('lateSubmissionReason')}
+              id="dup-lateReason"
+              rows={3}
+              className="w-full px-3 py-2.5 border border-app-strong bg-surface-secondary text-app-primary rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-focon-600"
+              placeholder="Ex: Estava em campo durante a semana e não pude registrar no tempo adequado..."
+            />
+            {errors.lateSubmissionReason && (
+              <p className="mt-1 text-sm text-red-600">{errors.lateSubmissionReason.message}</p>
+            )}
+          </div>
+        )}
       </form>
     </Modal>
   );

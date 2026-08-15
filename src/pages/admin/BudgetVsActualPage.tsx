@@ -23,6 +23,7 @@ export function BudgetVsActualPage() {
   const [error, setError] = useState<string | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<BudgetWithActual | null>(null);
+  const [selectedBudget, setSelectedBudget] = useState<BudgetWithActual | null>(null);
 
   const fetchBudgets = useCallback(async () => {
     try {
@@ -158,7 +159,20 @@ export function BudgetVsActualPage() {
                 const variancePct = isHours ? b.hours_variance_pct : b.cost_variance_pct;
                 const fmtVal = isHours ? formatHours : formatCurrency;
                 return (
-                  <tr key={b.id} className="hover:bg-hover-surface/50 transition">
+                  <tr
+                    key={b.id}
+                    onClick={() => setSelectedBudget(b)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        setSelectedBudget(b);
+                      }
+                    }}
+                    tabIndex={0}
+                    role="button"
+                    aria-label={`Ver detalhes do orçamento de ${b.project?.name || 'projeto'}`}
+                    className="hover:bg-hover-surface/50 transition cursor-pointer focus:outline-none focus:ring-2 focus:ring-inset focus:ring-focon-600"
+                  >
                     <td className="px-4 py-3 text-sm font-medium text-app-primary">{b.project?.name || '—'}</td>
                     <td className="px-4 py-3 text-sm text-app-secondary">{budgetTypeLabels[b.budget_type] || b.budget_type}</td>
                     <td className="px-4 py-3 text-sm text-app-secondary">{b.fiscal_year}</td>
@@ -170,7 +184,7 @@ export function BudgetVsActualPage() {
                     <td className={`px-4 py-3 text-sm text-right font-medium ${variancePct >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
                       {formatPct(variancePct)}
                     </td>
-                    <td className="px-4 py-3 text-sm">
+                    <td className="px-4 py-3 text-sm" onClick={(e) => e.stopPropagation()}>
                       <button
                         onClick={() => setDeleteTarget(b)}
                         className="px-2.5 py-1 rounded-md text-xs font-medium border border-red-300 dark:border-red-700 text-red-700 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition"
@@ -214,6 +228,13 @@ export function BudgetVsActualPage() {
             await fetchBudgets();
           }}
           message={<p>Excluir o orçamento de <strong>{deleteTarget.project?.name}</strong>?</p>}
+        />
+      )}
+
+      {selectedBudget && (
+        <BudgetDetailsModal
+          budget={selectedBudget}
+          onClose={() => setSelectedBudget(null)}
         />
       )}
     </div>
@@ -314,6 +335,99 @@ function BudgetFormModal({ projects, onClose, onSaved, onError }: BudgetFormModa
           <input type="number" step="0.01" min="0" value={budgetValue} onChange={(e) => setBudgetValue(e.target.value)} className="w-full px-3 py-2.5 border border-app-strong bg-surface-secondary text-app-primary rounded-lg focus:outline-none focus:ring-2 focus:ring-focon-600" />
         </div>
       </form>
+    </Modal>
+  );
+}
+
+interface BudgetDetailsModalProps {
+  budget: BudgetWithActual;
+  onClose: () => void;
+}
+
+function BudgetDetailsModal({ budget, onClose }: BudgetDetailsModalProps) {
+  const formatCurrency = (v: number) =>
+    new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v);
+  const formatHours = (h: number) => `${h.toFixed(1)}h`;
+  const formatDate = (d: string) => new Date(d).toLocaleDateString('pt-BR');
+
+  const isHours = budget.budget_type === 'labor_hours';
+  const budgetVal = budget.budget_value;
+  const actualVal = isHours ? budget.actual_hours : budget.actual_cost;
+  const variance = isHours ? budget.hours_variance : budget.cost_variance;
+  const variancePct = isHours ? budget.hours_variance_pct : budget.cost_variance_pct;
+  const fmtVal = isHours ? formatHours : formatCurrency;
+  const consumedPct = budgetVal > 0 ? (actualVal / budgetVal) * 100 : 0;
+
+  const budgetTypeLabels: Record<string, string> = {
+    labor_hours: 'Horas',
+    labor_cost: 'Custo (R$)',
+    total_cost: 'Custo Total (R$)',
+  };
+
+  return (
+    <Modal open onClose={onClose} title="Detalhes do Orçamento" maxWidth="max-w-2xl">
+      <div className="space-y-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <p className="text-xs font-medium text-app-muted uppercase tracking-wide">Projeto</p>
+            <p className="text-sm text-app-primary font-medium">{budget.project?.name || '—'}</p>
+          </div>
+          <div>
+            <p className="text-xs font-medium text-app-muted uppercase tracking-wide">Tipo de Orçamento</p>
+            <p className="text-sm text-app-secondary">{budgetTypeLabels[budget.budget_type] || budget.budget_type}</p>
+          </div>
+          <div>
+            <p className="text-xs font-medium text-app-muted uppercase tracking-wide">Ano Fiscal</p>
+            <p className="text-sm text-app-secondary">{budget.fiscal_year}</p>
+          </div>
+          <div>
+            <p className="text-xs font-medium text-app-muted uppercase tracking-wide">Criado em</p>
+            <p className="text-sm text-app-secondary">{formatDate(budget.created_at)}</p>
+          </div>
+        </div>
+
+        <div className="border-t border-app-primary pt-4">
+          <h3 className="text-sm font-semibold text-app-primary mb-3">Orçamento × Realizado</h3>
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+            <div className="rounded-lg bg-surface-secondary p-3">
+              <p className="text-xs text-app-muted">Previsto</p>
+              <p className="text-sm font-semibold text-app-primary">{fmtVal(budgetVal)}</p>
+            </div>
+            <div className="rounded-lg bg-surface-secondary p-3">
+              <p className="text-xs text-app-muted">Realizado</p>
+              <p className="text-sm font-semibold text-app-primary">{fmtVal(actualVal)}</p>
+            </div>
+            <div className={`rounded-lg p-3 ${variance >= 0 ? 'bg-green-50 dark:bg-green-900/20' : 'bg-red-50 dark:bg-red-900/20'}`}>
+              <p className={`text-xs ${variance >= 0 ? 'text-green-700 dark:text-green-400' : 'text-red-700 dark:text-red-400'}`}>Diferença</p>
+              <p className={`text-sm font-semibold ${variance >= 0 ? 'text-green-800 dark:text-green-300' : 'text-red-800 dark:text-red-300'}`}>
+                {fmtVal(Math.abs(variance))}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="border-t border-app-primary pt-4">
+          <h3 className="text-sm font-semibold text-app-primary mb-3">Consumo</h3>
+          <div className="space-y-2">
+            <div className="flex justify-between text-sm">
+              <span className="text-app-muted">Percentual consumido</span>
+              <span className={`font-semibold ${consumedPct > 100 ? 'text-red-600 dark:text-red-400' : 'text-app-primary'}`}>
+                {consumedPct.toFixed(1)}%
+              </span>
+            </div>
+            <div className="w-full bg-surface-secondary rounded-full h-3 overflow-hidden border border-app-primary">
+              <div
+                className={`h-full rounded-full transition-all ${consumedPct > 100 ? 'bg-red-500' : consumedPct > 80 ? 'bg-yellow-500' : 'bg-green-500'}`}
+                style={{ width: `${Math.min(consumedPct, 100)}%` }}
+              />
+            </div>
+            <div className="flex justify-between text-xs text-app-muted">
+              <span>Variância: {variancePct >= 0 ? '+' : ''}{variancePct.toFixed(1)}%</span>
+              <span>{consumedPct > 100 ? 'Acima do orçamento' : 'Dentro do orçamento'}</span>
+            </div>
+          </div>
+        </div>
+      </div>
     </Modal>
   );
 }

@@ -745,6 +745,7 @@ export type Database = {
           duration_minutes: number
           entry_date: string
           id: string
+          late_submission_reason: string | null
           phase_id: string | null
           professional_id: string
           project_id: string
@@ -762,6 +763,7 @@ export type Database = {
           duration_minutes: number
           entry_date: string
           id?: string
+          late_submission_reason?: string | null
           phase_id?: string | null
           professional_id: string
           project_id: string
@@ -779,6 +781,7 @@ export type Database = {
           duration_minutes?: number
           entry_date?: string
           id?: string
+          late_submission_reason?: string | null
           phase_id?: string | null
           professional_id?: string
           project_id?: string

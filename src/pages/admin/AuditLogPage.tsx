@@ -143,14 +143,27 @@ export function AuditLogPage() {
               </thead>
               <tbody className="divide-y divide-table-divider">
                 {paginatedLogs.map((log) => (
-                  <tr key={log.id} className="hover:bg-hover-surface/50 transition">
+                  <tr
+                    key={log.id}
+                    onClick={() => setSelected(log)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        setSelected(log);
+                      }
+                    }}
+                    tabIndex={0}
+                    role="button"
+                    aria-label={`Ver detalhes da ação ${log.action}`}
+                    className="hover:bg-hover-surface/50 transition cursor-pointer focus:outline-none focus:ring-2 focus:ring-inset focus:ring-focon-600"
+                  >
                     <td className="px-4 py-3 text-sm text-app-secondary whitespace-nowrap">{formatDateTime(log.created_at)}</td>
                     <td className="px-4 py-3 text-sm text-app-primary font-medium font-mono">{log.action}</td>
                     <td className="px-4 py-3 text-sm text-app-secondary">{log.entity_type}</td>
                     <td className="px-4 py-3 text-sm text-app-secondary">
                       {log.actor?.full_name || log.actor_id?.slice(0, 8) || 'Sistema'}
                     </td>
-                    <td className="px-4 py-3 text-sm">
+                    <td className="px-4 py-3 text-sm" onClick={(e) => e.stopPropagation()}>
                       <button
                         onClick={() => setSelected(log)}
                         className="px-2.5 py-1 rounded-md text-xs font-medium border border-app-strong text-app-secondary hover:bg-hover-surface transition"

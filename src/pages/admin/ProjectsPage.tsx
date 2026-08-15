@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { projectsAPI } from '@/lib/supabase/api';
 import { mapDatabaseError } from '@/lib/errors';
 import { Modal } from '@/components/Modal';
@@ -7,9 +7,14 @@ import { ConfirmDialog } from '@/components/ConfirmDialog';
 import { useDebounce } from '@/hooks/usePagination';
 import type { Project, ProjectStatus } from '@/types/database';
 
+interface ProjectWithTeam extends Project {
+  project_members?: { count: number }[];
+}
+
 export function ProjectsPage() {
   const navigate = useNavigate();
-  const [projects, setProjects] = useState<Project[]>([]);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const [projects, setProjects] = useState<ProjectWithTeam[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [editTarget, setEditTarget] = useState<Project | null>(null);
@@ -18,15 +23,16 @@ export function ProjectsPage() {
   const [actionError, setActionError] = useState<string | null>(null);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
+  const [teamFilter, setTeamFilter] = useState(searchParams.get('team') ?? '');
   const debouncedSearch = useDebounce(search, 300);
 
   const fetchProjects = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
-      const { data, error: err } = await projectsAPI.list();
+      const { data, error: err } = await projectsAPI.listWithTeamInfo();
       if (err) throw err;
-      setProjects((data as Project[]) || []);
+      setProjects((data as ProjectWithTeam[]) || []);
     } catch (err) {
       setError(err instanceof Error ? mapDatabaseError(err) : 'Erro ao carregar projetos');
     } finally {
@@ -38,6 +44,18 @@ export function ProjectsPage() {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchProjects();
   }, [fetchProjects]);
+
+  // Sync teamFilter to URL
+  useEffect(() => {
+    const params = new URLSearchParams(searchParams);
+    if (teamFilter) {
+      params.set('team', teamFilter);
+    } else {
+      params.delete('team');
+    }
+    setSearchParams(params, { replace: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [teamFilter]);
 
   const statusLabels: Record<string, string> = {
     planned: 'Planejado',
@@ -68,8 +86,15 @@ export function ProjectsPage() {
     if (statusFilter) {
       result = result.filter((p) => p.status === statusFilter);
     }
+    if (teamFilter === 'unassigned') {
+      result = result.filter(
+        (p) => (p.project_members?.[0]?.count ?? 0) === 0 && (p.status === 'active' || p.status === 'planned')
+      );
+    }
     return result;
-  }, [projects, debouncedSearch, statusFilter]);
+  }, [projects, debouncedSearch, statusFilter, teamFilter]);
+
+  const isUnassigned = (p: ProjectWithTeam) => (p.project_members?.[0]?.count ?? 0) === 0;
 
   if (loading) {
     return (
@@ -125,7 +150,25 @@ export function ProjectsPage() {
           <option value="completed">Concluído</option>
           <option value="cancelled">Cancelado</option>
         </select>
+        <select
+          value={teamFilter}
+          onChange={(e) => setTeamFilter(e.target.value)}
+          className="px-3 py-2 border border-app-strong bg-surface-secondary text-app-primary rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-focon-600"
+          aria-label="Filtrar por equipe"
+        >
+          <option value="">Todos os projetos</option>
+          <option value="unassigned">Sem equipe alocada</option>
+        </select>
       </div>
+
+      {teamFilter === 'unassigned' && (
+        <div className="rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 p-3">
+          <p className="text-sm text-amber-800 dark:text-amber-400">
+            Mostrando apenas projetos ativos/planejados sem membros da equipe alocados.
+            Use o botão <strong>"Alocar Equipe"</strong> para navegar ao workspace do projeto e adicionar membros.
+          </p>
+        </div>
+      )}
 
       {projects.length === 0 ? (
         <div className="rounded-xl border border-app-primary p-12 text-center bg-surface-secondary/50">
@@ -139,6 +182,7 @@ export function ProjectsPage() {
                 <th className="px-4 py-3 text-left text-sm font-semibold text-app-primary">Nome</th>
                 <th className="px-4 py-3 text-left text-sm font-semibold text-app-primary">Cliente</th>
                 <th className="px-4 py-3 text-left text-sm font-semibold text-app-primary">Status</th>
+                <th className="px-4 py-3 text-left text-sm font-semibold text-app-primary">Equipe</th>
                 <th className="px-4 py-3 text-left text-sm font-semibold text-app-primary">Início</th>
                 <th className="px-4 py-3 text-left text-sm font-semibold text-app-primary">Fim</th>
                 <th className="px-4 py-3 text-left text-sm font-semibold text-app-primary">Ações</th>
@@ -146,10 +190,23 @@ export function ProjectsPage() {
             </thead>
             <tbody className="divide-y divide-table-divider">
               {filteredProjects.length === 0 ? (
-                <tr><td colSpan={5} className="px-4 py-8 text-center text-sm text-app-muted">Nenhum projeto encontrado</td></tr>
+                <tr><td colSpan={6} className="px-4 py-8 text-center text-sm text-app-muted">Nenhum projeto encontrado</td></tr>
               ) : (
                 filteredProjects.map((p) => (
-                <tr key={p.id} className="hover:bg-hover-surface transition">
+                <tr
+                  key={p.id}
+                  onClick={() => navigate(`/projects/${p.id}`)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      navigate(`/projects/${p.id}`);
+                    }
+                  }}
+                  tabIndex={0}
+                  role="button"
+                  aria-label={`Abrir projeto ${p.name}`}
+                  className="hover:bg-hover-surface transition cursor-pointer focus:outline-none focus:ring-2 focus:ring-inset focus:ring-focon-600"
+                >
                   <td className="px-4 py-3 text-sm text-app-primary font-medium">{p.name}</td>
                   <td className="px-4 py-3 text-sm text-app-secondary">{p.client}</td>
                   <td className="px-4 py-3 text-sm">
@@ -157,15 +214,33 @@ export function ProjectsPage() {
                       {statusLabels[p.status] || p.status}
                     </span>
                   </td>
+                  <td className="px-4 py-3 text-sm">
+                    {isUnassigned(p) ? (
+                      <span className="inline-block px-2 py-0.5 rounded text-xs font-semibold bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400">
+                        Sem equipe
+                      </span>
+                    ) : (
+                      <span className="text-app-secondary">{p.project_members?.[0]?.count ?? 0} membro(s)</span>
+                    )}
+                  </td>
                   <td className="px-4 py-3 text-sm text-app-secondary">{formatDate(p.start_date)}</td>
                   <td className="px-4 py-3 text-sm text-app-secondary">{formatDate(p.end_date)}</td>
-                  <td className="px-4 py-3 text-sm space-x-2">
+                  <td className="px-4 py-3 text-sm space-x-2" onClick={(e) => e.stopPropagation()}>
                     <button
                       onClick={() => navigate(`/projects/${p.id}`)}
                       className="px-2.5 py-1 rounded-md text-xs font-medium bg-focon-600 hover:bg-focon-700 text-white transition"
                     >
                       Ver
                     </button>
+                    {isUnassigned(p) && (p.status === 'active' || p.status === 'planned') && (
+                      <button
+                        onClick={() => navigate(`/projects/${p.id}?tab=team`)}
+                        className="px-2.5 py-1 rounded-md text-xs font-medium bg-amber-600 hover:bg-amber-700 text-white transition"
+                        title="Este projeto não tem equipe alocada"
+                      >
+                        Alocar Equipe
+                      </button>
+                    )}
                     <button
                       onClick={() => setEditTarget(p)}
                       className="px-2.5 py-1 rounded-md text-xs font-medium border border-app-strong text-app-secondary hover:bg-hover-surface transition"
@@ -238,19 +313,21 @@ export function ProjectsPage() {
 }
 
 interface ProjectFormModalProps {
-  project?: Project;
+  project?: ProjectWithTeam;
   onClose: () => void;
   onSaved: () => void;
   onError: (msg: string) => void;
 }
 
 function ProjectFormModal({ project, onClose, onSaved, onError }: ProjectFormModalProps) {
+  const navigate = useNavigate();
   const [name, setName] = useState(project?.name ?? '');
   const [client, setClient] = useState(project?.client ?? '');
   const [status, setStatus] = useState<ProjectStatus>((project?.status as ProjectStatus) ?? 'active');
   const [startDate, setStartDate] = useState(project?.start_date ?? new Date().toISOString().slice(0, 10));
   const [endDate, setEndDate] = useState(project?.end_date ?? '');
   const [submitting, setSubmitting] = useState(false);
+  const memberCount = project?.project_members?.[0]?.count ?? 0;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -317,6 +394,33 @@ function ProjectFormModal({ project, onClose, onSaved, onError }: ProjectFormMod
             <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="w-full px-3 py-2.5 border border-app-strong bg-surface-secondary text-app-primary rounded-lg focus:outline-none focus:ring-2 focus:ring-focon-600" />
           </div>
         </div>
+
+        {project && (
+          <div className="rounded-lg border border-app-primary p-4 bg-surface-secondary/50">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-app-secondary">Equipe do projeto</p>
+                <p className="text-sm text-app-muted mt-0.5">
+                  {memberCount === 0
+                    ? 'Nenhum membro alocado neste projeto'
+                    : `${memberCount} membro(s) alocado(s)`}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => navigate(`/projects/${project.id}?tab=team`)}
+                className="px-3 py-1.5 rounded-lg text-xs font-medium border border-app-strong text-app-secondary hover:bg-hover-surface transition"
+              >
+                {memberCount === 0 ? 'Alocar equipe' : 'Gerenciar equipe'}
+              </button>
+            </div>
+            {memberCount === 0 && (status === 'active' || status === 'planned') && (
+              <p className="mt-2 text-xs text-amber-700 dark:text-amber-400">
+                ⚠ Projetos ativos/planejados sem equipe alocada aparecem como pendência na Central de Ações.
+              </p>
+            )}
+          </div>
+        )}
       </form>
     </Modal>
   );

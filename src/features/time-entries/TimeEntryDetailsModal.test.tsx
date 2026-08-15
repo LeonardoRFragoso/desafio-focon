@@ -37,6 +37,7 @@ const mockEntry: TimeEntryDetail = {
   rejection_reason: null,
   rejected_by: null,
   rejected_at: null,
+  late_submission_reason: null,
   created_at: '2024-08-15T10:00:00Z',
   updated_at: null,
   phase_id: null,

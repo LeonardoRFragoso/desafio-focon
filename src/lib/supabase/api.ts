@@ -73,6 +73,7 @@ export const timeEntriesAPI = {
     applied_hourly_rate?: number;
     phase_id?: string | null;
     task_id?: string | null;
+    late_submission_reason?: string | null;
   }) => {
     return supabase.from('time_entries').insert([
       {
@@ -85,6 +86,7 @@ export const timeEntriesAPI = {
         applied_hourly_rate: 0, // trigger overwrites with the real rate
         phase_id: entry.phase_id || null,
         task_id: entry.task_id || null,
+        late_submission_reason: entry.late_submission_reason || null,
       },
     ]);
   },
@@ -93,6 +95,7 @@ export const timeEntriesAPI = {
    * Duplicate a time entry as a new pending entry. Copies project, duration and
    * description; the new date is configurable. Never copies id/status/history.
    * The DB trigger sets the applied_hourly_rate for the new date.
+   * Does NOT copy late_submission_reason — the new date determines if a reason is needed.
    */
   duplicate: async (source: {
     project_id: string;
@@ -100,6 +103,7 @@ export const timeEntriesAPI = {
     duration_minutes: number;
     description: string;
     entry_date: string;
+    late_submission_reason?: string | null;
   }) => {
     return supabase.from('time_entries').insert([
       {
@@ -110,6 +114,7 @@ export const timeEntriesAPI = {
         description: source.description,
         approval_status: 'pending',
         applied_hourly_rate: 0, // trigger overwrites
+        late_submission_reason: source.late_submission_reason || null,
       },
     ]);
   },
@@ -164,7 +169,9 @@ export const timeEntriesAPI = {
    */
   update: async (
     entryId: string,
-    updates: Pick<TimeEntry, 'project_id' | 'entry_date' | 'duration_minutes' | 'description'>
+    updates: Pick<TimeEntry, 'project_id' | 'entry_date' | 'duration_minutes' | 'description'> & {
+      late_submission_reason?: string | null;
+    }
   ) => {
     return supabase
       .from('time_entries')
@@ -173,6 +180,7 @@ export const timeEntriesAPI = {
         entry_date: updates.entry_date,
         duration_minutes: updates.duration_minutes,
         description: updates.description,
+        late_submission_reason: updates.late_submission_reason ?? null,
       })
       .eq('id', entryId)
       .select('*')
@@ -234,7 +242,7 @@ export const timeEntriesAPI = {
     const selectCols = `
       id, project_id, professional_id, entry_date, duration_minutes,
       description, approval_status, applied_hourly_rate,
-      rejection_reason, rejected_by, rejected_at,
+      rejection_reason, rejected_by, rejected_at, late_submission_reason,
       created_at, updated_at, phase_id, task_id,
       project:projects!time_entries_project_id_fkey(name),
       phase:project_phases!time_entries_phase_id_fkey(name),
@@ -298,7 +306,7 @@ export const timeEntriesAPI = {
     const selectCols = `
       id, project_id, professional_id, entry_date, duration_minutes,
       description, approval_status, applied_hourly_rate,
-      rejection_reason, rejected_by, rejected_at,
+      rejection_reason, rejected_by, rejected_at, late_submission_reason,
       created_at, updated_at, phase_id, task_id,
       project:projects!time_entries_project_id_fkey(name),
       professional:profiles!time_entries_professional_id_fkey(full_name),
@@ -358,6 +366,21 @@ export const projectsAPI = {
     return supabase
       .from('projects')
       .select('id, name, client, status, start_date, end_date, created_at, updated_at')
+      .order('name');
+  },
+  /**
+   * List projects with team member count (for unassigned-team filter).
+   * Returns projects with an embedded `member_count` field.
+   */
+  listWithTeamInfo: async () => {
+    return supabase
+      .from('projects')
+      .select(
+        `
+        id, name, client, status, start_date, end_date, created_at, updated_at,
+        project_members(count)
+        `
+      )
       .order('name');
   },
   listActive: async () => {

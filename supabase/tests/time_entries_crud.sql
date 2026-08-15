@@ -123,11 +123,11 @@ BEGIN
   -- prevent_professional_id_manipulation trigger passes.
   -- ----------------------------------------------------------------
   v_entry_id := pg_temp.svc_as_uuid(v_ana::text, format(
-    'INSERT INTO time_entries (project_id, professional_id, entry_date, duration_minutes, description, approval_status, applied_hourly_rate) VALUES (%L, %L, ''2024-02-01'', 60, ''Setup pending Ana entry here'', ''pending'', 120) RETURNING id',
+    'INSERT INTO time_entries (project_id, professional_id, entry_date, duration_minutes, description, approval_status, applied_hourly_rate, late_submission_reason) VALUES (%L, %L, ''2024-02-01'', 60, ''Setup pending Ana entry here'', ''pending'', 120, ''Test late submission reason for retroactive entry'') RETURNING id',
     v_proj, v_ana
   ));
   v_other_entry := pg_temp.svc_as_uuid(v_bruno::text, format(
-    'INSERT INTO time_entries (project_id, professional_id, entry_date, duration_minutes, description, approval_status, applied_hourly_rate) VALUES (%L, %L, ''2024-02-01'', 60, ''Setup pending Bruno entry here'', ''pending'', 150) RETURNING id',
+    'INSERT INTO time_entries (project_id, professional_id, entry_date, duration_minutes, description, approval_status, applied_hourly_rate, late_submission_reason) VALUES (%L, %L, ''2024-02-01'', 60, ''Setup pending Bruno entry here'', ''pending'', 150, ''Test late submission reason for retroactive entry'') RETURNING id',
     v_proj, v_bruno
   ));
 
@@ -136,7 +136,7 @@ BEGIN
   -- ====================================================================
   PERFORM pg_temp.assert_true(
     pg_temp.try_as(v_ana::text, format(
-      'INSERT INTO time_entries (project_id, professional_id, entry_date, duration_minutes, description, approval_status, applied_hourly_rate) VALUES (%L, %L, ''2024-03-01'', 60, ''Ana creating own entry test'', ''pending'', 0)',
+      'INSERT INTO time_entries (project_id, professional_id, entry_date, duration_minutes, description, approval_status, applied_hourly_rate, late_submission_reason) VALUES (%L, %L, ''2024-03-01'', 60, ''Ana creating own entry test'', ''pending'', 0, ''Test late submission reason for retroactive entry'')',
       v_proj, v_ana
     )),
     'T1: member should create own pending entry'
@@ -147,7 +147,7 @@ BEGIN
   -- ====================================================================
   PERFORM pg_temp.assert_true(
     NOT pg_temp.try_as(v_ana::text, format(
-      'INSERT INTO time_entries (project_id, professional_id, entry_date, duration_minutes, description, approval_status, applied_hourly_rate) VALUES (%L, %L, ''2024-03-01'', 60, ''Ana creating for Bruno test'', ''pending'', 0)',
+      'INSERT INTO time_entries (project_id, professional_id, entry_date, duration_minutes, description, approval_status, applied_hourly_rate, late_submission_reason) VALUES (%L, %L, ''2024-03-01'', 60, ''Ana creating for Bruno test'', ''pending'', 0, ''Test late submission reason for retroactive entry'')',
       v_proj, v_bruno
     )),
     'T2: member must NOT create entry for another user'
@@ -158,7 +158,7 @@ BEGIN
   -- ====================================================================
   PERFORM pg_temp.assert_true(
     NOT pg_temp.try_as(v_ana::text, format(
-      'INSERT INTO time_entries (project_id, professional_id, entry_date, duration_minutes, description, approval_status, applied_hourly_rate) VALUES (%L, %L, ''2024-03-01'', 60, ''Ana creating approved entry test'', ''approved'', 0)',
+      'INSERT INTO time_entries (project_id, professional_id, entry_date, duration_minutes, description, approval_status, applied_hourly_rate, late_submission_reason) VALUES (%L, %L, ''2024-03-01'', 60, ''Ana creating approved entry test'', ''approved'', 0, ''Test late submission reason for retroactive entry'')',
       v_proj, v_ana
     )),
     'T3: member must NOT create non-pending entry'
@@ -238,7 +238,7 @@ BEGIN
   -- Setup approved + rejected entries for Ana to test immutability.
   -- ----------------------------------------------------------------
   v_entry_id := pg_temp.svc_as_uuid(v_ana::text, format(
-    'INSERT INTO time_entries (project_id, professional_id, entry_date, duration_minutes, description, approval_status, applied_hourly_rate) VALUES (%L, %L, ''2024-02-02'', 60, ''Setup approved Ana entry test'', ''pending'', 120) RETURNING id',
+    'INSERT INTO time_entries (project_id, professional_id, entry_date, duration_minutes, description, approval_status, applied_hourly_rate, late_submission_reason) VALUES (%L, %L, ''2024-02-02'', 60, ''Setup approved Ana entry test'', ''pending'', 120, ''Test late submission reason for retroactive entry'') RETURNING id',
     v_proj, v_ana
   ));
 
@@ -285,7 +285,7 @@ BEGIN
   -- Create a pending entry then reject it (with reason) for rejected tests.
   -- ----------------------------------------------------------------
   v_entry_id := pg_temp.svc_as_uuid(v_ana::text, format(
-    'INSERT INTO time_entries (project_id, professional_id, entry_date, duration_minutes, description, approval_status, applied_hourly_rate) VALUES (%L, %L, ''2024-02-03'', 60, ''Setup to reject Ana entry test'', ''pending'', 120) RETURNING id',
+    'INSERT INTO time_entries (project_id, professional_id, entry_date, duration_minutes, description, approval_status, applied_hourly_rate, late_submission_reason) VALUES (%L, %L, ''2024-02-03'', 60, ''Setup to reject Ana entry test'', ''pending'', 120, ''Test late submission reason for retroactive entry'') RETURNING id',
     v_proj, v_ana
   ));
 
@@ -362,7 +362,7 @@ BEGIN
   -- TEST 20: member cannot view another member's approval history
   -- ====================================================================
   v_other_entry := pg_temp.svc_as_uuid(v_bruno::text, format(
-    'INSERT INTO time_entries (project_id, professional_id, entry_date, duration_minutes, description, approval_status, applied_hourly_rate) VALUES (%L, %L, ''2024-02-04'', 60, ''Bruno entry for history visibility test'', ''pending'', 150) RETURNING id',
+    'INSERT INTO time_entries (project_id, professional_id, entry_date, duration_minutes, description, approval_status, applied_hourly_rate, late_submission_reason) VALUES (%L, %L, ''2024-02-04'', 60, ''Bruno entry for history visibility test'', ''pending'', 150, ''Test late submission reason for retroactive entry'') RETURNING id',
     v_proj, v_bruno
   ));
   PERFORM pg_temp.assert_true(
@@ -389,7 +389,7 @@ BEGIN
   -- TEST 22: member cannot call approve_time_entry RPC
   -- ====================================================================
   v_entry_id := pg_temp.svc_as_uuid(v_ana::text, format(
-    'INSERT INTO time_entries (project_id, professional_id, entry_date, duration_minutes, description, approval_status, applied_hourly_rate) VALUES (%L, %L, ''2024-02-05'', 60, ''Entry for member approve attempt test'', ''pending'', 120) RETURNING id',
+    'INSERT INTO time_entries (project_id, professional_id, entry_date, duration_minutes, description, approval_status, applied_hourly_rate, late_submission_reason) VALUES (%L, %L, ''2024-02-05'', 60, ''Entry for member approve attempt test'', ''pending'', 120, ''Test late submission reason for retroactive entry'') RETURNING id',
     v_proj, v_ana
   ));
   PERFORM pg_temp.assert_true(
@@ -401,7 +401,7 @@ BEGIN
   -- TEST 23: admin batch approve processes only pending entries
   -- ====================================================================
   v_entry_id := pg_temp.svc_as_uuid(v_ana::text, format(
-    'INSERT INTO time_entries (project_id, professional_id, entry_date, duration_minutes, description, approval_status, applied_hourly_rate) VALUES (%L, %L, ''2024-02-06'', 60, ''Batch approve entry one test'', ''pending'', 120) RETURNING id',
+    'INSERT INTO time_entries (project_id, professional_id, entry_date, duration_minutes, description, approval_status, applied_hourly_rate, late_submission_reason) VALUES (%L, %L, ''2024-02-06'', 60, ''Batch approve entry one test'', ''pending'', 120, ''Test late submission reason for retroactive entry'') RETURNING id',
     v_proj, v_ana
   ));
   PERFORM pg_temp.assert_true(
@@ -443,7 +443,7 @@ BEGIN
   -- member tries to insert in closed period -> FAIL
   PERFORM pg_temp.assert_true(
     NOT pg_temp.try_as(v_ana::text, format(
-      'INSERT INTO time_entries (project_id, professional_id, entry_date, duration_minutes, description, approval_status, applied_hourly_rate) VALUES (%L, %L, ''2024-04-10'', 60, ''Ana inserting in closed period test'', ''pending'', 0)',
+      'INSERT INTO time_entries (project_id, professional_id, entry_date, duration_minutes, description, approval_status, applied_hourly_rate, late_submission_reason) VALUES (%L, %L, ''2024-04-10'', 60, ''Ana inserting in closed period test'', ''pending'', 0, ''Test late submission reason for retroactive entry'')',
       v_proj, v_ana
     )),
     'T25: member must NOT insert in closed period'
@@ -454,7 +454,7 @@ BEGIN
   -- ====================================================================
   PERFORM pg_temp.assert_true(
     pg_temp.try_as(v_ana::text, format(
-      'INSERT INTO time_entries (project_id, professional_id, entry_date, duration_minutes, description, approval_status, applied_hourly_rate) VALUES (%L, %L, ''2024-05-10'', 60, ''Ana inserting in open period test'', ''pending'', 0)',
+      'INSERT INTO time_entries (project_id, professional_id, entry_date, duration_minutes, description, approval_status, applied_hourly_rate, late_submission_reason) VALUES (%L, %L, ''2024-05-10'', 60, ''Ana inserting in open period test'', ''pending'', 0, ''Test late submission reason for retroactive entry'')',
       v_proj, v_ana
     )),
     'T26: member should insert in open period'
@@ -469,7 +469,7 @@ BEGIN
   );
   PERFORM pg_temp.assert_true(
     pg_temp.try_as(v_ana::text, format(
-      'INSERT INTO time_entries (project_id, professional_id, entry_date, duration_minutes, description, approval_status, applied_hourly_rate) VALUES (%L, %L, ''2024-04-11'', 60, ''Ana inserting after reopen test'', ''pending'', 0)',
+      'INSERT INTO time_entries (project_id, professional_id, entry_date, duration_minutes, description, approval_status, applied_hourly_rate, late_submission_reason) VALUES (%L, %L, ''2024-04-11'', 60, ''Ana inserting after reopen test'', ''pending'', 0, ''Test late submission reason for retroactive entry'')',
       v_proj, v_ana
     )),
     'T27: member should insert after period reopened'

@@ -71,6 +71,24 @@ export function NotificationBell() {
         setOpen(false);
         navigate(`/time-entries?entry=${n.entity_id}`);
       }
+    } else if (n.entity_type === 'project' && n.entity_id) {
+      setOpen(false);
+      navigate(`/projects/${n.entity_id}`);
+    } else if (n.entity_type === 'comment' && n.entity_id) {
+      // Comments are on time entries — navigate to the time entries page
+      if (isAdmin) {
+        setOpen(false);
+        navigate(`/admin/time-entries?entry=${n.entity_id}`);
+      } else {
+        setOpen(false);
+        navigate(`/time-entries?entry=${n.entity_id}`);
+      }
+    } else if (n.type === 'budget_threshold' && n.entity_id) {
+      setOpen(false);
+      navigate('/admin/budget');
+    } else if (n.type === 'period_closing') {
+      setOpen(false);
+      navigate('/admin/periods');
     }
   };
 
