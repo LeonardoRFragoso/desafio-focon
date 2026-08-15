@@ -279,6 +279,13 @@ BEGIN
   -- 6. RECALCULATE_PROJECT_HEALTH (state + events + notifications)
   -- ====================================================================
 
+  -- Clear existing state (from backfill) to test fresh recalculation
+  -- Reset role to superuser to allow DELETE on RLS-protected tables
+  EXECUTE 'RESET ROLE';
+  DELETE FROM project_health_events WHERE project_id = v_proj1;
+  DELETE FROM project_health_states WHERE project_id = v_proj1;
+  DELETE FROM notifications WHERE type = 'project_health_changed' AND entity_id = v_proj1;
+
   -- TEST 17: recalculate persists state
   PERFORM pg_temp.auth_as_jsonb(v_admin::text, format(
     'SELECT public.recalculate_project_health(%L)', v_proj1

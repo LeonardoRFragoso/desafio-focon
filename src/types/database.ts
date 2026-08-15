@@ -433,6 +433,7 @@ export interface HealthDrivers {
     available: boolean;
     overallocated_members: number;
     max_utilization: number;
+    cross_project?: boolean;
     penalty: number;
   };
   critical_delivery?: {

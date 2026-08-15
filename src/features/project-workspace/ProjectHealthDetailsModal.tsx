@@ -188,7 +188,7 @@ export function ProjectHealthDetailsModal({
                 {drivers.schedule && renderDriverRow(
                   'Cronograma',
                   drivers.schedule.penalty,
-                  `${drivers.schedule.overdue_milestones} marco(s) atrasado(s), ${drivers.schedule.overdue_tasks} tarefa(s) atrasada(s)`
+                  `${drivers.schedule.overdue_milestones} marco(s) atrasado(s), ${drivers.schedule.overdue_tasks} tarefa(s) atrasada(s)${drivers.schedule.overdue_end_penalty > 0 ? ', projeto atrasado' : ''}`
                 )}
                 {drivers.budget && isAdmin && renderDriverRow(
                   'Orçamento',
@@ -204,7 +204,7 @@ export function ProjectHealthDetailsModal({
                   'Capacidade',
                   drivers.capacity.penalty,
                   drivers.capacity.overallocated_members > 0
-                    ? `${drivers.capacity.overallocated_members} profissional(is) sobrecarregado(s)`
+                    ? `${drivers.capacity.overallocated_members} profissional(is) sobrecarregado(s), máximo: ${drivers.capacity.max_utilization.toFixed(0)}%${drivers.capacity.cross_project ? ' (multi-projeto)' : ''}`
                     : 'dentro do limite'
                 )}
                 {drivers.critical_delivery && renderDriverRow(
@@ -220,6 +220,7 @@ export function ProjectHealthDetailsModal({
           {isAdmin && (health.forecast_completion_date || health.forecast_labor_cost !== null) && (
             <div>
               <h4 className="text-sm font-semibold text-app-secondary mb-2">Previsão</h4>
+              <p className="text-xs text-app-muted mb-2">⚠️ Estimativa baseada em progresso e custos atuais — não é uma garantia.</p>
               <div className="rounded-lg border border-app-primary bg-surface-primary p-3 space-y-2">
                 {health.forecast_completion_date && (
                   <div className="flex justify-between text-sm">
