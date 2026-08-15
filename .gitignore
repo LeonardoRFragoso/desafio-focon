@@ -45,3 +45,5 @@ supabase/.temp/
 *.pdf
 Desafio_Tecnico_*.pdf
 deno.lock
+test-results/
+playwright-report/

@@ -261,9 +261,11 @@ export const timeEntriesAPI = {
     if (endDate) query = query.lte('entry_date', endDate);
 
     if (search) {
-      // Use or filter for text search on description and project name.
+      // Use or filter for text search on description.
       // The search term is sanitized to prevent PostgREST filter injection.
-      query = query.or(buildIlikeOrFilter(search, ['description', 'project.name']));
+      // Only filter on direct columns — PostgREST does not support nested
+      // resource columns (e.g. project.name) inside an `or` filter.
+      query = query.or(buildIlikeOrFilter(search, ['description']));
     }
 
     query = query
@@ -328,8 +330,10 @@ export const timeEntriesAPI = {
 
     if (search) {
       // The search term is sanitized to prevent PostgREST filter injection.
+      // Only filter on direct columns — PostgREST does not support nested
+      // resource columns (e.g. professional.full_name) inside an `or` filter.
       query = query.or(
-        buildIlikeOrFilter(search, ['description', 'professional.full_name', 'project.name'])
+        buildIlikeOrFilter(search, ['description'])
       );
     }
 

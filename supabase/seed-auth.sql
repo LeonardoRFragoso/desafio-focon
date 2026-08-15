@@ -29,7 +29,11 @@ INSERT INTO auth.users (
   raw_user_meta_data,
   is_super_admin,
   created_at,
-  updated_at
+  updated_at,
+  confirmation_token,
+  recovery_token,
+  email_change_token_new,
+  email_change
 )
 VALUES
   (
@@ -38,13 +42,17 @@ VALUES
     'authenticated',
     'authenticated',
     'ana@example.com',
-    '$2a$10$PQr8/Ym5VxWK1.vfVfVLKOYvB8/LewKgsRQP3CqJsf.XNzg/W2JCm',
+    '$2b$10$1p1VsLPP67.9/MS0m3rC1OdXz9szjNnL3rOWkzUn6.Q/Iq87k4/my',
     NOW(),
     '{"provider":"email","providers":["email"]}'::jsonb,
     '{"full_name":"Ana Silva"}'::jsonb,
     false,
     NOW(),
-    NOW()
+    NOW(),
+    '',
+    '',
+    '',
+    ''
   ),
   (
     '550e8400-e29b-41d4-a716-446655550002'::uuid,
@@ -52,13 +60,17 @@ VALUES
     'authenticated',
     'authenticated',
     'bruno@example.com',
-    '$2a$10$PQr8/Ym5VxWK1.vfVfVLKOYvB8/LewKgsRQP3CqJsf.XNzg/W2JCm',
+    '$2b$10$1p1VsLPP67.9/MS0m3rC1OdXz9szjNnL3rOWkzUn6.Q/Iq87k4/my',
     NOW(),
     '{"provider":"email","providers":["email"]}'::jsonb,
     '{"full_name":"Bruno Santos"}'::jsonb,
     false,
     NOW(),
-    NOW()
+    NOW(),
+    '',
+    '',
+    '',
+    ''
   ),
   (
     '550e8400-e29b-41d4-a716-446655550003'::uuid,
@@ -66,13 +78,17 @@ VALUES
     'authenticated',
     'authenticated',
     'carla@example.com',
-    '$2a$10$PQr8/Ym5VxWK1.vfVfVLKOYvB8/LewKgsRQP3CqJsf.XNzg/W2JCm',
+    '$2b$10$1p1VsLPP67.9/MS0m3rC1OdXz9szjNnL3rOWkzUn6.Q/Iq87k4/my',
     NOW(),
     '{"provider":"email","providers":["email"]}'::jsonb,
     '{"full_name":"Carla Oliveira"}'::jsonb,
     false,
     NOW(),
-    NOW()
+    NOW(),
+    '',
+    '',
+    '',
+    ''
   ),
   (
     '550e8400-e29b-41d4-a716-446655550099'::uuid,
@@ -80,12 +96,16 @@ VALUES
     'authenticated',
     'authenticated',
     'admin@example.com',
-    '$2a$10$PQr8/Ym5VxWK1.vfVfVLKOYvB8/LewKgsRQP3CqJsf.XNzg/W2JCm',
+    '$2b$10$1p1VsLPP67.9/MS0m3rC1OdXz9szjNnL3rOWkzUn6.Q/Iq87k4/my',
     NOW(),
     '{"provider":"email","providers":["email"]}'::jsonb,
     '{"full_name":"Admin User"}'::jsonb,
     false,
     NOW(),
-    NOW()
+    NOW(),
+    '',
+    '',
+    '',
+    ''
   )
 ON CONFLICT (id) DO NOTHING;
