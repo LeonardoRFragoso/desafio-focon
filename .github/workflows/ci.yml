@@ -6,9 +6,20 @@ on:
   pull_request:
     branches: [main]
 
+# Cancel obsolete runs on the same PR/feature branch to save runner time.
+# Main pushes are never cancelled (they don't match the PR/feat patterns).
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+# Least privilege — the workflow only reads code and runs checks.
+permissions:
+  contents: read
+
 jobs:
   frontend:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
 
     strategy:
       matrix:
@@ -32,11 +43,24 @@ jobs:
       - name: Run type check
         run: npm run typecheck
 
+      - name: Run frontend tests
+        env:
+          # The Supabase client throws at import time if these are missing.
+          # Tests that actually call Supabase mock the API module; these dummy
+          # values only satisfy the module-level guard in src/lib/supabase/client.ts.
+          VITE_SUPABASE_URL: 'https://ci-placeholder.supabase.co'
+          VITE_SUPABASE_ANON_KEY: 'ci-placeholder-anon-key'
+        run: npm run test
+
       - name: Build
         run: npm run build
 
+      - name: Audit (high severity only)
+        run: npm audit --audit-level=high
+
   database:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
 
     steps:
       - uses: actions/checkout@v5
@@ -58,6 +82,9 @@ jobs:
 
       - name: Verify migrations applied
         run: supabase migration list --local
+
+      - name: Run database/RLS tests
+        run: bash scripts/test-database.sh
 
       - name: Stop Supabase
         if: always()
