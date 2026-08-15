@@ -5,6 +5,10 @@ import { HourGoalWidget } from '@/features/time-entries/HourGoalWidget';
 import { QuickEntryModal } from '@/features/time-entries/QuickEntryModal';
 import { Timer } from '@/features/time-entries/Timer';
 import { TimeEntryDetailsModal, type TimeEntryDetail } from '@/features/time-entries/TimeEntryDetailsModal';
+import { ProfessionalActionCenter } from '@/features/professional/ProfessionalActionCenter';
+import { MyTasks } from '@/features/professional/MyTasks';
+import { commandCenterAPI } from '@/lib/supabase/api';
+import type { ProfessionalDashboardStats } from '@/lib/supabase/api';
 import type { TimeEntryWithRelations } from '@/types/database';
 
 interface ProfessionalStats {
@@ -15,7 +19,7 @@ interface ProfessionalStats {
 }
 
 export function ProfessionalDashboard() {
-  const { user, isAdmin } = useAuthContext();
+  const { user } = useAuthContext();
   const [entries, setEntries] = useState<TimeEntryWithRelations[]>([]);
   const [stats, setStats] = useState<ProfessionalStats>({
     approvedHours: 0,
@@ -23,6 +27,7 @@ export function ProfessionalDashboard() {
     pendingCount: 0,
     rejectedCount: 0,
   });
+  const [dashboardStats, setDashboardStats] = useState<ProfessionalDashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [quickEntryOpen, setQuickEntryOpen] = useState(false);
@@ -36,6 +41,61 @@ export function ProfessionalDashboard() {
       setLoading(true);
       setError(null);
 
+      // Try the new RPC first; fall back to individual queries if RPC not deployed yet
+      let dashStats: ProfessionalDashboardStats | null = null;
+      try {
+        const { data: rpcData, error: rpcError } = await commandCenterAPI.getProfessionalStats(user.id);
+        if (!rpcError && rpcData) {
+          dashStats = rpcData as unknown as ProfessionalDashboardStats;
+          setDashboardStats(dashStats);
+          setStats({
+            approvedHours: dashStats.stats.approved_minutes,
+            approvedCount: dashStats.stats.approved_count,
+            pendingCount: dashStats.stats.pending_count,
+            rejectedCount: dashStats.stats.rejected_count,
+          });
+        }
+      } catch {
+        // RPC not deployed yet — fall back to individual queries below
+      }
+
+      // If RPC failed, use the old query-based approach for stats
+      if (!dashStats) {
+        const { count: pendingCount } = await supabase
+          .from('time_entries')
+          .select('id', { count: 'exact', head: true })
+          .eq('professional_id', user.id)
+          .eq('approval_status', 'pending');
+
+        const { count: approvedCount } = await supabase
+          .from('time_entries')
+          .select('id', { count: 'exact', head: true })
+          .eq('professional_id', user.id)
+          .eq('approval_status', 'approved');
+
+        const { count: rejectedCount } = await supabase
+          .from('time_entries')
+          .select('id', { count: 'exact', head: true })
+          .eq('professional_id', user.id)
+          .eq('approval_status', 'rejected');
+
+        const { data: approvedData } = await supabase
+          .from('time_entries')
+          .select('duration_minutes')
+          .eq('professional_id', user.id)
+          .eq('approval_status', 'approved');
+
+        const approvedHours = (approvedData || []).reduce((sum, e) => sum + (e as { duration_minutes: number }).duration_minutes, 0);
+
+        setStats({
+          approvedHours,
+          approvedCount: approvedCount || 0,
+          pendingCount: pendingCount || 0,
+          rejectedCount: rejectedCount || 0,
+        });
+      }
+
+      // Fetch recent entries for the table
       const { data, error: err } = await supabase
         .from('time_entries')
         .select(
@@ -69,41 +129,6 @@ export function ProfessionalDashboard() {
 
       const typedEntries = (data as TimeEntryWithRelations[]) || [];
       setEntries(typedEntries);
-
-      // Calculate stats from all entries (not just the 10 shown)
-      const { count: pendingCount } = await supabase
-        .from('time_entries')
-        .select('id', { count: 'exact', head: true })
-        .eq('professional_id', user.id)
-        .eq('approval_status', 'pending');
-
-      const { count: approvedCount } = await supabase
-        .from('time_entries')
-        .select('id', { count: 'exact', head: true })
-        .eq('professional_id', user.id)
-        .eq('approval_status', 'approved');
-
-      const { count: rejectedCount } = await supabase
-        .from('time_entries')
-        .select('id', { count: 'exact', head: true })
-        .eq('professional_id', user.id)
-        .eq('approval_status', 'rejected');
-
-      // Get approved hours
-      const { data: approvedData } = await supabase
-        .from('time_entries')
-        .select('duration_minutes')
-        .eq('professional_id', user.id)
-        .eq('approval_status', 'approved');
-
-      const approvedHours = (approvedData || []).reduce((sum, e) => sum + (e as { duration_minutes: number }).duration_minutes, 0);
-
-      setStats({
-        approvedHours,
-        approvedCount: approvedCount || 0,
-        pendingCount: pendingCount || 0,
-        rejectedCount: rejectedCount || 0,
-      });
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Erro ao carregar apontamentos';
       setError(message);
@@ -237,6 +262,12 @@ export function ProfessionalDashboard() {
         </div>
       </div>
 
+      {/* Minhas Pendências — Action Center for professionals */}
+      <ProfessionalActionCenter stats={dashboardStats} loading={false} />
+
+      {/* Minhas Tarefas */}
+      <MyTasks stats={dashboardStats} loading={false} />
+
       {/* Quick Actions */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <button
@@ -298,32 +329,21 @@ export function ProfessionalDashboard() {
                   <tr
                     key={entry.id}
                     onClick={() => handleRowClick(entry)}
-                    className="hover:bg-slate-50 dark:hover:bg-slate-800 transition cursor-pointer"
-                    role="button"
-                    tabIndex={0}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' || e.key === ' ') {
-                        e.preventDefault();
-                        handleRowClick(entry);
-                      }
-                    }}
+                    className="hover:bg-slate-50 dark:hover:bg-slate-800/50 cursor-pointer transition"
                   >
                     <td className="px-6 py-4 text-sm text-slate-900 dark:text-slate-100">
-                      {entry.project?.name || 'Desconhecido'}
+                      {entry.project?.name ?? '—'}
+                      {entry.phase && <span className="block text-xs text-slate-500 dark:text-slate-400">{entry.phase.name}</span>}
                     </td>
-                    <td className="px-6 py-4 text-sm text-slate-900 dark:text-slate-100">
-                      {formatDate(entry.entry_date)}
-                    </td>
-                    <td className="px-6 py-4 text-sm text-slate-900 dark:text-slate-100">
-                      {formatDuration(entry.duration_minutes)}
-                    </td>
-                    <td className="px-6 py-4 text-sm">
+                    <td className="px-6 py-4 text-sm text-slate-600 dark:text-slate-400">{formatDate(entry.entry_date)}</td>
+                    <td className="px-6 py-4 text-sm text-slate-600 dark:text-slate-400">{formatDuration(entry.duration_minutes)}</td>
+                    <td className="px-6 py-4">
                       <span className={getStatusBadge(entry.approval_status)}>
                         {getStatusLabel(entry.approval_status)}
                       </span>
                     </td>
-                    <td className="px-6 py-4 text-sm text-right">
-                      <span className="text-xs text-focon-600 dark:text-focon-400">Ver detalhes →</span>
+                    <td className="px-6 py-4 text-right">
+                      <span className="text-sm text-focon-600 dark:text-focon-400">Ver detalhes</span>
                     </td>
                   </tr>
                 ))}
@@ -343,13 +363,13 @@ export function ProfessionalDashboard() {
         />
       )}
 
-      {/* Details Modal */}
+      {/* Time Entry Details Modal */}
       {selectedEntry && (
         <TimeEntryDetailsModal
           entry={selectedEntry}
           isOpen={true}
+          isAdmin={false}
           onClose={() => setSelectedEntry(null)}
-          isAdmin={isAdmin}
         />
       )}
     </div>

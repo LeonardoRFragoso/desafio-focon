@@ -1,8 +1,9 @@
-import { type ReactNode, useState } from 'react';
+import { type ReactNode, useState, useEffect, useCallback } from 'react';
 import { useNavigate, NavLink } from 'react-router-dom';
 import { useAuthContext } from '@/features/auth/useAuthContext';
 import { NotificationBell } from '@/components/NotificationBell';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { CommandPalette } from '@/features/command-palette/CommandPalette';
 
 interface LayoutProps {
   children: ReactNode;
@@ -12,6 +13,20 @@ export function Layout({ children }: LayoutProps) {
   const navigate = useNavigate();
   const { user, logout, isAdmin } = useAuthContext();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [paletteOpen, setPaletteOpen] = useState(false);
+
+  // Ctrl/Cmd+K to open command palette
+  const handleKeyDown = useCallback((e: KeyboardEvent) => {
+    if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+      e.preventDefault();
+      setPaletteOpen(prev => !prev);
+    }
+  }, []);
+
+  useEffect(() => {
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [handleKeyDown]);
 
   const handleLogout = async () => {
     await logout();
@@ -317,6 +332,17 @@ export function Layout({ children }: LayoutProps) {
               </svg>
             </button>
             <div className="flex items-center gap-3 ml-auto">
+              <button
+                onClick={() => setPaletteOpen(true)}
+                className="flex items-center gap-2 px-3 py-1.5 text-sm text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg transition"
+                aria-label="Buscar (Ctrl+K)"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+                <span className="hidden sm:inline">Buscar</span>
+                <kbd className="hidden sm:inline-block px-1.5 py-0.5 text-xs bg-slate-200 dark:bg-slate-700 rounded">⌘K</kbd>
+              </button>
               <NotificationBell />
               <ThemeToggle />
               <span className="text-sm text-slate-600 dark:text-slate-300">
@@ -331,6 +357,12 @@ export function Layout({ children }: LayoutProps) {
           {children}
         </main>
       </div>
+
+      {/* Command Palette (Ctrl/Cmd+K) */}
+      <CommandPalette
+        open={paletteOpen}
+        onClose={() => setPaletteOpen(false)}
+      />
     </div>
   );
 }

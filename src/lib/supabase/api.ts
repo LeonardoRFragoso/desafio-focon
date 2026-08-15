@@ -891,3 +891,147 @@ export const projectWorkspaceAPI = {
     return supabase.rpc('get_project_workspace_summary', { p_project_id: projectId });
   },
 };
+
+// ===========================================================================
+// Executive Command Center API
+// ===========================================================================
+
+export interface AdminCommandCenterSummary {
+  period: { start_date: string; end_date: string };
+  action_signals: {
+    pending_count: number;
+    old_pending_count: number;
+    old_pending_threshold_days: number;
+    rejected_recent_count: number;
+    overbudget_projects: Array<{
+      project_id: string;
+      project_name: string;
+      client: string;
+      budget_value: number;
+      realized_cost: number;
+      utilization_percent: number;
+    }>;
+    unack_alerts_count: number;
+    overdue_tasks_count: number;
+    critical_tasks_count: number;
+    missing_rate_count: number;
+    projects_without_team_count: number;
+  };
+  kpis: {
+    total_revenue: number;
+    total_labor_cost: number;
+    total_result: number;
+    total_margin: number;
+    approved_hours_period: number;
+    active_projects: number;
+    pending_approvals: number;
+    open_tasks: number;
+    overdue_tasks: number;
+  };
+  team_summary: Array<{
+    professional_id: string;
+    full_name: string;
+    approved_hours: number;
+    entry_count: number;
+  }>;
+  pending_approvals: Array<{
+    id: string;
+    professional_name: string;
+    project_name: string;
+    entry_date: string;
+    duration_minutes: number;
+    description: string;
+    created_at: string;
+  }>;
+}
+
+export interface ProjectAttentionItem {
+  id: string;
+  name: string;
+  client: string;
+  status: string;
+  approved_minutes: number;
+  budget_value: number;
+  budget_utilization_percent: number;
+  overdue_tasks_count: number;
+  active_alerts_count: number;
+  team_size: number;
+  attention_state: 'critical' | 'warning' | 'normal';
+}
+
+export interface ProfessionalDashboardStats {
+  stats: {
+    pending_count: number;
+    approved_count: number;
+    rejected_count: number;
+    approved_minutes: number;
+  };
+  rejected_entries: Array<{
+    id: string;
+    project_name: string;
+    entry_date: string;
+    duration_minutes: number;
+    rejection_reason: string | null;
+    rejected_at: string | null;
+  }>;
+  my_tasks: Array<{
+    id: string;
+    project_id: string;
+    project_name: string;
+    phase_name: string | null;
+    title: string;
+    priority: string;
+    status: string;
+    due_date: string | null;
+  }>;
+  task_counts: {
+    overdue: number;
+    critical: number;
+    due_soon: number;
+  };
+  unread_notifications: number;
+}
+
+export interface SearchResult {
+  type: 'project' | 'task' | 'professional' | 'time_entry';
+  id: string;
+  title: string;
+  subtitle: string;
+  href: string;
+}
+
+export interface GlobalSearchResults {
+  projects: SearchResult[];
+  tasks: SearchResult[];
+  professionals: SearchResult[];
+  time_entries: SearchResult[];
+}
+
+/**
+ * Executive Command Center API (admin RPCs)
+ */
+export const commandCenterAPI = {
+  getAdminSummary: async (startDate?: string, endDate?: string) => {
+    const params: { p_start_date?: string; p_end_date?: string } = {};
+    if (startDate) params.p_start_date = startDate;
+    if (endDate) params.p_end_date = endDate;
+    return supabase.rpc('get_admin_command_center_summary', params);
+  },
+
+  getProjectsAttention: async () => {
+    return supabase.rpc('get_projects_attention_summary');
+  },
+
+  getProfessionalStats: async (userId?: string) => {
+    const params: { p_user_id?: string } = {};
+    if (userId) params.p_user_id = userId;
+    return supabase.rpc('get_professional_dashboard_stats', params);
+  },
+
+  searchGlobal: async (query: string, limit?: number) => {
+    const params: { p_query: string; p_limit?: number } = { p_query: query };
+    if (limit) params.p_limit = limit;
+    return supabase.rpc('search_global', params);
+  },
+};
+

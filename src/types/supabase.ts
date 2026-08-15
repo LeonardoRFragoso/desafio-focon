@@ -949,6 +949,10 @@ export type Database = {
         }
         Returns: string
       }
+      get_admin_command_center_summary: {
+        Args: { p_end_date?: string; p_start_date?: string }
+        Returns: Json
+      }
       get_admin_user_ids: { Args: never; Returns: string[] }
       get_aggregated_financial_summary: {
         Args: never
@@ -965,6 +969,10 @@ export type Database = {
         Args: { p_date: string; p_professional_id: string }
         Returns: number
       }
+      get_professional_dashboard_stats: {
+        Args: { p_user_id?: string }
+        Returns: Json
+      }
       get_project_financial_summary: {
         Args: { p_project_id: string }
         Returns: {
@@ -977,6 +985,14 @@ export type Database = {
           result: number
           tax: number
         }[]
+      }
+      get_project_realized_labor_cost: {
+        Args: {
+          p_end_date?: string
+          p_project_id: string
+          p_start_date?: string
+        }
+        Returns: number
       }
       get_project_workspace_summary: {
         Args: { p_project_id: string }
@@ -993,6 +1009,7 @@ export type Database = {
           total_tasks: number
         }[]
       }
+      get_projects_attention_summary: { Args: never; Returns: Json }
       is_admin: { Args: { user_id: string }; Returns: boolean }
       is_period_closed: { Args: { p_date: string }; Returns: boolean }
       is_project_lead: {
@@ -1025,6 +1042,10 @@ export type Database = {
           period_key: string
           status: string
         }[]
+      }
+      search_global: {
+        Args: { p_limit?: number; p_query: string }
+        Returns: Json
       }
       write_audit_log: {
         Args: {
