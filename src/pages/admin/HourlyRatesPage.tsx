@@ -70,8 +70,8 @@ export function HourlyRatesPage() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-2xl font-bold text-slate-900">Valor/Hora</h2>
-          <p className="text-slate-600">Gerencie os valores/hora dos profissionais</p>
+          <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Valor/Hora</h2>
+          <p className="text-slate-600 dark:text-slate-400">Gerencie os valores/hora dos profissionais</p>
         </div>
         <button
           onClick={() => setCreateOpen(true)}
@@ -82,45 +82,45 @@ export function HourlyRatesPage() {
       </div>
 
       {error && (
-        <div className="rounded-lg bg-red-50 border border-red-200 p-4">
-          <p className="text-sm font-medium text-red-800">{error}</p>
+        <div className="rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 p-4">
+          <p className="text-sm font-medium text-red-800 dark:text-red-400">{error}</p>
         </div>
       )}
       {actionError && (
-        <div className="rounded-lg bg-red-50 border border-red-200 p-4">
-          <p className="text-sm font-medium text-red-800">{actionError}</p>
+        <div className="rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 p-4">
+          <p className="text-sm font-medium text-red-800 dark:text-red-400">{actionError}</p>
         </div>
       )}
 
       {rates.length === 0 ? (
-        <div className="rounded-xl border border-slate-200 p-12 text-center bg-slate-50">
-          <p className="text-slate-600">Nenhuma taxa cadastrada</p>
+        <div className="rounded-xl border border-slate-200 dark:border-slate-700 p-12 text-center bg-slate-50 dark:bg-slate-800/50">
+          <p className="text-slate-600 dark:text-slate-400">Nenhuma taxa cadastrada</p>
         </div>
       ) : (
-        <div className="overflow-x-auto rounded-xl border border-slate-200 shadow-sm">
+        <div className="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
           <table className="w-full">
-            <thead className="bg-slate-100 border-b border-slate-200">
+            <thead className="bg-slate-100 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700">
               <tr>
-                <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900">Profissional</th>
-                <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900">Valor/Hora</th>
-                <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900">Válido de</th>
-                <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900">Válido até</th>
-                <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900">Status</th>
+                <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900 dark:text-slate-100">Profissional</th>
+                <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900 dark:text-slate-100">Valor/Hora</th>
+                <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900 dark:text-slate-100">Válido de</th>
+                <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900 dark:text-slate-100">Válido até</th>
+                <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900 dark:text-slate-100">Status</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-200">
+            <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
               {rates.map((r) => (
-                <tr key={r.id} className="hover:bg-slate-50 transition">
-                  <td className="px-4 py-3 text-sm text-slate-900 font-medium">
+                <tr key={r.id} className="hover:bg-slate-50 dark:hover:bg-slate-800 transition">
+                  <td className="px-4 py-3 text-sm text-slate-900 dark:text-slate-100 font-medium">
                     {r.professional?.full_name || 'Desconhecido'}
                   </td>
-                  <td className="px-4 py-3 text-sm text-slate-900 font-semibold">{formatCurrency(r.hourly_rate)}</td>
-                  <td className="px-4 py-3 text-sm text-slate-700">{formatDate(r.valid_from)}</td>
-                  <td className="px-4 py-3 text-sm text-slate-700">
+                  <td className="px-4 py-3 text-sm text-slate-900 dark:text-slate-100 font-semibold">{formatCurrency(r.hourly_rate)}</td>
+                  <td className="px-4 py-3 text-sm text-slate-700 dark:text-slate-300">{formatDate(r.valid_from)}</td>
+                  <td className="px-4 py-3 text-sm text-slate-700 dark:text-slate-300">
                     {r.valid_until ? formatDate(r.valid_until) : '—'}
                   </td>
                   <td className="px-4 py-3 text-sm">
-                    <span className={`inline-block px-2.5 py-1 rounded-full text-xs font-semibold ${r.valid_until ? 'bg-slate-100 text-slate-700' : 'bg-green-100 text-green-800'}`}>
+                    <span className={`inline-block px-2.5 py-1 rounded-full text-xs font-semibold ${r.valid_until ? 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300' : 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'}`}>
                       {r.valid_until ? 'Encerrada' : 'Vigente'}
                     </span>
                   </td>
@@ -194,7 +194,7 @@ function RateFormModal({ profiles, onClose, onSaved, onError }: RateFormModalPro
       title="Nova Taxa"
       footer={
         <>
-          <button type="button" onClick={onClose} disabled={submitting} className="px-4 py-2 rounded-lg border border-slate-300 text-slate-700 hover:bg-slate-100 transition disabled:opacity-50">
+          <button type="button" onClick={onClose} disabled={submitting} className="px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition disabled:opacity-50">
             Cancelar
           </button>
           <button type="submit" form="rate-form" disabled={submitting} className="px-4 py-2 rounded-lg bg-focon-600 hover:bg-focon-700 text-white transition disabled:opacity-50">
@@ -205,8 +205,8 @@ function RateFormModal({ profiles, onClose, onSaved, onError }: RateFormModalPro
     >
       <form id="rate-form" onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">Profissional *</label>
-          <select value={professionalId} onChange={(e) => setProfessionalId(e.target.value)} className="w-full px-3 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-focon-600">
+          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Profissional *</label>
+          <select value={professionalId} onChange={(e) => setProfessionalId(e.target.value)} className="w-full px-3 py-2.5 border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-focon-600">
             <option value="">Selecione...</option>
             {profiles.map((p) => (
               <option key={p.id} value={p.id}>{p.full_name}</option>
@@ -214,14 +214,14 @@ function RateFormModal({ profiles, onClose, onSaved, onError }: RateFormModalPro
           </select>
         </div>
         <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">Valor/Hora (R$) *</label>
-          <input type="number" step="0.01" min="0" value={hourlyRate} onChange={(e) => setHourlyRate(e.target.value)} className="w-full px-3 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-focon-600" />
+          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Valor/Hora (R$) *</label>
+          <input type="number" step="0.01" min="0" value={hourlyRate} onChange={(e) => setHourlyRate(e.target.value)} className="w-full px-3 py-2.5 border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-focon-600" />
         </div>
         <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">Válido a partir de *</label>
-          <input type="date" value={validFrom} onChange={(e) => setValidFrom(e.target.value)} className="w-full px-3 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-focon-600" />
+          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Válido a partir de *</label>
+          <input type="date" value={validFrom} onChange={(e) => setValidFrom(e.target.value)} className="w-full px-3 py-2.5 border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-focon-600" />
         </div>
-        <p className="text-xs text-slate-500">
+        <p className="text-xs text-slate-500 dark:text-slate-400">
           A taxa anterior vigente será automaticamente encerrada na data anterior ao início desta.
         </p>
       </form>

@@ -81,7 +81,7 @@ export function AdminExcelExportButton({ filters }: Props) {
       >
         {loading ? 'Gerando Excel...' : 'Exportar Excel'}
       </button>
-      {error && <p className="text-xs text-red-600">{error}</p>}
+      {error && <p className="text-xs text-red-600 dark:text-red-400">{error}</p>}
     </div>
   );
 }

@@ -29,28 +29,28 @@ export function FinancialIndicators({
       label: 'Receita',
       value: revenue,
       format: formatCurrency,
-      color: 'bg-white border-focon-200',
+      color: 'bg-white dark:bg-slate-900 border-focon-200',
       textColor: 'text-focon-900',
     },
     {
       label: 'Custo de Mão de Obra',
       value: laborCost,
       format: formatCurrency,
-      color: 'bg-white border-focon-200',
-      textColor: 'text-slate-900',
+      color: 'bg-white dark:bg-slate-900 border-focon-200',
+      textColor: 'text-slate-900 dark:text-slate-100',
     },
     {
       label: 'Resultado',
       value: result,
       format: formatCurrency,
-      color: 'bg-white border-green-200',
-      textColor: 'text-green-700',
+      color: 'bg-white dark:bg-slate-900 border-green-200 dark:border-green-800',
+      textColor: 'text-green-700 dark:text-green-400',
     },
     {
       label: 'Margem',
       value: margin,
       format: formatPercentage,
-      color: 'bg-white border-focon-200',
+      color: 'bg-white dark:bg-slate-900 border-focon-200',
       textColor: 'text-focon-900',
     },
   ];
@@ -59,9 +59,9 @@ export function FinancialIndicators({
     return (
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6">
         {[...Array(4)].map((_, i) => (
-          <div key={i} className="bg-white rounded-xl border border-slate-200 p-6 shadow-sm">
-            <div className="h-4 bg-slate-200 rounded w-24 mb-4"></div>
-            <div className="h-8 bg-slate-200 rounded w-32"></div>
+          <div key={i} className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 p-6 shadow-sm">
+            <div className="h-4 bg-slate-200 dark:bg-slate-700 rounded w-24 mb-4"></div>
+            <div className="h-8 bg-slate-200 dark:bg-slate-700 rounded w-32"></div>
           </div>
         ))}
       </div>
@@ -75,7 +75,7 @@ export function FinancialIndicators({
           key={indicator.label}
           className={`rounded-xl border ${indicator.color} p-6 shadow-sm`}
         >
-          <p className="text-sm font-medium text-slate-600 mb-3">
+          <p className="text-sm font-medium text-slate-600 dark:text-slate-400 mb-3">
             {indicator.label}
           </p>
           <p className={`text-3xl font-bold ${indicator.textColor}`}>

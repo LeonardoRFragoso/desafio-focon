@@ -179,33 +179,33 @@ export function FinancialReport({ filters }: FinancialReportProps) {
 
   if (error) {
     return (
-      <div className="rounded-xl bg-red-50 border border-red-200 p-4">
-        <p className="text-sm font-medium text-red-800">Erro ao gerar relatório:</p>
-        <p className="text-sm text-red-700 mt-1">{error}</p>
+      <div className="rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 p-4">
+        <p className="text-sm font-medium text-red-800 dark:text-red-400">Erro ao gerar relatório:</p>
+        <p className="text-sm text-red-700 dark:text-red-400 mt-1">{error}</p>
       </div>
     );
   }
 
   if (!data) {
-    return <div className="text-center py-12 text-slate-600">Nenhum dado para exibir</div>;
+    return <div className="text-center py-12 text-slate-600 dark:text-slate-400">Nenhum dado para exibir</div>;
   }
 
   const hasFilters = filters.projectId || filters.professionalId || filters.startDate || filters.endDate;
 
   return (
-    <div className="bg-white p-8 space-y-8 print:p-4 print:space-y-4">
+    <div className="bg-white dark:bg-slate-900 p-8 space-y-8 print:p-4 print:space-y-4">
       {/* Header */}
-      <div className="flex items-start justify-between border-b border-slate-200 pb-8 print:pb-4 print:border-b-2 print:border-slate-900">
+      <div className="flex items-start justify-between border-b border-slate-200 dark:border-slate-700 pb-8 print:pb-4 print:border-b-2 print:border-slate-900">
         <div>
           <img
             src="/brand/focon-logo-horizontal.png"
             alt="Fócon Engenharia"
             className="h-12 object-contain"
           />
-          <h1 className="mt-4 text-3xl font-bold text-slate-900">FoconFlow</h1>
-          <p className="text-slate-600">Relatório Financeiro</p>
+          <h1 className="mt-4 text-3xl font-bold text-slate-900 dark:text-slate-100">FoconFlow</h1>
+          <p className="text-slate-600 dark:text-slate-400">Relatório Financeiro</p>
         </div>
-        <div className="text-right text-sm text-slate-600">
+        <div className="text-right text-sm text-slate-600 dark:text-slate-400">
           <p>Gerado em: {new Date().toLocaleDateString('pt-BR')}</p>
           <p>Hora: {new Date().toLocaleTimeString('pt-BR')}</p>
         </div>
@@ -213,9 +213,9 @@ export function FinancialReport({ filters }: FinancialReportProps) {
 
       {/* Applied Filters */}
       {hasFilters && (
-        <div className="bg-slate-50 border border-slate-200 p-4 text-sm print:border print:border-slate-900">
-          <p className="font-semibold text-slate-900 mb-2">Filtros Aplicados:</p>
-          <div className="space-y-1 text-slate-700">
+        <div className="bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 p-4 text-sm print:border print:border-slate-900">
+          <p className="font-semibold text-slate-900 dark:text-slate-100 mb-2">Filtros Aplicados:</p>
+          <div className="space-y-1 text-slate-700 dark:text-slate-300">
             {filters.projectId && (
               <p>• Projeto: {filters.projectName || 'Projeto não encontrado'}</p>
             )}
@@ -242,20 +242,20 @@ export function FinancialReport({ filters }: FinancialReportProps) {
 
       {/* Indicators */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 print:gap-2">
-        <div className="bg-white border border-focon-200 p-4 print:border print:border-slate-900">
-          <p className="text-xs font-semibold text-slate-600 uppercase">Receita</p>
+        <div className="bg-white dark:bg-slate-900 border border-focon-200 p-4 print:border print:border-slate-900">
+          <p className="text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase">Receita</p>
           <p className="text-xl font-bold text-focon-900 mt-2">{formatCurrency(data.revenue)}</p>
         </div>
-        <div className="bg-white border border-focon-200 p-4 print:border print:border-slate-900">
-          <p className="text-xs font-semibold text-slate-600 uppercase">Mão de Obra</p>
-          <p className="text-xl font-bold text-slate-900 mt-2">{formatCurrency(data.laborCost)}</p>
+        <div className="bg-white dark:bg-slate-900 border border-focon-200 p-4 print:border print:border-slate-900">
+          <p className="text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase">Mão de Obra</p>
+          <p className="text-xl font-bold text-slate-900 dark:text-slate-100 mt-2">{formatCurrency(data.laborCost)}</p>
         </div>
-        <div className="bg-white border border-green-200 p-4 print:border print:border-slate-900">
-          <p className="text-xs font-semibold text-slate-600 uppercase">Resultado</p>
-          <p className="text-xl font-bold text-green-700 mt-2">{formatCurrency(data.result)}</p>
+        <div className="bg-white dark:bg-slate-900 border border-green-200 dark:border-green-800 p-4 print:border print:border-slate-900">
+          <p className="text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase">Resultado</p>
+          <p className="text-xl font-bold text-green-700 dark:text-green-400 mt-2">{formatCurrency(data.result)}</p>
         </div>
-        <div className="bg-white border border-focon-200 p-4 print:border print:border-slate-900">
-          <p className="text-xs font-semibold text-slate-600 uppercase">Margem</p>
+        <div className="bg-white dark:bg-slate-900 border border-focon-200 p-4 print:border print:border-slate-900">
+          <p className="text-xs font-semibold text-slate-600 dark:text-slate-400 uppercase">Margem</p>
           <p className="text-xl font-bold text-focon-900 mt-2">{data.margin.toFixed(2)}%</p>
         </div>
       </div>
@@ -263,25 +263,25 @@ export function FinancialReport({ filters }: FinancialReportProps) {
       {/* Breakdown */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 print:gap-4">
         <div className="space-y-2">
-          <h3 className="font-semibold text-slate-900">Composição do Resultado</h3>
+          <h3 className="font-semibold text-slate-900 dark:text-slate-100">Composição do Resultado</h3>
           <div className="space-y-1 text-sm">
             <div className="flex justify-between">
               <span>Receita</span>
               <span className="font-semibold">{formatCurrency(data.revenue)}</span>
             </div>
-            <div className="flex justify-between text-red-600">
+            <div className="flex justify-between text-red-600 dark:text-red-400">
               <span>- Mão de Obra</span>
               <span className="font-semibold">{formatCurrency(data.laborCost)}</span>
             </div>
-            <div className="flex justify-between text-red-600">
+            <div className="flex justify-between text-red-600 dark:text-red-400">
               <span>- Imposto (8%)</span>
               <span className="font-semibold">{formatCurrency(data.tax)}</span>
             </div>
-            <div className="flex justify-between text-red-600">
+            <div className="flex justify-between text-red-600 dark:text-red-400">
               <span>- Custo Indireto</span>
               <span className="font-semibold">{formatCurrency(data.indirectCost)}</span>
             </div>
-            <div className="flex justify-between border-t border-slate-200 pt-1 mt-1 text-green-600 font-bold">
+            <div className="flex justify-between border-t border-slate-200 dark:border-slate-700 pt-1 mt-1 text-green-600 dark:text-green-400 font-bold">
               <span>Resultado</span>
               <span>{formatCurrency(data.result)}</span>
             </div>
@@ -289,7 +289,7 @@ export function FinancialReport({ filters }: FinancialReportProps) {
         </div>
 
         <div className="space-y-2">
-          <h3 className="font-semibold text-slate-900">Projetos</h3>
+          <h3 className="font-semibold text-slate-900 dark:text-slate-100">Projetos</h3>
           <div className="space-y-1 text-sm">
             {data.projects.map((project) => (
               <div key={project.name} className="flex justify-between">
@@ -303,11 +303,11 @@ export function FinancialReport({ filters }: FinancialReportProps) {
 
       {/* Professionals table */}
       <div className="space-y-2">
-        <h3 className="font-semibold text-slate-900">Resumo por Profissional</h3>
+        <h3 className="font-semibold text-slate-900 dark:text-slate-100">Resumo por Profissional</h3>
         <div className="overflow-x-auto">
           <table className="w-full text-sm border-collapse print:text-xs">
             <thead>
-              <tr className="border-b border-slate-200 print:border-b-2 print:border-slate-900">
+              <tr className="border-b border-slate-200 dark:border-slate-700 print:border-b-2 print:border-slate-900">
                 <th className="text-left py-2 px-2 font-semibold">Profissional</th>
                 <th className="text-right py-2 px-2 font-semibold">Horas</th>
                 <th className="text-right py-2 px-2 font-semibold">Custo/h</th>
@@ -316,7 +316,7 @@ export function FinancialReport({ filters }: FinancialReportProps) {
             </thead>
             <tbody>
               {data.professionals.map((prof) => (
-                <tr key={prof.name} className="border-b border-slate-100 print:border-b print:border-slate-900">
+                <tr key={prof.name} className="border-b border-slate-100 dark:border-slate-800 print:border-b print:border-slate-900">
                   <td className="py-2 px-2">{prof.name}</td>
                   <td className="text-right py-2 px-2">{formatHours(prof.hours)}</td>
                   <td className="text-right py-2 px-2 text-xs">
@@ -331,7 +331,7 @@ export function FinancialReport({ filters }: FinancialReportProps) {
       </div>
 
       {/* Footer */}
-      <div className="border-t border-slate-200 pt-8 text-center text-xs text-slate-500 print:border-t-2 print:border-slate-900 print:text-slate-900">
+      <div className="border-t border-slate-200 dark:border-slate-700 pt-8 text-center text-xs text-slate-500 dark:text-slate-400 print:border-t-2 print:border-slate-900 print:text-slate-900">
         <p>FoconFlow - Sistema de Controle de Produção e Rentabilidade</p>
         <p>Fócon Engenharia</p>
       </div>
