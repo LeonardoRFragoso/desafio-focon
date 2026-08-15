@@ -230,7 +230,7 @@ BEGIN
 
   -- Setup: create a pending entry for Ana, then a comment by Ana on it.
   v_entry_id := pg_temp.svc_as_uuid(v_ana::text, format(
-    'INSERT INTO time_entries (project_id, professional_id, entry_date, duration_minutes, description, approval_status, applied_hourly_rate) VALUES (%L, %L, ''2024-06-01'', 60, ''RLS test entry for comments'', ''pending'', 120) RETURNING id',
+    'INSERT INTO time_entries (project_id, professional_id, entry_date, duration_minutes, description, approval_status, applied_hourly_rate, late_submission_reason) VALUES (%L, %L, ''2024-06-01'', 60, ''RLS test entry for comments'', ''pending'', 120, ''Test late submission reason for retroactive entry'') RETURNING id',
     v_proj, v_ana
   ));
   v_comment_id := pg_temp.auth_as_uuid(v_ana::text, format(

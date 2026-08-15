@@ -5,6 +5,7 @@ import { CommentsPanel } from '@/features/time-entries/CommentsPanel';
 import { AttachmentsPanel } from '@/features/time-entries/AttachmentsPanel';
 import { timeEntriesAPI } from '@/lib/supabase/api';
 import { mapDatabaseError } from '@/lib/errors';
+import { daysLate } from '@/features/time-entries/temporalRules';
 
 export interface TimeEntryDetail {
   id: string;
@@ -18,6 +19,7 @@ export interface TimeEntryDetail {
   rejection_reason: string | null;
   rejected_by: string | null;
   rejected_at: string | null;
+  late_submission_reason: string | null;
   created_at: string;
   updated_at: string | null;
   phase_id: string | null;
@@ -253,6 +255,27 @@ export function TimeEntryDetailsModal({
             </div>
           )}
         </div>
+
+        {/* Retroactive submission section (A14) */}
+        {(() => {
+          const late = daysLate(entry.entry_date);
+          if (late < 3 && !entry.late_submission_reason) return null;
+          return (
+            <div className="rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 p-4">
+              <p className="text-sm font-semibold text-amber-800 dark:text-amber-400 mb-2">
+                ⚠ Lançamento retroativo
+              </p>
+              <div className="space-y-1 text-sm text-amber-700 dark:text-amber-400">
+                <p><span className="font-medium">Data trabalhada:</span> {formatDate(entry.entry_date)}</p>
+                <p><span className="font-medium">Registrado em:</span> {formatDate(entry.created_at)}</p>
+                <p><span className="font-medium">Atraso:</span> {late} {late === 1 ? 'dia' : 'dias'}</p>
+                {entry.late_submission_reason && (
+                  <p><span className="font-medium">Justificativa:</span> {entry.late_submission_reason}</p>
+                )}
+              </div>
+            </div>
+          );
+        })()}
 
         {/* Rejection details */}
         {entry.approval_status === 'rejected' && entry.rejection_reason && (

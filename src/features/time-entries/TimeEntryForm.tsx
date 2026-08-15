@@ -5,6 +5,7 @@ import { timeEntrySchema, type TimeEntryInput } from '@/schemas/time-entry';
 import { supabase } from '@/lib/supabase/client';
 import { useAuthContext } from '@/features/auth/useAuthContext';
 import { mapDatabaseError } from '@/lib/errors';
+import { maxEntryDate, requiresLateReason, daysLate } from '@/features/time-entries/temporalRules';
 
 interface Project {
   id: string;
@@ -28,10 +29,15 @@ export function TimeEntryForm({ onSuccess }: TimeEntryFormProps) {
     register,
     handleSubmit,
     reset,
+    watch,
     formState: { errors },
   } = useForm<TimeEntryInput>({
     resolver: zodResolver(timeEntrySchema),
   });
+
+  const entryDate = watch('entryDate');
+  const showLateReason = entryDate ? requiresLateReason(entryDate) : false;
+  const lateDays = entryDate ? daysLate(entryDate) : 0;
 
   useEffect(() => {
     const fetchProjects = async () => {
@@ -106,6 +112,7 @@ export function TimeEntryForm({ onSuccess }: TimeEntryFormProps) {
           description: data.description,
           approval_status: 'pending',
           applied_hourly_rate: 0, // Placeholder; trigger will set the actual rate
+          late_submission_reason: data.lateSubmissionReason?.trim() || null,
         },
       ]);
 
@@ -208,6 +215,7 @@ export function TimeEntryForm({ onSuccess }: TimeEntryFormProps) {
             {...register('entryDate')}
             id="entryDate"
             type="date"
+            max={maxEntryDate()}
             aria-invalid={!!errors.entryDate}
             aria-describedby={errors.entryDate ? 'entryDate-error' : undefined}
             className="w-full px-3 py-2.5 border border-app-strong bg-surface-secondary text-app-primary rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-focon-600 focus:border-transparent transition"
@@ -254,6 +262,30 @@ export function TimeEntryForm({ onSuccess }: TimeEntryFormProps) {
           <p id="description-error" className="mt-1 text-sm text-red-600">{errors.description.message}</p>
         )}
       </div>
+
+      {showLateReason && (
+        <div>
+          <label htmlFor="lateSubmissionReason" className="block text-sm font-medium text-app-secondary mb-2">
+            Justificativa do lançamento retroativo *
+          </label>
+          <p className="text-sm text-app-muted mb-2">
+            Este apontamento está sendo registrado com {lateDays} dias de atraso.
+            Informe o motivo do lançamento retroativo.
+          </p>
+          <textarea
+            {...register('lateSubmissionReason')}
+            id="lateSubmissionReason"
+            rows={3}
+            aria-invalid={!!errors.lateSubmissionReason}
+            aria-describedby={errors.lateSubmissionReason ? 'lateReason-error' : undefined}
+            className="w-full px-3 py-2.5 border border-app-strong bg-surface-secondary text-app-primary rounded-lg text-slate-900 placeholder-slate-500 placeholder-input focus:outline-none focus:ring-2 focus:ring-focon-600 focus:border-transparent transition"
+            placeholder="Ex: Estava em campo durante a semana e não pude registrar no tempo adequado..."
+          />
+          {errors.lateSubmissionReason && (
+            <p id="lateReason-error" className="mt-1 text-sm text-red-600">{errors.lateSubmissionReason.message}</p>
+          )}
+        </div>
+      )}
 
       <button
         type="submit"

@@ -287,7 +287,7 @@ BEGIN
   -- Create a pending time entry for Ana (should NOT count as actual)
   -- ========================================================================
   PERFORM pg_temp.user_as(v_ana::text, format(
-    'INSERT INTO time_entries (project_id, professional_id, entry_date, duration_minutes, description, approval_status, applied_hourly_rate) VALUES (''%s'', ''%s'', ''%s'', 600, ''S5 pending'', ''pending'', 120)',
+    'INSERT INTO time_entries (project_id, professional_id, entry_date, duration_minutes, description, approval_status, applied_hourly_rate, late_submission_reason) VALUES (''%s'', ''%s'', ''%s'', 600, ''S5 pending'', ''pending'', 120, ''Test late submission reason for retroactive entry'')',
     v_proj, v_ana, v_week_start
   ));
 

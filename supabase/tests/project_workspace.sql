@@ -230,21 +230,21 @@ BEGIN
 
   -- TEST 18: time entry can be created with task_id -> PASS
   v_entry_id := pg_temp.auth_as_uuid(v_ana::text, format(
-    'INSERT INTO time_entries (project_id, professional_id, entry_date, duration_minutes, description, approval_status, applied_hourly_rate, task_id) VALUES (%L, %L, ''2024-06-15'', 120, ''Worked on task with link'', ''pending'', 0, ''%s'') RETURNING id',
+    'INSERT INTO time_entries (project_id, professional_id, entry_date, duration_minutes, description, approval_status, applied_hourly_rate, late_submission_reason, task_id) VALUES (%L, %L, ''2024-06-15'', 120, ''Worked on task with link'', ''pending'', 0, ''Test late submission reason for retroactive entry'', ''%s'') RETURNING id',
     v_proj1, v_ana, '550e8400-e29b-41d4-a716-446655442002'
   ));
   PERFORM pg_temp.assert_true(v_entry_id IS NOT NULL, 'T18: time entry with task_id should be created');
 
   -- TEST 19: time entry without task_id still works (backward compat) -> PASS
   v_entry_id := pg_temp.auth_as_uuid(v_ana::text, format(
-    'INSERT INTO time_entries (project_id, professional_id, entry_date, duration_minutes, description, approval_status, applied_hourly_rate) VALUES (%L, %L, ''2024-06-16'', 60, ''Old style entry without task link'', ''pending'', 0) RETURNING id',
+    'INSERT INTO time_entries (project_id, professional_id, entry_date, duration_minutes, description, approval_status, applied_hourly_rate, late_submission_reason) VALUES (%L, %L, ''2024-06-16'', 60, ''Old style entry without task link'', ''pending'', 0, ''Test late submission reason for retroactive entry'') RETURNING id',
     v_proj1, v_ana
   ));
   PERFORM pg_temp.assert_true(v_entry_id IS NOT NULL, 'T19: time entry without task_id should still work');
 
   -- TEST 20: time entry with phase_id works -> PASS
   v_entry_id := pg_temp.auth_as_uuid(v_ana::text, format(
-    'INSERT INTO time_entries (project_id, professional_id, entry_date, duration_minutes, description, approval_status, applied_hourly_rate, phase_id) VALUES (%L, %L, ''2024-06-17'', 90, ''Entry with phase link'', ''pending'', 0, ''%s'') RETURNING id',
+    'INSERT INTO time_entries (project_id, professional_id, entry_date, duration_minutes, description, approval_status, applied_hourly_rate, late_submission_reason, phase_id) VALUES (%L, %L, ''2024-06-17'', 90, ''Entry with phase link'', ''pending'', 0, ''Test late submission reason for retroactive entry'', ''%s'') RETURNING id',
     v_proj1, v_ana, '550e8400-e29b-41d4-a716-446655441002'
   ));
   PERFORM pg_temp.assert_true(v_entry_id IS NOT NULL, 'T20: time entry with phase_id should be created');

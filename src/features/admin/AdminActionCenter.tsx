@@ -183,8 +183,8 @@ export function AdminActionCenter({ summary, loading, error, onRetry, overloaded
       icon: '👥',
       title: `${signals.projects_without_team_count} projeto(s) ativo(s) sem equipe alocada`,
       description: 'Projetos ativos sem membros da equipe',
-      ctaLabel: 'Ver projetos',
-      ctaHref: '/admin/projects',
+      ctaLabel: 'Alocar equipe',
+      ctaHref: '/admin/projects?team=unassigned',
     });
   }
 

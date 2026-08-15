@@ -56,6 +56,7 @@ export interface TimeEntry {
   rejection_reason?: string | null;
   rejected_by?: string | null;
   rejected_at?: string | null;
+  late_submission_reason?: string | null;
   created_at: string;
   updated_at: string;
   phase_id?: string | null;

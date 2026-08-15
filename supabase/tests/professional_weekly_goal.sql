@@ -149,7 +149,7 @@ BEGIN
   v_week_start := date_trunc('week', CURRENT_DATE)::DATE;
   v_week_end := v_week_start + INTERVAL '6 days';
   v_prev_week := v_week_start - INTERVAL '7 days';
-  v_next_week := v_week_end + INTERVAL '1 day';
+  v_next_week := v_prev_week - INTERVAL '7 days';
 
   -- ========================================================================
   -- SCENARIO 1: No preference → configured=false, nulls
@@ -198,7 +198,7 @@ BEGIN
 
   -- Create entries: approved=1200, pending=600, rejected=300
   PERFORM pg_temp.user_as(v_ana::text, format(
-    'INSERT INTO time_entries (project_id, professional_id, entry_date, duration_minutes, description, approval_status, applied_hourly_rate) VALUES (%L, %L, ''%s'', 1200, ''S2 approved'', ''pending'', 120)',
+    'INSERT INTO time_entries (project_id, professional_id, entry_date, duration_minutes, description, approval_status, applied_hourly_rate, late_submission_reason) VALUES (%L, %L, ''%s'', 1200, ''S2 approved'', ''pending'', 120, ''Test late submission reason for retroactive entry'')',
     v_proj, v_ana, v_week_start
   ));
   -- Approve it
@@ -208,12 +208,12 @@ BEGIN
   ));
 
   PERFORM pg_temp.user_as(v_ana::text, format(
-    'INSERT INTO time_entries (project_id, professional_id, entry_date, duration_minutes, description, approval_status, applied_hourly_rate) VALUES (%L, %L, ''%s'', 600, ''S2 pending'', ''pending'', 120)',
+    'INSERT INTO time_entries (project_id, professional_id, entry_date, duration_minutes, description, approval_status, applied_hourly_rate, late_submission_reason) VALUES (%L, %L, ''%s'', 600, ''S2 pending'', ''pending'', 120, ''Test late submission reason for retroactive entry'')',
     v_proj, v_ana, v_week_start
   ));
 
   PERFORM pg_temp.user_as(v_ana::text, format(
-    'INSERT INTO time_entries (project_id, professional_id, entry_date, duration_minutes, description, approval_status, applied_hourly_rate) VALUES (%L, %L, ''%s'', 300, ''S2 to reject'', ''pending'', 120)',
+    'INSERT INTO time_entries (project_id, professional_id, entry_date, duration_minutes, description, approval_status, applied_hourly_rate, late_submission_reason) VALUES (%L, %L, ''%s'', 300, ''S2 to reject'', ''pending'', 120, ''Test late submission reason for retroactive entry'')',
     v_proj, v_ana, v_week_start
   ));
   -- Reject it
@@ -265,18 +265,18 @@ BEGIN
   -- Expected: current week numbers unchanged from S2
   -- ========================================================================
   -- Clean up any entries in prev/next week for Ana
-  PERFORM pg_temp.user_as(v_ana::text, format(
+  PERFORM pg_temp.pg_role(format(
     'DELETE FROM time_entries WHERE professional_id = %L AND entry_date = ''%s''',
     v_ana, v_prev_week
   ));
-  PERFORM pg_temp.user_as(v_ana::text, format(
+  PERFORM pg_temp.pg_role(format(
     'DELETE FROM time_entries WHERE professional_id = %L AND entry_date = ''%s''',
     v_ana, v_next_week
   ));
 
   -- Previous week: 1440 min approved (24h, max allowed)
   PERFORM pg_temp.user_as(v_ana::text, format(
-    'INSERT INTO time_entries (project_id, professional_id, entry_date, duration_minutes, description, approval_status, applied_hourly_rate) VALUES (%L, %L, ''%s'', 1440, ''S3 prev week'', ''pending'', 120)',
+    'INSERT INTO time_entries (project_id, professional_id, entry_date, duration_minutes, description, approval_status, applied_hourly_rate, late_submission_reason) VALUES (%L, %L, ''%s'', 1440, ''S3 prev week'', ''pending'', 120, ''Test late submission reason for retroactive entry'')',
     v_proj, v_ana, v_prev_week
   ));
   PERFORM pg_temp.user_as(v_admin::text, format(
@@ -286,7 +286,7 @@ BEGIN
 
   -- Next week: 960 min pending (16h)
   PERFORM pg_temp.user_as(v_ana::text, format(
-    'INSERT INTO time_entries (project_id, professional_id, entry_date, duration_minutes, description, approval_status, applied_hourly_rate) VALUES (%L, %L, ''%s'', 960, ''S3 next week'', ''pending'', 120)',
+    'INSERT INTO time_entries (project_id, professional_id, entry_date, duration_minutes, description, approval_status, applied_hourly_rate, late_submission_reason) VALUES (%L, %L, ''%s'', 960, ''S3 next week'', ''pending'', 120, ''Test late submission reason for retroactive entry'')',
     v_proj, v_ana, v_next_week
   ));
 
@@ -312,7 +312,7 @@ BEGIN
   );
 
   -- Clean up prev/next week entries
-  PERFORM pg_temp.user_as(v_ana::text, format(
+  PERFORM pg_temp.pg_role(format(
     'DELETE FROM time_entries WHERE professional_id = %L AND entry_date IN (''%s'', ''%s'')',
     v_ana, v_prev_week, v_next_week
   ));
@@ -331,7 +331,7 @@ BEGIN
 
   -- approved=1200
   PERFORM pg_temp.user_as(v_ana::text, format(
-    'INSERT INTO time_entries (project_id, professional_id, entry_date, duration_minutes, description, approval_status, applied_hourly_rate) VALUES (%L, %L, ''%s'', 1200, ''S4 approved'', ''pending'', 120)',
+    'INSERT INTO time_entries (project_id, professional_id, entry_date, duration_minutes, description, approval_status, applied_hourly_rate, late_submission_reason) VALUES (%L, %L, ''%s'', 1200, ''S4 approved'', ''pending'', 120, ''Test late submission reason for retroactive entry'')',
     v_proj, v_ana, v_week_start
   ));
   PERFORM pg_temp.user_as(v_admin::text, format(
@@ -341,7 +341,7 @@ BEGIN
 
   -- rejected=1200
   PERFORM pg_temp.user_as(v_ana::text, format(
-    'INSERT INTO time_entries (project_id, professional_id, entry_date, duration_minutes, description, approval_status, applied_hourly_rate) VALUES (%L, %L, ''%s'', 1200, ''S4 to reject'', ''pending'', 120)',
+    'INSERT INTO time_entries (project_id, professional_id, entry_date, duration_minutes, description, approval_status, applied_hourly_rate, late_submission_reason) VALUES (%L, %L, ''%s'', 1200, ''S4 to reject'', ''pending'', 120, ''Test late submission reason for retroactive entry'')',
     v_proj, v_ana, v_week_start
   ));
   PERFORM pg_temp.user_as(v_admin::text, format(

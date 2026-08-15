@@ -3,6 +3,7 @@ import { supabase } from '@/lib/supabase/client';
 import { timeEntriesAPI, projectPhasesAPI, projectTasksAPI } from '@/lib/supabase/api';
 import { mapDatabaseError } from '@/lib/errors';
 import { Modal } from '@/components/Modal';
+import { maxEntryDate, requiresLateReason, daysLate } from '@/features/time-entries/temporalRules';
 
 interface QuickEntryModalProps {
   isOpen: boolean;
@@ -37,6 +38,7 @@ export function QuickEntryModal({ isOpen, onClose, userId, onSaved }: QuickEntry
   const [entryDate, setEntryDate] = useState(new Date().toISOString().split('T')[0]);
   const [durationMinutes, setDurationMinutes] = useState('');
   const [description, setDescription] = useState('');
+  const [lateReason, setLateReason] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -94,6 +96,14 @@ export function QuickEntryModal({ isOpen, onClose, userId, onSaved }: QuickEntry
       setError('Selecione uma data.');
       return;
     }
+    if (entryDate > maxEntryDate()) {
+      setError('Não é possível registrar horas em uma data futura.');
+      return;
+    }
+    if (requiresLateReason(entryDate) && lateReason.trim().length < 10) {
+      setError(`Este apontamento está sendo registrado com ${daysLate(entryDate)} dias de atraso. Informe o motivo do lançamento retroativo (mínimo 10 caracteres).`);
+      return;
+    }
     const duration = Number(durationMinutes);
     if (!duration || duration <= 0) {
       setError('Duração deve ser maior que zero.');
@@ -114,6 +124,7 @@ export function QuickEntryModal({ isOpen, onClose, userId, onSaved }: QuickEntry
         description: description.trim(),
         phase_id: phaseId || null,
         task_id: taskId || null,
+        late_submission_reason: requiresLateReason(entryDate) ? lateReason.trim() : null,
       });
       if (err) throw err;
       onSaved();
@@ -123,6 +134,7 @@ export function QuickEntryModal({ isOpen, onClose, userId, onSaved }: QuickEntry
       setTaskId('');
       setDurationMinutes('');
       setDescription('');
+      setLateReason('');
       setEntryDate(new Date().toISOString().split('T')[0]);
     } catch (err) {
       setError(err instanceof Error ? mapDatabaseError(err) : 'Erro ao criar apontamento');
@@ -233,6 +245,7 @@ export function QuickEntryModal({ isOpen, onClose, userId, onSaved }: QuickEntry
               type="date"
               value={entryDate}
               onChange={(e) => setEntryDate(e.target.value)}
+              max={maxEntryDate()}
               required
               className="w-full px-3 py-2.5 border border-app-strong bg-surface-secondary text-app-primary rounded-lg focus:outline-none focus:ring-2 focus:ring-focon-600"
             />
@@ -272,6 +285,28 @@ export function QuickEntryModal({ isOpen, onClose, userId, onSaved }: QuickEntry
           />
           <p className="mt-1 text-xs text-slate-400">{description.length}/500</p>
         </div>
+
+        {entryDate && requiresLateReason(entryDate) && (
+          <div>
+            <label htmlFor="qe-late-reason" className="block text-sm font-medium text-app-secondary mb-1">
+              Justificativa do lançamento retroativo *
+            </label>
+            <p className="text-sm text-app-muted mb-2">
+              Este apontamento está sendo registrado com {daysLate(entryDate)} dias de atraso.
+              Informe o motivo do lançamento retroativo.
+            </p>
+            <textarea
+              id="qe-late-reason"
+              value={lateReason}
+              onChange={(e) => setLateReason(e.target.value)}
+              rows={3}
+              maxLength={500}
+              required
+              placeholder="Ex: Estava em campo durante a semana e não pude registrar no tempo adequado..."
+              className="w-full px-3 py-2.5 border border-app-strong bg-surface-secondary text-app-primary rounded-lg focus:outline-none focus:ring-2 focus:ring-focon-600"
+            />
+          </div>
+        )}
       </form>
     </Modal>
   );

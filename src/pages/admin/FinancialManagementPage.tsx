@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { financialAPI, projectsAPI } from '@/lib/supabase/api';
+import { supabase } from '@/lib/supabase/client';
 import { mapDatabaseError } from '@/lib/errors';
 import { Modal } from '@/components/Modal';
 import type { Project } from '@/types/database';
@@ -20,6 +21,7 @@ export function FinancialManagementPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [editTarget, setEditTarget] = useState<FinancialRow | null>(null);
+  const [selectedFinancial, setSelectedFinancial] = useState<FinancialRow | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
 
@@ -116,14 +118,27 @@ export function FinancialManagementPage() {
             </thead>
             <tbody className="divide-y divide-table-divider">
               {financials.map((f) => (
-                <tr key={f.project_id} className="hover:bg-hover-surface transition">
+                <tr
+                  key={f.project_id}
+                  onClick={() => setSelectedFinancial(f)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      setSelectedFinancial(f);
+                    }
+                  }}
+                  tabIndex={0}
+                  role="button"
+                  aria-label={`Ver detalhes de ${f.project?.name || 'projeto'}`}
+                  className="hover:bg-hover-surface transition cursor-pointer focus:outline-none focus:ring-2 focus:ring-inset focus:ring-focon-600"
+                >
                   <td className="px-4 py-3 text-sm text-app-primary font-medium">
                     {f.project?.name || 'Desconhecido'}
                   </td>
                   <td className="px-4 py-3 text-sm text-app-primary font-semibold">{formatCurrency(f.contracted_revenue)}</td>
                   <td className="px-4 py-3 text-sm text-app-secondary">{formatPercent(f.tax_rate)}</td>
                   <td className="px-4 py-3 text-sm text-app-secondary">{formatCurrency(f.indirect_cost)}</td>
-                  <td className="px-4 py-3 text-sm">
+                  <td className="px-4 py-3 text-sm" onClick={(e) => e.stopPropagation()}>
                     <button
                       onClick={() => setEditTarget(f)}
                       className="px-2.5 py-1 rounded-md text-xs font-medium border border-app-strong text-app-secondary hover:bg-hover-surface transition"
@@ -159,6 +174,13 @@ export function FinancialManagementPage() {
             fetchFinancials();
           }}
           onError={(msg) => setActionError(msg)}
+        />
+      )}
+
+      {selectedFinancial && (
+        <FinancialDetailsModal
+          financial={selectedFinancial}
+          onClose={() => setSelectedFinancial(null)}
         />
       )}
     </div>
@@ -254,6 +276,98 @@ function FinancialFormModal({ existing, availableProjects, onClose, onSaved, onE
           <input type="number" step="0.01" min="0" value={indirectCost} onChange={(e) => setIndirectCost(e.target.value)} className="w-full px-3 py-2.5 border border-app-strong bg-surface-secondary text-app-primary rounded-lg focus:outline-none focus:ring-2 focus:ring-focon-600" />
         </div>
       </form>
+    </Modal>
+  );
+}
+
+interface FinancialDetailsModalProps {
+  financial: FinancialRow;
+  onClose: () => void;
+}
+
+function FinancialDetailsModal({ financial, onClose }: FinancialDetailsModalProps) {
+  const [approvedCost, setApprovedCost] = useState<number | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const { data } = await supabase
+          .from('time_entries')
+          .select('duration_minutes, applied_hourly_rate')
+          .eq('project_id', financial.project_id)
+          .eq('approval_status', 'approved');
+        if (cancelled) return;
+        const entries = (data as { duration_minutes: number; applied_hourly_rate: number }[]) || [];
+        const cost = entries.reduce((s, e) => s + (e.duration_minutes / 60) * e.applied_hourly_rate, 0);
+        setApprovedCost(cost);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [financial.project_id]);
+
+  const formatCurrency = (v: number) =>
+    new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v);
+  const formatPercent = (v: number) => `${(v * 100).toFixed(1)}%`;
+
+  const netRevenue = financial.contracted_revenue * (1 - financial.tax_rate) - financial.indirect_cost;
+  const cost = approvedCost ?? 0;
+  const margin = netRevenue - cost;
+  const marginPct = netRevenue > 0 ? (margin / netRevenue) * 100 : 0;
+
+  return (
+    <Modal open onClose={onClose} title="Detalhes Financeiros" maxWidth="max-w-2xl">
+      {loading ? (
+        <div className="flex justify-center items-center py-8">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-focon-600"></div>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <p className="text-xs font-medium text-app-muted uppercase tracking-wide">Projeto</p>
+              <p className="text-sm text-app-primary font-medium">{financial.project?.name || 'Desconhecido'}</p>
+            </div>
+            <div>
+              <p className="text-xs font-medium text-app-muted uppercase tracking-wide">Receita Contratada</p>
+              <p className="text-sm text-app-primary font-semibold">{formatCurrency(financial.contracted_revenue)}</p>
+            </div>
+            <div>
+              <p className="text-xs font-medium text-app-muted uppercase tracking-wide">Taxa de Imposto</p>
+              <p className="text-sm text-app-secondary">{formatPercent(financial.tax_rate)}</p>
+            </div>
+            <div>
+              <p className="text-xs font-medium text-app-muted uppercase tracking-wide">Custo Indireto</p>
+              <p className="text-sm text-app-secondary">{formatCurrency(financial.indirect_cost)}</p>
+            </div>
+          </div>
+
+          <div className="border-t border-app-primary pt-4">
+            <h3 className="text-sm font-semibold text-app-primary mb-3">Resultados Calculados</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="rounded-lg bg-surface-secondary p-3">
+                <p className="text-xs text-app-muted">Receita Líquida</p>
+                <p className="text-sm font-semibold text-app-primary">{formatCurrency(netRevenue)}</p>
+              </div>
+              <div className="rounded-lg bg-surface-secondary p-3">
+                <p className="text-xs text-app-muted">Custo de Horas Aprovadas</p>
+                <p className="text-sm font-semibold text-app-primary">{formatCurrency(cost)}</p>
+              </div>
+              <div className={`rounded-lg p-3 ${margin >= 0 ? 'bg-green-50 dark:bg-green-900/20' : 'bg-red-50 dark:bg-red-900/20'}`}>
+                <p className={`text-xs ${margin >= 0 ? 'text-green-700 dark:text-green-400' : 'text-red-700 dark:text-red-400'}`}>Margem</p>
+                <p className={`text-sm font-semibold ${margin >= 0 ? 'text-green-800 dark:text-green-300' : 'text-red-800 dark:text-red-300'}`}>
+                  {formatCurrency(margin)} ({marginPct.toFixed(1)}%)
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </Modal>
   );
 }

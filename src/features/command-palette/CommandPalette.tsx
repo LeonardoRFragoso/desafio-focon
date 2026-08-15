@@ -27,12 +27,17 @@ const ADMIN_COMMANDS: Omit<CommandItem, 'action'>[] = [
   { type: 'command', id: 'cmd-approvals', title: 'Ir para Aprovações', subtitle: 'Aprovar apontamentos', icon: '✅', href: '/admin/time-entries?status=pending' },
   { type: 'command', id: 'cmd-history', title: 'Histórico de Apontamentos', subtitle: 'Ver todos apontamentos', icon: '📋', href: '/admin/time-entries' },
   { type: 'command', id: 'cmd-projects', title: 'Projetos', subtitle: 'Gerenciar projetos', icon: '🏗️', href: '/admin/projects' },
-  { type: 'command', id: 'cmd-professionals', title: 'Profissionais', subtitle: 'Gerenciar equipe', icon: '👥', href: '/admin/professionals' },
+  { type: 'command', id: 'cmd-projects-unassigned', title: 'Projetos sem Equipe', subtitle: 'Alocar equipe', icon: '👥', href: '/admin/projects?team=unassigned' },
+  { type: 'command', id: 'cmd-professionals', title: 'Profissionais', subtitle: 'Gerenciar equipe', icon: '�', href: '/admin/professionals' },
+  { type: 'command', id: 'cmd-hourly-rates', title: 'Valores/Hora', subtitle: 'Configurar taxas', icon: '💵', href: '/admin/hourly-rates' },
   { type: 'command', id: 'cmd-financial', title: 'Financeiro', subtitle: 'Gestão financeira', icon: '💰', href: '/admin/financial' },
   { type: 'command', id: 'cmd-budget', title: 'Orçamento', subtitle: 'Orçamento × Realizado', icon: '📊', href: '/admin/budget' },
+  { type: 'command', id: 'cmd-capacity', title: 'Capacidade', subtitle: 'Planejamento de capacidade', icon: '📈', href: '/admin/capacity' },
   { type: 'command', id: 'cmd-charts', title: 'Gráficos', subtitle: 'Visualizações', icon: '📈', href: '/admin/charts' },
   { type: 'command', id: 'cmd-alerts', title: 'Alertas', subtitle: 'Alertas de rentabilidade', icon: '🚨', href: '/admin/alerts' },
+  { type: 'command', id: 'cmd-periods', title: 'Períodos', subtitle: 'Fechamento de períodos', icon: '📅', href: '/admin/periods' },
   { type: 'command', id: 'cmd-audit', title: 'Auditoria', subtitle: 'Logs de auditoria', icon: '🔍', href: '/admin/audit' },
+  { type: 'command', id: 'cmd-system-status', title: 'Status do Sistema', subtitle: 'Health check', icon: '🩺', href: '/admin/system-status' },
 ];
 
 const PROFESSIONAL_COMMANDS: Omit<CommandItem, 'action'>[] = [
