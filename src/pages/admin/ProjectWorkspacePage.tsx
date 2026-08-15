@@ -9,8 +9,10 @@ import { ProjectTasksTab } from '@/features/project-workspace/ProjectTasksTab';
 import { ProjectPhasesTab } from '@/features/project-workspace/ProjectPhasesTab';
 import { ProjectTeamTab } from '@/features/project-workspace/ProjectTeamTab';
 import { ProjectHoursTab } from '@/features/project-workspace/ProjectHoursTab';
+import { ProjectMilestonesTab } from '@/features/project-workspace/ProjectMilestonesTab';
+import { ProjectHealthDetailsModal } from '@/features/project-workspace/ProjectHealthDetailsModal';
 
-type Tab = 'overview' | 'phases' | 'tasks' | 'team' | 'hours';
+type Tab = 'overview' | 'phases' | 'tasks' | 'team' | 'hours' | 'milestones';
 
 const TAB_LABELS: Record<Tab, string> = {
   overview: 'Visão Geral',
@@ -18,9 +20,10 @@ const TAB_LABELS: Record<Tab, string> = {
   tasks: 'Tarefas',
   team: 'Equipe',
   hours: 'Horas',
+  milestones: 'Marcos',
 };
 
-const VALID_TABS: Tab[] = ['overview', 'phases', 'tasks', 'team', 'hours'];
+const VALID_TABS: Tab[] = ['overview', 'phases', 'tasks', 'team', 'hours', 'milestones'];
 
 function parseTab(value: string | null, isAdmin: boolean): Tab {
   if (!value || !VALID_TABS.includes(value as Tab)) return 'overview';
@@ -41,6 +44,8 @@ export function ProjectWorkspacePage() {
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<Tab>(() => parseTab(searchParams.get('tab'), isAdmin));
   const [highlightTaskId, setHighlightTaskId] = useState<string | null>(searchParams.get('task'));
+  const [highlightMilestoneId, setHighlightMilestoneId] = useState<string | null>(searchParams.get('milestone'));
+  const [healthModalOpen, setHealthModalOpen] = useState(false);
 
   // Sync tab to URL
   const handleTabChange = useCallback((tab: Tab) => {
@@ -56,6 +61,11 @@ export function ProjectWorkspacePage() {
       params.delete('task');
       setHighlightTaskId(null);
     }
+    // Clear milestone highlight when switching away from milestones tab
+    if (tab !== 'milestones') {
+      params.delete('milestone');
+      setHighlightMilestoneId(null);
+    }
     setSearchParams(params, { replace: true });
   }, [searchParams, setSearchParams]);
 
@@ -64,12 +74,16 @@ export function ProjectWorkspacePage() {
   useEffect(() => {
     const tabParam = searchParams.get('tab');
     const taskParam = searchParams.get('task');
+    const milestoneParam = searchParams.get('milestone');
     if (tabParam) {
       const parsed = parseTab(tabParam, isAdmin);
       setActiveTab(parsed);
     }
     if (taskParam) {
       setHighlightTaskId(taskParam);
+    }
+    if (milestoneParam) {
+      setHighlightMilestoneId(milestoneParam);
     }
   }, [searchParams, isAdmin]);
   /* eslint-enable react-hooks/set-state-in-effect */
@@ -147,8 +161,8 @@ export function ProjectWorkspacePage() {
   };
 
   const tabs: Tab[] = isAdmin
-    ? ['overview', 'phases', 'tasks', 'team', 'hours']
-    : ['overview', 'tasks', 'team'];
+    ? ['overview', 'phases', 'milestones', 'tasks', 'team', 'hours']
+    : ['overview', 'milestones', 'tasks', 'team'];
 
   return (
     <div className="space-y-6">
@@ -196,9 +210,22 @@ export function ProjectWorkspacePage() {
 
       {/* Tab content */}
       {activeTab === 'overview' && (
-        <ProjectOverview project={project} summary={summary} isAdmin={isAdmin} />
+        <ProjectOverview project={project} summary={summary} isAdmin={isAdmin} onOpenHealthDetails={() => setHealthModalOpen(true)} />
       )}
       {activeTab === 'phases' && isAdmin && <ProjectPhasesTab projectId={project.id} />}
+      {activeTab === 'milestones' && (
+        <ProjectMilestonesTab
+          projectId={project.id}
+          isAdmin={isAdmin}
+          highlightMilestoneId={highlightMilestoneId}
+          onMilestoneHighlightCleared={() => {
+            setHighlightMilestoneId(null);
+            const params = new URLSearchParams(searchParams);
+            params.delete('milestone');
+            setSearchParams(params, { replace: true });
+          }}
+        />
+      )}
       {activeTab === 'tasks' && (
         <ProjectTasksTab
           projectId={project.id}
@@ -214,6 +241,15 @@ export function ProjectWorkspacePage() {
       )}
       {activeTab === 'team' && <ProjectTeamTab projectId={project.id} isAdmin={isAdmin} />}
       {activeTab === 'hours' && isAdmin && <ProjectHoursTab projectId={project.id} />}
+
+      {/* Health details modal (accessible from overview) */}
+      <ProjectHealthDetailsModal
+        open={healthModalOpen}
+        onClose={() => setHealthModalOpen(false)}
+        projectId={project.id}
+        projectName={project.name}
+        isAdmin={isAdmin}
+      />
     </div>
   );
 }

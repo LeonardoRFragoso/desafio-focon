@@ -83,6 +83,64 @@ VALUES
   ('550e8400-e29b-41d4-a716-446655442102', '550e8400-e29b-41d4-a716-446655440002', '550e8400-e29b-41d4-a716-446655441102', 'Revestimento', 'Revestimento de paredes', 'todo', 'medium', '550e8400-e29b-41d4-a716-446655550003', 3000, '2024-08-31', '550e8400-e29b-41d4-a716-446655550099')
 ON CONFLICT DO NOTHING;
 
+-- ============================================================================
+-- Phase 6 seed: milestones, budgets, alerts, allocations, capacity rules
+-- ============================================================================
+
+-- Project budgets (labor_cost type) for health calculation
+INSERT INTO project_budgets (project_id, budget_type, budget_value, fiscal_year)
+VALUES
+  ('550e8400-e29b-41d4-a716-446655440001', 'labor_cost', 20000.00, 2024),
+  ('550e8400-e29b-41d4-a716-446655440002', 'labor_cost', 15000.00, 2024)
+ON CONFLICT (project_id, budget_type, fiscal_year) DO NOTHING;
+
+-- Project milestones for Residencial Aurora
+INSERT INTO project_milestones (id, project_id, name, description, status, priority, owner_id, start_date, due_date, progress_percent, weight, position, created_by)
+VALUES
+  ('550e8400-e29b-41d4-a716-446655443001', '550e8400-e29b-41d4-a716-446655440001', 'Projeto Executivo Aprovado', 'Aprovação do projeto executivo pelo cliente', 'completed', 'high', '550e8400-e29b-41d4-a716-446655550099', '2024-01-15', '2024-02-28', 100, 2.0, 0, '550e8400-e29b-41d4-a716-446655550099'),
+  ('550e8400-e29b-41d4-a716-446655443002', '550e8400-e29b-41d4-a716-446655440001', 'Fundações Concluídas', 'Conclusão de todas as fundações', 'in_progress', 'critical', '550e8400-e29b-41d4-a716-446655550002', '2024-03-01', '2024-05-31', 65, 3.0, 1, '550e8400-e29b-41d4-a716-446655550099'),
+  ('550e8400-e29b-41d4-a716-446655443003', '550e8400-e29b-41d4-a716-446655440001', 'Estrutura Levantada', 'Levantamento da estrutura completa', 'planned', 'high', '550e8400-e29b-41d4-a716-446655550001', '2024-06-01', '2024-09-30', 0, 2.0, 2, '550e8400-e29b-41d4-a716-446655550099')
+ON CONFLICT DO NOTHING;
+
+-- Project milestones for Edifício Horizonte
+INSERT INTO project_milestones (id, project_id, name, description, status, priority, owner_id, start_date, due_date, progress_percent, weight, position, created_by)
+VALUES
+  ('550e8400-e29b-41d4-a716-446655443101', '550e8400-e29b-41d4-a716-446655440002', 'Levantamento Concluído', 'Levantamento de campo finalizado', 'completed', 'medium', '550e8400-e29b-41d4-a716-446655550003', '2024-02-01', '2024-02-29', 100, 1.0, 0, '550e8400-e29b-41d4-a716-446655550099'),
+  ('550e8400-e29b-41d4-a716-446655443102', '550e8400-e29b-41d4-a716-446655440002', 'Execução de Alvenaria', 'Execução completa da alvenaria', 'in_progress', 'high', '550e8400-e29b-41d4-a716-446655550003', '2024-03-01', '2024-07-31', 40, 2.0, 1, '550e8400-e29b-41d4-a716-446655550099')
+ON CONFLICT DO NOTHING;
+
+-- Link some tasks to milestones
+UPDATE project_tasks SET milestone_id = '550e8400-e29b-41d4-a716-446655443002'
+WHERE id IN ('550e8400-e29b-41d4-a716-446655442001', '550e8400-e29b-41d4-a716-446655442002', '550e8400-e29b-41d4-a716-446655442003');
+
+UPDATE project_tasks SET milestone_id = '550e8400-e29b-41d4-a716-446655443003'
+WHERE id = '550e8400-e29b-41d4-a716-446655442004';
+
+UPDATE project_tasks SET milestone_id = '550e8400-e29b-41d4-a716-446655443102'
+WHERE id IN ('550e8400-e29b-41d4-a716-446655442101', '550e8400-e29b-41d4-a716-446655442102');
+
+-- Profitability alert for Residencial Aurora (budget utilization at 85%)
+INSERT INTO profitability_alerts (project_id, threshold, metric, triggered_at)
+VALUES
+  ('550e8400-e29b-41d4-a716-446655440001', 85.00, 'budget_utilization_percent', NOW())
+ON CONFLICT DO NOTHING;
+
+-- Capacity rules for professionals
+INSERT INTO professional_capacity_rules (professional_id, weekly_capacity_minutes, valid_from, valid_until, created_by)
+VALUES
+  ('550e8400-e29b-41d4-a716-446655550001', 2400, '2024-01-01', NULL, '550e8400-e29b-41d4-a716-446655550099'),
+  ('550e8400-e29b-41d4-a716-446655550002', 2400, '2024-01-01', NULL, '550e8400-e29b-41d4-a716-446655550099'),
+  ('550e8400-e29b-41d4-a716-446655550003', 2400, '2024-01-01', NULL, '550e8400-e29b-41d4-a716-446655550099')
+ON CONFLICT (professional_id, valid_from) DO NOTHING;
+
+-- Project allocations (planned time commitment)
+INSERT INTO project_allocations (project_id, professional_id, start_date, end_date, allocated_minutes, allocation_type, created_by)
+VALUES
+  ('550e8400-e29b-41d4-a716-446655440001', '550e8400-e29b-41d4-a716-446655550001', '2024-03-01', '2024-12-31', 1200, 'confirmed', '550e8400-e29b-41d4-a716-446655550099'),
+  ('550e8400-e29b-41d4-a716-446655440001', '550e8400-e29b-41d4-a716-446655550002', '2024-03-01', '2024-12-31', 1800, 'confirmed', '550e8400-e29b-41d4-a716-446655550099'),
+  ('550e8400-e29b-41d4-a716-446655440002', '550e8400-e29b-41d4-a716-446655550003', '2024-03-01', '2024-12-31', 2400, 'confirmed', '550e8400-e29b-41d4-a716-446655550099')
+ON CONFLICT DO NOTHING;
+
 -- Time entries will be created manually via the application UI
 -- The constraint on duration_minutes requires values > 0 and <= 480 (8 hours)
 

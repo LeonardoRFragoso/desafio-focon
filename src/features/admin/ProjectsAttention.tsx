@@ -216,9 +216,12 @@ export function ProjectsAttention() {
         })}
       </div>
 
-      {/* Note: attention_state is NOT the future Project Health Score */}
+      {/* Note: attention_state is superseded by the canonical Project Health Score */}
       <p className="text-xs text-app-muted">
-        * attention_state é um indicador operacional temporário derivado de sinais existentes (orçamento, tarefas atrasadas, alertas). Não é o futuro Project Health Score.
+        * attention_state é um indicador operacional temporário. Para o Project Health Score canônico (com drivers, histórico e previsão), consulte{' '}
+        <a href="/admin/project-health" className="text-focon-600 dark:text-focon-400 hover:underline">
+          Saúde dos Projetos
+        </a>.
       </p>
     </section>
   );

@@ -33,6 +33,7 @@ const ADMIN_COMMANDS: Omit<CommandItem, 'action'>[] = [
   { type: 'command', id: 'cmd-financial', title: 'Financeiro', subtitle: 'Gestão financeira', icon: '💰', href: '/admin/financial' },
   { type: 'command', id: 'cmd-budget', title: 'Orçamento', subtitle: 'Orçamento × Realizado', icon: '📊', href: '/admin/budget' },
   { type: 'command', id: 'cmd-capacity', title: 'Capacidade', subtitle: 'Planejamento de capacidade', icon: '📈', href: '/admin/capacity' },
+  { type: 'command', id: 'cmd-project-health', title: 'Saúde dos Projetos', subtitle: 'Visão consolidada de saúde', icon: '❤️', href: '/admin/project-health' },
   { type: 'command', id: 'cmd-charts', title: 'Gráficos', subtitle: 'Visualizações', icon: '📈', href: '/admin/charts' },
   { type: 'command', id: 'cmd-alerts', title: 'Alertas', subtitle: 'Alertas de rentabilidade', icon: '🚨', href: '/admin/alerts' },
   { type: 'command', id: 'cmd-periods', title: 'Períodos', subtitle: 'Fechamento de períodos', icon: '📅', href: '/admin/periods' },
@@ -309,7 +310,7 @@ export function CommandPalette({ open, onClose }: CommandPaletteProps) {
                     )}
                     {result && (
                       <span className="text-xs text-slate-400 capitalize shrink-0">
-                        {result.type === 'time_entry' ? 'Apontamento' : result.type === 'project' ? 'Projeto' : result.type === 'task' ? 'Tarefa' : 'Profissional'}
+                        {result.type === 'time_entry' ? 'Apontamento' : result.type === 'project' ? 'Projeto' : result.type === 'task' ? 'Tarefa' : result.type === 'milestone' ? 'Marco' : 'Profissional'}
                       </span>
                     )}
                   </li>

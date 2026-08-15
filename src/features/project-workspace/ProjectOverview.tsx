@@ -1,12 +1,14 @@
 import type { Project, ProjectWorkspaceSummary } from '@/types/database';
+import { ProjectHealthCard } from '@/features/project-workspace/ProjectHealthCard';
 
 interface ProjectOverviewProps {
   project: Project;
   summary: ProjectWorkspaceSummary | null;
   isAdmin: boolean;
+  onOpenHealthDetails?: () => void;
 }
 
-export function ProjectOverview({ project, summary, isAdmin }: ProjectOverviewProps) {
+export function ProjectOverview({ project, summary, isAdmin, onOpenHealthDetails }: ProjectOverviewProps) {
   const formatDate = (d: string) => new Date(d).toLocaleDateString('pt-BR');
   const formatHours = (minutes: number) => `${(minutes / 60).toFixed(1)}h`;
 
@@ -28,24 +30,29 @@ export function ProjectOverview({ project, summary, isAdmin }: ProjectOverviewPr
 
   return (
     <div className="space-y-6">
-      {/* Project info */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {cards.map((card) => (
-          <div
-            key={card.label}
-            className="rounded-xl border border-app-primary bg-surface-primary p-4 shadow-sm"
-          >
-            <p className="text-xs font-medium text-app-muted uppercase tracking-wide">
-              {card.label}
-            </p>
-            <p className="mt-1 text-2xl font-bold text-app-primary">
-              {card.value}
-            </p>
-            {card.hint && (
-              <p className="mt-1 text-xs text-app-muted">{card.hint}</p>
-            )}
-          </div>
-        ))}
+      {/* Health card + Project info */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <div className="lg:col-span-1">
+          <ProjectHealthCard projectId={project.id} isAdmin={isAdmin} onOpenDetails={onOpenHealthDetails} />
+        </div>
+        <div className="lg:col-span-2 grid grid-cols-2 md:grid-cols-3 gap-4">
+          {cards.map((card) => (
+            <div
+              key={card.label}
+              className="rounded-xl border border-app-primary bg-surface-primary p-4 shadow-sm"
+            >
+              <p className="text-xs font-medium text-app-muted uppercase tracking-wide">
+                {card.label}
+              </p>
+              <p className="mt-1 text-2xl font-bold text-app-primary">
+                {card.value}
+              </p>
+              {card.hint && (
+                <p className="mt-1 text-xs text-app-muted">{card.hint}</p>
+              )}
+            </div>
+          ))}
+        </div>
       </div>
 
       {/* Project description placeholder */}
