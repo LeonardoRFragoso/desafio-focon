@@ -255,7 +255,7 @@ export function ChartsPage() {
             {financialData.length > 0 && financialData[0] && financialData[0].value > 0 ? (
               <ResponsiveContainer width="100%" height={300}>
                 <PieChart>
-                  <Pie data={financialData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={100} label>
+                  <Pie data={financialData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={100} label={{ fill: axisColor, fontSize: 12 }}>
                     {financialData.map((_, i) => (
                       <Cell key={i} fill={COLORS[i % COLORS.length] ?? '#0d9488'} />
                     ))}

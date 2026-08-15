@@ -29,14 +29,14 @@ export function FinancialIndicators({
       label: 'Receita',
       value: revenue,
       format: formatCurrency,
-      color: 'bg-white dark:bg-slate-900 border-focon-200',
-      textColor: 'text-focon-900',
+      color: 'bg-white dark:bg-slate-900 border-focon-200 dark:border-focon-800',
+      textColor: 'text-focon-700 dark:text-focon-300',
     },
     {
       label: 'Custo de Mão de Obra',
       value: laborCost,
       format: formatCurrency,
-      color: 'bg-white dark:bg-slate-900 border-focon-200',
+      color: 'bg-white dark:bg-slate-900 border-focon-200 dark:border-focon-800',
       textColor: 'text-slate-900 dark:text-slate-100',
     },
     {
@@ -50,8 +50,8 @@ export function FinancialIndicators({
       label: 'Margem',
       value: margin,
       format: formatPercentage,
-      color: 'bg-white dark:bg-slate-900 border-focon-200',
-      textColor: 'text-focon-900',
+      color: 'bg-white dark:bg-slate-900 border-focon-200 dark:border-focon-800',
+      textColor: 'text-focon-700 dark:text-focon-300',
     },
   ];
 
