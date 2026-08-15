@@ -1,6 +1,7 @@
 import { supabase } from './client';
 import type { TimeEntry } from '@/types/database';
 import type { AdminFilterValues } from '@/types/admin';
+import { buildIlikeOrFilter } from '@/lib/postgrestFilter';
 
 /**
  * Time Entries API
@@ -261,8 +262,9 @@ export const timeEntriesAPI = {
     if (endDate) query = query.lte('entry_date', endDate);
 
     if (search) {
-      // Use or filter for text search on description and project name
-      query = query.or(`description.ilike.%${search}%,project.name.ilike.%${search}%`);
+      // Use or filter for text search on description and project name.
+      // The search term is sanitized to prevent PostgREST filter injection.
+      query = query.or(buildIlikeOrFilter(search, ['description', 'project.name']));
     }
 
     query = query
@@ -326,8 +328,9 @@ export const timeEntriesAPI = {
     if (endDate) query = query.lte('entry_date', endDate);
 
     if (search) {
+      // The search term is sanitized to prevent PostgREST filter injection.
       query = query.or(
-        `description.ilike.%${search}%,professional.full_name.ilike.%${search}%,project.name.ilike.%${search}%`
+        buildIlikeOrFilter(search, ['description', 'professional.full_name', 'project.name'])
       );
     }
 
