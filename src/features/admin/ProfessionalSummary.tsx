@@ -31,7 +31,7 @@ export function ProfessionalSummary({
     return (
       <div className="space-y-2">
         {[...Array(3)].map((_, i) => (
-          <div key={i} className="h-12 bg-slate-200 rounded"></div>
+          <div key={i} className="h-12 bg-slate-200 dark:bg-slate-700 rounded"></div>
         ))}
       </div>
     );
@@ -39,47 +39,47 @@ export function ProfessionalSummary({
 
   if (data.length === 0) {
     return (
-      <div className="rounded-xl border border-slate-200 p-8 text-center bg-slate-50">
-        <p className="text-slate-600">Nenhum dado para exibir</p>
+      <div className="rounded-xl border border-slate-200 dark:border-slate-700 p-8 text-center bg-slate-50 dark:bg-slate-800/50">
+        <p className="text-slate-600 dark:text-slate-400">Nenhum dado para exibir</p>
       </div>
     );
   }
 
   return (
-    <div className="overflow-x-auto rounded-xl border border-slate-200 shadow-sm">
+    <div className="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
       <table className="w-full">
         <thead>
-          <tr className="border-b border-slate-200 bg-slate-100">
-            <th className="px-6 py-4 text-left text-sm font-semibold text-slate-900">
+          <tr className="border-b border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800">
+            <th className="px-6 py-4 text-left text-sm font-semibold text-slate-900 dark:text-slate-100">
               Profissional
             </th>
-            <th className="px-6 py-4 text-left text-sm font-semibold text-slate-900">
+            <th className="px-6 py-4 text-left text-sm font-semibold text-slate-900 dark:text-slate-100">
               Total de Horas
             </th>
-            <th className="px-6 py-4 text-left text-sm font-semibold text-slate-900">
+            <th className="px-6 py-4 text-left text-sm font-semibold text-slate-900 dark:text-slate-100">
               Custo-hora
             </th>
-            <th className="px-6 py-4 text-right text-sm font-semibold text-slate-900">
+            <th className="px-6 py-4 text-right text-sm font-semibold text-slate-900 dark:text-slate-100">
               Custo Total
             </th>
           </tr>
         </thead>
-        <tbody className="divide-y divide-slate-200">
+        <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
           {data.map((row) => (
             <tr
               key={row.professional_id}
-              className="hover:bg-slate-50 transition"
+              className="hover:bg-slate-50 dark:hover:bg-slate-800 transition"
             >
-              <td className="px-6 py-4 text-sm font-medium text-slate-900">
+              <td className="px-6 py-4 text-sm font-medium text-slate-900 dark:text-slate-100">
                 {row.professional_name}
               </td>
-              <td className="px-6 py-4 text-sm text-slate-900">
+              <td className="px-6 py-4 text-sm text-slate-900 dark:text-slate-100">
                 {formatHours(row.total_hours)}
               </td>
-              <td className="px-6 py-4 text-sm text-slate-900">
+              <td className="px-6 py-4 text-sm text-slate-900 dark:text-slate-100">
                 {row.hourly_rates.map((rate) => formatCurrency(rate)).join(', ')}
               </td>
-              <td className="px-6 py-4 text-sm font-semibold text-slate-900 text-right">
+              <td className="px-6 py-4 text-sm font-semibold text-slate-900 dark:text-slate-100 text-right">
                 {formatCurrency(row.total_cost)}
               </td>
             </tr>

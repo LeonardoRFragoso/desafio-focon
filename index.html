@@ -4,7 +4,27 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#007678" />
     <title>FoconFlow | Fócon Engenharia</title>
+    <script>
+      // No-flash theme bootstrap.
+      // Runs synchronously before the first paint to apply the stored theme
+      // (defaulting to light/Clean on first access) so dark mode never flashes
+      // as light→dark on reload. The OS prefers-color-scheme is intentionally
+      // ignored — the application owns the theme via the .dark class.
+      (function () {
+        try {
+          var stored = localStorage.getItem('foconflow-theme');
+          var theme = stored === 'dark' || stored === 'light' ? stored : 'light';
+          var root = document.documentElement;
+          if (theme === 'dark') root.classList.add('dark');
+          else root.classList.remove('dark');
+          root.style.colorScheme = theme;
+        } catch (e) {
+          /* localStorage unavailable — default light is already applied */
+        }
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

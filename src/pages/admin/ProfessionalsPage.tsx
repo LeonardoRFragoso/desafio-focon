@@ -77,13 +77,13 @@ export function ProfessionalsPage() {
       </div>
 
       {error && (
-        <div className="rounded-lg bg-red-50 border border-red-200 p-4">
-          <p className="text-sm font-medium text-red-800">{error}</p>
+        <div className="rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 p-4">
+          <p className="text-sm font-medium text-red-800 dark:text-red-400">{error}</p>
         </div>
       )}
       {actionError && (
-        <div className="rounded-lg bg-red-50 border border-red-200 p-4">
-          <p className="text-sm font-medium text-red-800">{actionError}</p>
+        <div className="rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 p-4">
+          <p className="text-sm font-medium text-red-800 dark:text-red-400">{actionError}</p>
         </div>
       )}
 
@@ -108,37 +108,37 @@ export function ProfessionalsPage() {
       </div>
 
       {profiles.length === 0 ? (
-        <div className="rounded-xl border border-slate-200 p-12 text-center bg-slate-50">
-          <p className="text-slate-600">Nenhum profissional cadastrado</p>
+        <div className="rounded-xl border border-slate-200 dark:border-slate-700 p-12 text-center bg-slate-50 dark:bg-slate-800/50">
+          <p className="text-slate-600 dark:text-slate-400">Nenhum profissional cadastrado</p>
         </div>
       ) : (
-        <div className="overflow-x-auto rounded-xl border border-slate-200 shadow-sm">
+        <div className="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
           <table className="w-full">
-            <thead className="bg-slate-100 border-b border-slate-200">
+            <thead className="bg-slate-100 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700">
               <tr>
-                <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900">Nome</th>
-                <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900">Papel</th>
-                <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900">Criado em</th>
-                <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900">Ações</th>
+                <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900 dark:text-slate-100">Nome</th>
+                <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900 dark:text-slate-100">Papel</th>
+                <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900 dark:text-slate-100">Criado em</th>
+                <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900 dark:text-slate-100">Ações</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-200">
+            <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
               {filteredProfiles.length === 0 ? (
-                <tr><td colSpan={4} className="px-4 py-8 text-center text-sm text-slate-500">Nenhum profissional encontrado</td></tr>
+                <tr><td colSpan={4} className="px-4 py-8 text-center text-sm text-slate-500 dark:text-slate-400">Nenhum profissional encontrado</td></tr>
               ) : (
                 filteredProfiles.map((p) => (
-                <tr key={p.id} className="hover:bg-slate-50 transition">
-                  <td className="px-4 py-3 text-sm text-slate-900 font-medium">{p.full_name}</td>
+                <tr key={p.id} className="hover:bg-slate-50 dark:hover:bg-slate-800 transition">
+                  <td className="px-4 py-3 text-sm text-slate-900 dark:text-slate-100 font-medium">{p.full_name}</td>
                   <td className="px-4 py-3 text-sm">
-                    <span className={`inline-block px-2.5 py-1 rounded-full text-xs font-semibold ${p.role === 'admin' ? 'bg-purple-100 text-purple-800' : 'bg-blue-100 text-blue-800'}`}>
+                    <span className={`inline-block px-2.5 py-1 rounded-full text-xs font-semibold ${p.role === 'admin' ? 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400' : 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400'}`}>
                       {p.role === 'admin' ? 'Administrador' : 'Profissional'}
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-sm text-slate-700">{formatDate(p.created_at)}</td>
+                  <td className="px-4 py-3 text-sm text-slate-700 dark:text-slate-300">{formatDate(p.created_at)}</td>
                   <td className="px-4 py-3 text-sm">
                     <button
                       onClick={() => setEditTarget(p)}
-                      className="px-2.5 py-1 rounded-md text-xs font-medium border border-slate-300 text-slate-700 hover:bg-slate-100 transition"
+                      className="px-2.5 py-1 rounded-md text-xs font-medium border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition"
                     >
                       Alterar papel
                     </button>
@@ -303,7 +303,7 @@ function RoleEditModal({ profile, onClose, onSaved, onError }: RoleEditModalProp
       title="Alterar Papel"
       footer={
         <>
-          <button type="button" onClick={onClose} disabled={submitting} className="px-4 py-2 rounded-lg border border-slate-300 text-slate-700 hover:bg-slate-100 transition disabled:opacity-50">
+          <button type="button" onClick={onClose} disabled={submitting} className="px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition disabled:opacity-50">
             Cancelar
           </button>
           <button type="submit" form="role-form" disabled={submitting} className="px-4 py-2 rounded-lg bg-focon-600 hover:bg-focon-700 text-white transition disabled:opacity-50">
@@ -313,17 +313,17 @@ function RoleEditModal({ profile, onClose, onSaved, onError }: RoleEditModalProp
       }
     >
       <form id="role-form" onSubmit={handleSubmit} className="space-y-4">
-        <p className="text-sm text-slate-600">
+        <p className="text-sm text-slate-600 dark:text-slate-400">
           Alterando o papel de <strong>{profile.full_name}</strong>:
         </p>
         <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">Papel *</label>
-          <select value={role} onChange={(e) => setRole(e.target.value as UserRole)} className="w-full px-3 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-focon-600">
+          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Papel *</label>
+          <select value={role} onChange={(e) => setRole(e.target.value as UserRole)} className="w-full px-3 py-2.5 border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-focon-600">
             <option value="member">Profissional</option>
             <option value="admin">Administrador</option>
           </select>
         </div>
-        <p className="text-xs text-slate-500">
+        <p className="text-xs text-slate-500 dark:text-slate-400">
           Administradores podem aprovar/rejeitar apontamentos, gerenciar projetos,
           profissionais, valor/hora, financeiro e fechamentos.
         </p>

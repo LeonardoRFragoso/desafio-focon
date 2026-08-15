@@ -74,8 +74,8 @@ export function FinancialManagementPage() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-2xl font-bold text-slate-900">Gestão Financeira</h2>
-          <p className="text-slate-600">Configure receita, impostos e custos indiretos por projeto</p>
+          <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Gestão Financeira</h2>
+          <p className="text-slate-600 dark:text-slate-400">Configure receita, impostos e custos indiretos por projeto</p>
         </div>
         <button
           onClick={() => setCreateOpen(true)}
@@ -88,45 +88,45 @@ export function FinancialManagementPage() {
       </div>
 
       {error && (
-        <div className="rounded-lg bg-red-50 border border-red-200 p-4">
-          <p className="text-sm font-medium text-red-800">{error}</p>
+        <div className="rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 p-4">
+          <p className="text-sm font-medium text-red-800 dark:text-red-400">{error}</p>
         </div>
       )}
       {actionError && (
-        <div className="rounded-lg bg-red-50 border border-red-200 p-4">
-          <p className="text-sm font-medium text-red-800">{actionError}</p>
+        <div className="rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 p-4">
+          <p className="text-sm font-medium text-red-800 dark:text-red-400">{actionError}</p>
         </div>
       )}
 
       {financials.length === 0 ? (
-        <div className="rounded-xl border border-slate-200 p-12 text-center bg-slate-50">
-          <p className="text-slate-600">Nenhum dado financeiro cadastrado</p>
+        <div className="rounded-xl border border-slate-200 dark:border-slate-700 p-12 text-center bg-slate-50 dark:bg-slate-800/50">
+          <p className="text-slate-600 dark:text-slate-400">Nenhum dado financeiro cadastrado</p>
         </div>
       ) : (
-        <div className="overflow-x-auto rounded-xl border border-slate-200 shadow-sm">
+        <div className="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm">
           <table className="w-full">
-            <thead className="bg-slate-100 border-b border-slate-200">
+            <thead className="bg-slate-100 dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700">
               <tr>
-                <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900">Projeto</th>
-                <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900">Receita Contratada</th>
-                <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900">Taxa de Imposto</th>
-                <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900">Custo Indireto</th>
-                <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900">Ações</th>
+                <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900 dark:text-slate-100">Projeto</th>
+                <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900 dark:text-slate-100">Receita Contratada</th>
+                <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900 dark:text-slate-100">Taxa de Imposto</th>
+                <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900 dark:text-slate-100">Custo Indireto</th>
+                <th className="px-4 py-3 text-left text-sm font-semibold text-slate-900 dark:text-slate-100">Ações</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-200">
+            <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
               {financials.map((f) => (
-                <tr key={f.project_id} className="hover:bg-slate-50 transition">
-                  <td className="px-4 py-3 text-sm text-slate-900 font-medium">
+                <tr key={f.project_id} className="hover:bg-slate-50 dark:hover:bg-slate-800 transition">
+                  <td className="px-4 py-3 text-sm text-slate-900 dark:text-slate-100 font-medium">
                     {f.project?.name || 'Desconhecido'}
                   </td>
-                  <td className="px-4 py-3 text-sm text-slate-900 font-semibold">{formatCurrency(f.contracted_revenue)}</td>
-                  <td className="px-4 py-3 text-sm text-slate-700">{formatPercent(f.tax_rate)}</td>
-                  <td className="px-4 py-3 text-sm text-slate-700">{formatCurrency(f.indirect_cost)}</td>
+                  <td className="px-4 py-3 text-sm text-slate-900 dark:text-slate-100 font-semibold">{formatCurrency(f.contracted_revenue)}</td>
+                  <td className="px-4 py-3 text-sm text-slate-700 dark:text-slate-300">{formatPercent(f.tax_rate)}</td>
+                  <td className="px-4 py-3 text-sm text-slate-700 dark:text-slate-300">{formatCurrency(f.indirect_cost)}</td>
                   <td className="px-4 py-3 text-sm">
                     <button
                       onClick={() => setEditTarget(f)}
-                      className="px-2.5 py-1 rounded-md text-xs font-medium border border-slate-300 text-slate-700 hover:bg-slate-100 transition"
+                      className="px-2.5 py-1 rounded-md text-xs font-medium border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition"
                     >
                       Editar
                     </button>
@@ -217,7 +217,7 @@ function FinancialFormModal({ existing, availableProjects, onClose, onSaved, onE
       title={existing ? 'Editar Dados Financeiros' : 'Novo Registro Financeiro'}
       footer={
         <>
-          <button type="button" onClick={onClose} disabled={submitting} className="px-4 py-2 rounded-lg border border-slate-300 text-slate-700 hover:bg-slate-100 transition disabled:opacity-50">
+          <button type="button" onClick={onClose} disabled={submitting} className="px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition disabled:opacity-50">
             Cancelar
           </button>
           <button type="submit" form="financial-form" disabled={submitting} className="px-4 py-2 rounded-lg bg-focon-600 hover:bg-focon-700 text-white transition disabled:opacity-50">
@@ -228,11 +228,11 @@ function FinancialFormModal({ existing, availableProjects, onClose, onSaved, onE
     >
       <form id="financial-form" onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">Projeto *</label>
+          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Projeto *</label>
           {existing ? (
-            <p className="text-slate-900 font-medium">{existing.project?.name || 'Desconhecido'}</p>
+            <p className="text-slate-900 dark:text-slate-100 font-medium">{existing.project?.name || 'Desconhecido'}</p>
           ) : (
-            <select value={projectId} onChange={(e) => setProjectId(e.target.value)} className="w-full px-3 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-focon-600">
+            <select value={projectId} onChange={(e) => setProjectId(e.target.value)} className="w-full px-3 py-2.5 border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-focon-600">
               <option value="">Selecione...</option>
               {(availableProjects ?? []).map((p) => (
                 <option key={p.id} value={p.id}>{p.name}</option>
@@ -241,17 +241,17 @@ function FinancialFormModal({ existing, availableProjects, onClose, onSaved, onE
           )}
         </div>
         <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">Receita Contratada (R$) *</label>
-          <input type="number" step="0.01" min="0" value={revenue} onChange={(e) => setRevenue(e.target.value)} className="w-full px-3 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-focon-600" />
+          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Receita Contratada (R$) *</label>
+          <input type="number" step="0.01" min="0" value={revenue} onChange={(e) => setRevenue(e.target.value)} className="w-full px-3 py-2.5 border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-focon-600" />
         </div>
         <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">Taxa de Imposto (0-1) *</label>
-          <input type="number" step="0.01" min="0" max="1" value={taxRate} onChange={(e) => setTaxRate(e.target.value)} className="w-full px-3 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-focon-600" />
-          <p className="text-xs text-slate-500 mt-1">Ex: 0.08 para 8%</p>
+          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Taxa de Imposto (0-1) *</label>
+          <input type="number" step="0.01" min="0" max="1" value={taxRate} onChange={(e) => setTaxRate(e.target.value)} className="w-full px-3 py-2.5 border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-focon-600" />
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Ex: 0.08 para 8%</p>
         </div>
         <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1">Custo Indireto (R$) *</label>
-          <input type="number" step="0.01" min="0" value={indirectCost} onChange={(e) => setIndirectCost(e.target.value)} className="w-full px-3 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-focon-600" />
+          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Custo Indireto (R$) *</label>
+          <input type="number" step="0.01" min="0" value={indirectCost} onChange={(e) => setIndirectCost(e.target.value)} className="w-full px-3 py-2.5 border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-focon-600" />
         </div>
       </form>
     </Modal>

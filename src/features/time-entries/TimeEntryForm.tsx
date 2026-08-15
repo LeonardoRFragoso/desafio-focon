@@ -132,21 +132,21 @@ export function TimeEntryForm({ onSuccess }: TimeEntryFormProps) {
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
       {submitError && (
         <div
-          className="rounded-lg bg-red-50 border border-red-200 p-4"
+          className="rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 p-4"
           role="alert"
           aria-live="assertive"
         >
-          <p className="text-sm font-medium text-red-800">{submitError}</p>
+          <p className="text-sm font-medium text-red-800 dark:text-red-400">{submitError}</p>
         </div>
       )}
 
       {submitSuccess && (
         <div
-          className="rounded-lg bg-green-50 border border-green-200 p-4"
+          className="rounded-lg bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 p-4"
           role="status"
           aria-live="polite"
         >
-          <p className="text-sm font-medium text-green-800">
+          <p className="text-sm font-medium text-green-800 dark:text-green-400">
             Apontamento registrado com sucesso!
           </p>
         </div>
@@ -154,19 +154,19 @@ export function TimeEntryForm({ onSuccess }: TimeEntryFormProps) {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
         <div>
-          <label htmlFor="projectId" className="block text-sm font-medium text-slate-700 mb-2">
+          <label htmlFor="projectId" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
             Projeto *
           </label>
           {projectsError && (
             <div
-              className="mb-3 rounded-lg bg-red-50 border border-red-200 p-3"
+              className="mb-3 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 p-3"
               role="alert"
             >
-              <p className="text-sm text-red-800 mb-2">{projectsError}</p>
+              <p className="text-sm text-red-800 dark:text-red-400 mb-2">{projectsError}</p>
               <button
                 type="button"
                 onClick={handleRetryProjects}
-                className="text-sm font-medium text-red-700 hover:text-red-800 underline"
+                className="text-sm font-medium text-red-700 dark:text-red-300 hover:text-red-800 dark:hover:text-red-200 underline"
               >
                 Tentar novamente
               </button>
@@ -178,7 +178,7 @@ export function TimeEntryForm({ onSuccess }: TimeEntryFormProps) {
             disabled={projectsLoading || projectsError !== null}
             aria-invalid={!!errors.projectId}
             aria-describedby={errors.projectId ? 'projectId-error' : undefined}
-            className="w-full px-3 py-2.5 border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-focon-600 focus:border-transparent transition disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full px-3 py-2.5 border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-focon-600 focus:border-transparent transition disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {projectsLoading ? (
               <option value="">Carregando projetos...</option>
@@ -201,7 +201,7 @@ export function TimeEntryForm({ onSuccess }: TimeEntryFormProps) {
         </div>
 
         <div>
-          <label htmlFor="entryDate" className="block text-sm font-medium text-slate-700 mb-2">
+          <label htmlFor="entryDate" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
             Data *
           </label>
           <input
@@ -210,7 +210,7 @@ export function TimeEntryForm({ onSuccess }: TimeEntryFormProps) {
             type="date"
             aria-invalid={!!errors.entryDate}
             aria-describedby={errors.entryDate ? 'entryDate-error' : undefined}
-            className="w-full px-3 py-2.5 border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-focon-600 focus:border-transparent transition"
+            className="w-full px-3 py-2.5 border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-focon-600 focus:border-transparent transition"
           />
           {errors.entryDate && (
             <p id="entryDate-error" className="mt-1 text-sm text-red-600">{errors.entryDate.message}</p>
@@ -218,7 +218,7 @@ export function TimeEntryForm({ onSuccess }: TimeEntryFormProps) {
         </div>
 
         <div>
-          <label htmlFor="durationMinutes" className="block text-sm font-medium text-slate-700 mb-2">
+          <label htmlFor="durationMinutes" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
             Duração (minutos) *
           </label>
           <input
@@ -228,7 +228,7 @@ export function TimeEntryForm({ onSuccess }: TimeEntryFormProps) {
             min="1"
             aria-invalid={!!errors.durationMinutes}
             aria-describedby={errors.durationMinutes ? 'durationMinutes-error' : undefined}
-            className="w-full px-3 py-2.5 border border-slate-300 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-focon-600 focus:border-transparent transition"
+            className="w-full px-3 py-2.5 border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-focon-600 focus:border-transparent transition"
             placeholder="60"
           />
           {errors.durationMinutes && (
@@ -238,7 +238,7 @@ export function TimeEntryForm({ onSuccess }: TimeEntryFormProps) {
       </div>
 
       <div>
-        <label htmlFor="description" className="block text-sm font-medium text-slate-700 mb-2">
+        <label htmlFor="description" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
           Descrição *
         </label>
         <textarea
@@ -247,7 +247,7 @@ export function TimeEntryForm({ onSuccess }: TimeEntryFormProps) {
           rows={5}
           aria-invalid={!!errors.description}
           aria-describedby={errors.description ? 'description-error' : undefined}
-          className="w-full px-3 py-2.5 border border-slate-300 rounded-lg text-slate-900 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-focon-600 focus:border-transparent transition"
+          className="w-full px-3 py-2.5 border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-slate-900 placeholder-slate-500 dark:placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-focon-600 focus:border-transparent transition"
           placeholder="Descreva o trabalho realizado..."
         />
         {errors.description && (

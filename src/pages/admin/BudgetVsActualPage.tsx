@@ -173,7 +173,7 @@ export function BudgetVsActualPage() {
                     <td className="px-4 py-3 text-sm">
                       <button
                         onClick={() => setDeleteTarget(b)}
-                        className="px-2.5 py-1 rounded-md text-xs font-medium border border-red-300 text-red-700 hover:bg-red-50 transition"
+                        className="px-2.5 py-1 rounded-md text-xs font-medium border border-red-300 dark:border-red-700 text-red-700 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition"
                       >
                         Excluir
                       </button>

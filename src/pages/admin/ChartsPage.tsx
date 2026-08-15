@@ -5,6 +5,7 @@ import {
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
 } from 'recharts';
 import { projectsAPI } from '@/lib/supabase/api';
+import { useTheme } from '@/features/theme/ThemeContext';
 import type { Project } from '@/types/database';
 
 const COLORS = ['#0d9488', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#14b8a6', '#f97316'];
@@ -21,6 +22,13 @@ interface TimeEntryRow {
 }
 
 export function ChartsPage() {
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
+  const axisColor = isDark ? '#cbd5e1' : '#475569'; // slate-300 / slate-600
+  const gridColor = isDark ? '#334155' : '#cbd5e1'; // slate-700 / slate-300
+  const tooltipStyle = isDark
+    ? { backgroundColor: '#0f172a', border: '1px solid #334155', borderRadius: '0.5rem', color: '#e2e8f0' }
+    : { backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '0.5rem', color: '#0f172a' };
   const [entries, setEntries] = useState<TimeEntryRow[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
@@ -202,10 +210,10 @@ export function ChartsPage() {
             <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-4">Horas por Dia</h3>
             <ResponsiveContainer width="100%" height={300}>
               <LineChart data={hoursByDay}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#cbd5e1" />
-                <XAxis dataKey="date" stroke="#64748b" fontSize={12} />
-                <YAxis stroke="#64748b" fontSize={12} />
-                <Tooltip />
+                <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
+                <XAxis dataKey="date" stroke={axisColor} fontSize={12} />
+                <YAxis stroke={axisColor} fontSize={12} />
+                <Tooltip contentStyle={tooltipStyle} />
                 <Line type="monotone" dataKey="hours" stroke="#0d9488" strokeWidth={2} name="Horas" />
               </LineChart>
             </ResponsiveContainer>
@@ -217,10 +225,10 @@ export function ChartsPage() {
               <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-4">Horas por Projeto</h3>
               <ResponsiveContainer width="100%" height={300}>
                 <BarChart data={hoursByProject}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#cbd5e1" />
-                  <XAxis dataKey="name" stroke="#64748b" fontSize={11} angle={-15} textAnchor="end" height={60} />
-                  <YAxis stroke="#64748b" fontSize={12} />
-                  <Tooltip />
+                  <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
+                  <XAxis dataKey="name" stroke={axisColor} fontSize={11} angle={-15} textAnchor="end" height={60} />
+                  <YAxis stroke={axisColor} fontSize={12} />
+                  <Tooltip contentStyle={tooltipStyle} />
                   <Bar dataKey="hours" fill="#0d9488" name="Horas" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
@@ -231,10 +239,10 @@ export function ChartsPage() {
               <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-4">Horas por Profissional</h3>
               <ResponsiveContainer width="100%" height={300}>
                 <BarChart data={hoursByProfessional} layout="vertical">
-                  <CartesianGrid strokeDasharray="3 3" stroke="#cbd5e1" />
-                  <XAxis type="number" stroke="#64748b" fontSize={12} />
-                  <YAxis type="category" dataKey="name" stroke="#64748b" fontSize={11} width={100} />
-                  <Tooltip />
+                  <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
+                  <XAxis type="number" stroke={axisColor} fontSize={12} />
+                  <YAxis type="category" dataKey="name" stroke={axisColor} fontSize={11} width={100} />
+                  <Tooltip contentStyle={tooltipStyle} />
                   <Bar dataKey="hours" fill="#3b82f6" name="Horas" radius={[0, 4, 4, 0]} />
                 </BarChart>
               </ResponsiveContainer>
@@ -252,8 +260,8 @@ export function ChartsPage() {
                       <Cell key={i} fill={COLORS[i % COLORS.length] ?? '#0d9488'} />
                     ))}
                   </Pie>
-                  <Tooltip formatter={(v) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Number(v))} />
-                  <Legend />
+                  <Tooltip contentStyle={tooltipStyle} formatter={(v) => new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Number(v))} />
+                  <Legend wrapperStyle={{ color: axisColor }} />
                 </PieChart>
               </ResponsiveContainer>
             ) : (
@@ -267,11 +275,11 @@ export function ChartsPage() {
               <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-4">Orçamento × Realizado (Horas)</h3>
               <ResponsiveContainer width="100%" height={300}>
                 <BarChart data={budgetChart}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#cbd5e1" />
-                  <XAxis dataKey="name" stroke="#64748b" fontSize={11} angle={-15} textAnchor="end" height={60} />
-                  <YAxis stroke="#64748b" fontSize={12} />
-                  <Tooltip />
-                  <Legend />
+                  <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
+                  <XAxis dataKey="name" stroke={axisColor} fontSize={11} angle={-15} textAnchor="end" height={60} />
+                  <YAxis stroke={axisColor} fontSize={12} />
+                  <Tooltip contentStyle={tooltipStyle} />
+                  <Legend wrapperStyle={{ color: axisColor }} />
                   <Bar dataKey="Previsto" fill="#0d9488" radius={[4, 4, 0, 0]} />
                   <Bar dataKey="Realizado" fill="#f59e0b" radius={[4, 4, 0, 0]} />
                 </BarChart>

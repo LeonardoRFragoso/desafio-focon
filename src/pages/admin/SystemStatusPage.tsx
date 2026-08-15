@@ -114,7 +114,7 @@ export function SystemStatusPage() {
           </div>
           <div className="flex justify-between">
             <dt className="text-slate-600 dark:text-slate-400">Estado de erro da aplicação</dt>
-            <dd className={`font-medium ${status.appError ? 'text-red-600' : 'text-green-600'}`}>
+            <dd className={`font-medium ${status.appError ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'}`}>
               {status.appError || 'Sem erros'}
             </dd>
           </div>

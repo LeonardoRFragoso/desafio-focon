@@ -189,7 +189,7 @@ export function AuditLogPage() {
               </h2>
               <button
                 onClick={() => setSelected(null)}
-                className="text-slate-500 hover:text-slate-700 text-2xl leading-none"
+                className="text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 text-2xl leading-none"
                 aria-label="Fechar"
               >
                 ×
@@ -198,31 +198,31 @@ export function AuditLogPage() {
             <div className="p-6 space-y-4">
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
-                  <p className="text-slate-500">Entidade</p>
-                  <p className="font-medium text-slate-900">{selected.entity_type}</p>
+                  <p className="text-slate-500 dark:text-slate-400">Entidade</p>
+                  <p className="font-medium text-slate-900 dark:text-slate-100">{selected.entity_type}</p>
                 </div>
                 <div>
-                  <p className="text-slate-500">ID da entidade</p>
-                  <p className="font-mono text-xs text-slate-900 break-all">{selected.entity_id || '—'}</p>
+                  <p className="text-slate-500 dark:text-slate-400">ID da entidade</p>
+                  <p className="font-mono text-xs text-slate-900 dark:text-slate-100 break-all">{selected.entity_id || '—'}</p>
                 </div>
                 <div>
-                  <p className="text-slate-500">Ator</p>
-                  <p className="font-medium text-slate-900">{selected.actor?.full_name || 'Sistema'}</p>
+                  <p className="text-slate-500 dark:text-slate-400">Ator</p>
+                  <p className="font-medium text-slate-900 dark:text-slate-100">{selected.actor?.full_name || 'Sistema'}</p>
                 </div>
                 <div>
-                  <p className="text-slate-500">Data/Hora</p>
-                  <p className="font-medium text-slate-900">{formatDateTime(selected.created_at)}</p>
+                  <p className="text-slate-500 dark:text-slate-400">Data/Hora</p>
+                  <p className="font-medium text-slate-900 dark:text-slate-100">{formatDateTime(selected.created_at)}</p>
                 </div>
               </div>
               <div>
-                <p className="text-sm text-slate-500 mb-1">Antes</p>
-                <pre className="bg-slate-50 rounded-lg p-3 text-xs text-slate-800 overflow-x-auto border border-slate-200">
+                <p className="text-sm text-slate-500 dark:text-slate-400 mb-1">Antes</p>
+                <pre className="bg-slate-50 dark:bg-slate-800 rounded-lg p-3 text-xs text-slate-800 dark:text-slate-300 overflow-x-auto border border-slate-200 dark:border-slate-700">
                   {formatData(selected.before_data)}
                 </pre>
               </div>
               <div>
-                <p className="text-sm text-slate-500 mb-1">Depois</p>
-                <pre className="bg-slate-50 rounded-lg p-3 text-xs text-slate-800 overflow-x-auto border border-slate-200">
+                <p className="text-sm text-slate-500 dark:text-slate-400 mb-1">Depois</p>
+                <pre className="bg-slate-50 dark:bg-slate-800 rounded-lg p-3 text-xs text-slate-800 dark:text-slate-300 overflow-x-auto border border-slate-200 dark:border-slate-700">
                   {formatData(selected.after_data)}
                 </pre>
               </div>
