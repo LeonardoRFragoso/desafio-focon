@@ -156,6 +156,19 @@ export function Layout({ children }: LayoutProps) {
                 Auditoria
               </NavLink>
               <NavLink
+                to="/admin/time-entries"
+                onClick={closeSidebar}
+                className={({ isActive }) =>
+                  `block px-4 py-3 rounded-lg font-medium transition ${
+                    isActive
+                      ? 'bg-focon-600 text-white'
+                      : 'text-slate-300 hover:bg-focon-800'
+                  }`
+                }
+              >
+                Histórico de Apontamentos
+              </NavLink>
+              <NavLink
                 to="/admin/budget"
                 onClick={closeSidebar}
                 className={({ isActive }) =>

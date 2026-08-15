@@ -949,6 +949,7 @@ export type Database = {
         }
         Returns: string
       }
+      get_admin_user_ids: { Args: never; Returns: string[] }
       get_aggregated_financial_summary: {
         Args: never
         Returns: {

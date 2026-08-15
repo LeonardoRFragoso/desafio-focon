@@ -1,10 +1,13 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useNotifications } from '@/hooks/useNotifications';
+import { useAuthContext } from '@/features/auth/useAuthContext';
 import type { Notification } from '@/types/database';
 
 const typeIcons: Record<string, string> = {
   entry_approved: '✓',
   entry_rejected: '✕',
+  entry_submitted: '📋',
   entry_pending_reminder: '⏰',
   period_closing: '📅',
   budget_threshold: '⚠',
@@ -15,11 +18,23 @@ const typeIcons: Record<string, string> = {
 const typeColors: Record<string, string> = {
   entry_approved: 'text-green-600',
   entry_rejected: 'text-red-600',
+  entry_submitted: 'text-blue-600',
   entry_pending_reminder: 'text-yellow-600',
   period_closing: 'text-blue-600',
   budget_threshold: 'text-orange-600',
   comment_received: 'text-purple-600',
   system: 'text-slate-600 dark:text-slate-400',
+};
+
+const typeFilterLabels: Record<string, string> = {
+  entry_approved: 'Aprovações',
+  entry_rejected: 'Rejeições',
+  entry_submitted: 'Novos apontamentos',
+  entry_pending_reminder: 'Lembretes',
+  period_closing: 'Fechamento',
+  budget_threshold: 'Orçamento',
+  comment_received: 'Comentários',
+  system: 'Sistema',
 };
 
 function formatTimeAgo(date: string): string {
@@ -35,9 +50,29 @@ function formatTimeAgo(date: string): string {
 export function NotificationBell() {
   const { notifications, unreadCount, loading, open, setOpen, markRead, markAllRead, remove } =
     useNotifications();
+  const { isAdmin } = useAuthContext();
+  const navigate = useNavigate();
   const [typeFilter, setTypeFilter] = useState('');
   const buttonRef = useRef<HTMLButtonElement>(null);
   const panelId = 'notification-panel';
+
+  const handleNotificationClick = (n: Notification) => {
+    // Mark as read
+    if (!n.read_at) markRead(n.id);
+
+    // Navigate based on entity type and user role
+    if (n.entity_type === 'time_entry' && n.entity_id) {
+      if (isAdmin) {
+        // Admin: go to admin time entries history with entry param
+        setOpen(false);
+        navigate(`/admin/time-entries?entry=${n.entity_id}`);
+      } else {
+        // Member: go to their time entries page
+        setOpen(false);
+        navigate(`/time-entries?entry=${n.entity_id}`);
+      }
+    }
+  };
 
   const filteredNotifications = useMemo(() => {
     if (!typeFilter) return notifications;
@@ -108,13 +143,9 @@ export function NotificationBell() {
                   className="w-full px-2 py-1.5 border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-xs focus:outline-none focus:ring-2 focus:ring-focon-600"
                 >
                   <option value="">Todos os tipos</option>
-                  <option value="entry_approved">Aprovações</option>
-                  <option value="entry_rejected">Rejeições</option>
-                  <option value="entry_pending_reminder">Lembretes</option>
-                  <option value="period_closing">Fechamento</option>
-                  <option value="budget_threshold">Orçamento</option>
-                  <option value="comment_received">Comentários</option>
-                  <option value="system">Sistema</option>
+                  {Object.entries(typeFilterLabels).map(([val, label]) => (
+                    <option key={val} value={val}>{label}</option>
+                  ))}
                 </select>
               </div>
             )}
@@ -131,7 +162,16 @@ export function NotificationBell() {
                   {filteredNotifications.map((n: Notification) => (
                     <li
                       key={n.id}
-                      className={`p-3 hover:bg-slate-50 dark:hover:bg-slate-800 transition ${!n.read_at ? 'bg-focon-50 dark:bg-slate-800/50' : ''}`}
+                      className={`p-3 transition ${!n.read_at ? 'bg-focon-50 dark:bg-slate-800/50' : ''} ${n.entity_type ? 'hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer' : ''}`}
+                      onClick={() => n.entity_type && handleNotificationClick(n)}
+                      role={n.entity_type ? 'button' : undefined}
+                      tabIndex={n.entity_type ? 0 : undefined}
+                      onKeyDown={(e) => {
+                        if (n.entity_type && (e.key === 'Enter' || e.key === ' ')) {
+                          e.preventDefault();
+                          handleNotificationClick(n);
+                        }
+                      }}
                     >
                       <div className="flex gap-3">
                         <span className={`text-lg flex-shrink-0 ${typeColors[n.type] || typeColors['system']}`}>
@@ -144,7 +184,7 @@ export function NotificationBell() {
                           )}
                           <div className="flex items-center justify-between mt-1">
                             <span className="text-xs text-slate-400">{formatTimeAgo(n.created_at)}</span>
-                            <div className="flex gap-2">
+                            <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
                               {!n.read_at && (
                                 <button
                                   onClick={() => markRead(n.id)}

@@ -58,12 +58,16 @@ export interface TimeEntry {
   rejected_at?: string | null;
   created_at: string;
   updated_at: string;
+  phase_id?: string | null;
+  task_id?: string | null;
 }
 
 // Embedded relationship types (Supabase returns objects for one-to-one relationships)
 export interface TimeEntryWithRelations extends TimeEntry {
   professional?: { full_name: string } | null;
   project?: { name: string } | null;
+  phase?: { name: string } | null;
+  task?: { title: string } | null;
   rejected_by_profile?: { full_name: string } | null;
 }
 
@@ -115,6 +119,7 @@ export interface BatchApprovalResult {
 export type NotificationType =
   | 'entry_approved'
   | 'entry_rejected'
+  | 'entry_submitted'
   | 'entry_pending_reminder'
   | 'period_closing'
   | 'budget_threshold'

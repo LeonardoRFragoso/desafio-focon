@@ -71,6 +71,8 @@ export const timeEntriesAPI = {
     description: string;
     approval_status?: string;
     applied_hourly_rate?: number;
+    phase_id?: string | null;
+    task_id?: string | null;
   }) => {
     return supabase.from('time_entries').insert([
       {
@@ -81,6 +83,8 @@ export const timeEntriesAPI = {
         description: entry.description,
         approval_status: 'pending',
         applied_hourly_rate: 0, // trigger overwrites with the real rate
+        phase_id: entry.phase_id || null,
+        task_id: entry.task_id || null,
       },
     ]);
   },
@@ -195,6 +199,154 @@ export const timeEntriesAPI = {
       )
       .eq('time_entry_id', entryId)
       .order('created_at', { ascending: true });
+  },
+
+  /**
+   * Server-side paginated query for a user's own time entries.
+   * Supports text search, project/phase/task/status filters, and date range.
+   * Returns { data, count } where count is the total matching records.
+   */
+  queryUserEntries: async (params: {
+    userId: string;
+    search?: string;
+    projectId?: string;
+    phaseId?: string;
+    taskId?: string;
+    status?: string;
+    startDate?: string;
+    endDate?: string;
+    page: number;
+    pageSize: number;
+  }) => {
+    const {
+      userId,
+      search,
+      projectId,
+      phaseId,
+      taskId,
+      status,
+      startDate,
+      endDate,
+      page,
+      pageSize,
+    } = params;
+
+    const selectCols = `
+      id, project_id, professional_id, entry_date, duration_minutes,
+      description, approval_status, applied_hourly_rate,
+      rejection_reason, rejected_by, rejected_at,
+      created_at, updated_at, phase_id, task_id,
+      project:projects!time_entries_project_id_fkey(name),
+      phase:project_phases!time_entries_phase_id_fkey(name),
+      task:project_tasks!time_entries_task_id_fkey(title),
+      rejected_by_profile:profiles!time_entries_rejected_by_fkey(full_name)
+    `;
+
+    let query = supabase.from('time_entries').select(selectCols, { count: 'exact' });
+    query = query.eq('professional_id', userId);
+
+    if (projectId) query = query.eq('project_id', projectId);
+    if (phaseId) query = query.eq('phase_id', phaseId);
+    if (taskId) query = query.eq('task_id', taskId);
+    if (status) query = query.eq('approval_status', status);
+    if (startDate) query = query.gte('entry_date', startDate);
+    if (endDate) query = query.lte('entry_date', endDate);
+
+    if (search) {
+      // Use or filter for text search on description and project name
+      query = query.or(`description.ilike.%${search}%,project.name.ilike.%${search}%`);
+    }
+
+    query = query
+      .order('entry_date', { ascending: false })
+      .order('created_at', { ascending: false })
+      .range((page - 1) * pageSize, page * pageSize - 1);
+
+    return query;
+  },
+
+  /**
+   * Server-side paginated query for ALL time entries (admin only).
+   * Supports text search, professional/project/phase/task/status filters, date range.
+   * Returns { data, count } where count is the total matching records.
+   */
+  queryAllEntries: async (params: {
+    search?: string;
+    professionalId?: string;
+    projectId?: string;
+    phaseId?: string;
+    taskId?: string;
+    status?: string;
+    startDate?: string;
+    endDate?: string;
+    page: number;
+    pageSize: number;
+  }) => {
+    const {
+      search,
+      professionalId,
+      projectId,
+      phaseId,
+      taskId,
+      status,
+      startDate,
+      endDate,
+      page,
+      pageSize,
+    } = params;
+
+    const selectCols = `
+      id, project_id, professional_id, entry_date, duration_minutes,
+      description, approval_status, applied_hourly_rate,
+      rejection_reason, rejected_by, rejected_at,
+      created_at, updated_at, phase_id, task_id,
+      project:projects!time_entries_project_id_fkey(name),
+      professional:profiles!time_entries_professional_id_fkey(full_name),
+      phase:project_phases!time_entries_phase_id_fkey(name),
+      task:project_tasks!time_entries_task_id_fkey(title),
+      rejected_by_profile:profiles!time_entries_rejected_by_fkey(full_name)
+    `;
+
+    let query = supabase.from('time_entries').select(selectCols, { count: 'exact' });
+
+    if (professionalId) query = query.eq('professional_id', professionalId);
+    if (projectId) query = query.eq('project_id', projectId);
+    if (phaseId) query = query.eq('phase_id', phaseId);
+    if (taskId) query = query.eq('task_id', taskId);
+    if (status) query = query.eq('approval_status', status);
+    if (startDate) query = query.gte('entry_date', startDate);
+    if (endDate) query = query.lte('entry_date', endDate);
+
+    if (search) {
+      query = query.or(
+        `description.ilike.%${search}%,professional.full_name.ilike.%${search}%,project.name.ilike.%${search}%`
+      );
+    }
+
+    query = query
+      .order('entry_date', { ascending: false })
+      .order('created_at', { ascending: false })
+      .range((page - 1) * pageSize, page * pageSize - 1);
+
+    return query;
+  },
+
+  /**
+   * Get a single time entry by ID with all relations (for deep-link modal).
+   */
+  getById: async (entryId: string) => {
+    const selectCols = `
+      id, project_id, professional_id, entry_date, duration_minutes,
+      description, approval_status, applied_hourly_rate,
+      rejection_reason, rejected_by, rejected_at,
+      created_at, updated_at, phase_id, task_id,
+      project:projects!time_entries_project_id_fkey(name),
+      professional:profiles!time_entries_professional_id_fkey(full_name),
+      phase:project_phases!time_entries_phase_id_fkey(name),
+      task:project_tasks!time_entries_task_id_fkey(title),
+      rejected_by_profile:profiles!time_entries_rejected_by_fkey(full_name)
+    `;
+    return supabase.from('time_entries').select(selectCols).eq('id', entryId).maybeSingle();
   },
 };
 
