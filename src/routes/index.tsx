@@ -1,3 +1,4 @@
+import { lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Outlet } from 'react-router-dom';
 import { Layout } from '@/components/Layout';
 import { LoginPage } from '@/pages/LoginPage';
@@ -8,25 +9,59 @@ import { ReportPage } from '@/pages/ReportPage';
 import { ProfessionalDashboardPage } from '@/pages/ProfessionalDashboardPage';
 import { NotFoundPage } from '@/pages/NotFoundPage';
 import { AccessDeniedPage } from '@/pages/AccessDeniedPage';
-import { ProjectsPage } from '@/pages/admin/ProjectsPage';
-import { ProfessionalsPage } from '@/pages/admin/ProfessionalsPage';
-import { HourlyRatesPage } from '@/pages/admin/HourlyRatesPage';
-import { FinancialManagementPage } from '@/pages/admin/FinancialManagementPage';
-import { AccountingPeriodsPage } from '@/pages/admin/AccountingPeriodsPage';
-import { AuditLogPage } from '@/pages/admin/AuditLogPage';
 import { RecurringRulesPage } from '@/pages/RecurringRulesPage';
 import { WeeklyCalendarPage } from '@/pages/WeeklyCalendarPage';
 import { ForgotPasswordPage } from '@/pages/ForgotPasswordPage';
 import { ResetPasswordPage } from '@/pages/ResetPasswordPage';
-import { BudgetVsActualPage } from '@/pages/admin/BudgetVsActualPage';
-import { ChartsPage } from '@/pages/admin/ChartsPage';
-import { ProfitabilityAlertsPage } from '@/pages/admin/ProfitabilityAlertsPage';
-import { SystemStatusPage } from '@/pages/admin/SystemStatusPage';
-import { ProjectWorkspacePage } from '@/pages/admin/ProjectWorkspacePage';
-import { AdminTimeEntriesPage } from '@/pages/admin/AdminTimeEntriesPage';
-import { CapacityPlanningPage } from '@/pages/admin/CapacityPlanningPage';
-import { ProjectHealthPage } from '@/pages/admin/ProjectHealthPage';
 import { ProtectedRoute } from './ProtectedRoute';
+
+// ---------------------------------------------------------------------------
+// Route-level code splitting: admin pages are lazy-loaded so they don't
+// bloat the initial bundle for member users (who never visit admin routes).
+// The member-facing pages above stay eager for fast first paint.
+// ---------------------------------------------------------------------------
+const ProjectsPage = lazy(() =>
+  import('@/pages/admin/ProjectsPage').then((m) => ({ default: m.ProjectsPage }))
+);
+const ProfessionalsPage = lazy(() =>
+  import('@/pages/admin/ProfessionalsPage').then((m) => ({ default: m.ProfessionalsPage }))
+);
+const HourlyRatesPage = lazy(() =>
+  import('@/pages/admin/HourlyRatesPage').then((m) => ({ default: m.HourlyRatesPage }))
+);
+const FinancialManagementPage = lazy(() =>
+  import('@/pages/admin/FinancialManagementPage').then((m) => ({ default: m.FinancialManagementPage }))
+);
+const AccountingPeriodsPage = lazy(() =>
+  import('@/pages/admin/AccountingPeriodsPage').then((m) => ({ default: m.AccountingPeriodsPage }))
+);
+const AuditLogPage = lazy(() =>
+  import('@/pages/admin/AuditLogPage').then((m) => ({ default: m.AuditLogPage }))
+);
+const BudgetVsActualPage = lazy(() =>
+  import('@/pages/admin/BudgetVsActualPage').then((m) => ({ default: m.BudgetVsActualPage }))
+);
+const ChartsPage = lazy(() =>
+  import('@/pages/admin/ChartsPage').then((m) => ({ default: m.ChartsPage }))
+);
+const ProfitabilityAlertsPage = lazy(() =>
+  import('@/pages/admin/ProfitabilityAlertsPage').then((m) => ({ default: m.ProfitabilityAlertsPage }))
+);
+const SystemStatusPage = lazy(() =>
+  import('@/pages/admin/SystemStatusPage').then((m) => ({ default: m.SystemStatusPage }))
+);
+const ProjectWorkspacePage = lazy(() =>
+  import('@/pages/admin/ProjectWorkspacePage').then((m) => ({ default: m.ProjectWorkspacePage }))
+);
+const AdminTimeEntriesPage = lazy(() =>
+  import('@/pages/admin/AdminTimeEntriesPage').then((m) => ({ default: m.AdminTimeEntriesPage }))
+);
+const CapacityPlanningPage = lazy(() =>
+  import('@/pages/admin/CapacityPlanningPage').then((m) => ({ default: m.CapacityPlanningPage }))
+);
+const ProjectHealthPage = lazy(() =>
+  import('@/pages/admin/ProjectHealthPage').then((m) => ({ default: m.ProjectHealthPage }))
+);
 
 /**
  * Authenticated application shell.
@@ -40,7 +75,15 @@ import { ProtectedRoute } from './ProtectedRoute';
 function AuthenticatedShell() {
   return (
     <Layout>
-      <Outlet />
+      <Suspense
+        fallback={
+          <div className="flex justify-center items-center min-h-[50vh]">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-focon-600" />
+          </div>
+        }
+      >
+        <Outlet />
+      </Suspense>
     </Layout>
   );
 }
