@@ -1,3 +1,8 @@
+// Mark the test environment as a React act environment BEFORE importing
+// React or testing-library. This is the recommended setup for vitest +
+// React 18 + @testing-library/react.
+(globalThis as Record<string, unknown>).IS_REACT_ACT_ENVIRONMENT = true;
+
 import '@testing-library/jest-dom';
 import { afterEach, vi } from 'vitest';
 import { cleanup } from '@testing-library/react';
