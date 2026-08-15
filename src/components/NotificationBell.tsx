@@ -19,7 +19,7 @@ const typeColors: Record<string, string> = {
   period_closing: 'text-blue-600',
   budget_threshold: 'text-orange-600',
   comment_received: 'text-purple-600',
-  system: 'text-slate-600',
+  system: 'text-slate-600 dark:text-slate-400',
 };
 
 function formatTimeAgo(date: string): string {
@@ -95,9 +95,9 @@ export function NotificationBell() {
             )}
 
             {loading ? (
-              <div className="p-8 text-center text-sm text-slate-500">Carregando...</div>
+              <div className="p-8 text-center text-sm text-slate-500 dark:text-slate-400">Carregando...</div>
             ) : filteredNotifications.length === 0 ? (
-              <div className="p-8 text-center text-sm text-slate-500">
+              <div className="p-8 text-center text-sm text-slate-500 dark:text-slate-400">
                 {notifications.length === 0 ? 'Nenhuma notificação' : 'Nenhuma notificação deste tipo'}
               </div>
             ) : (
