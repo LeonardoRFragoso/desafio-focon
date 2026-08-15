@@ -1056,3 +1056,134 @@ export const commandCenterAPI = {
   },
 };
 
+/**
+ * Capacity Planning API (Phase 4)
+ */
+export const capacityAPI = {
+  /** Get aggregated capacity overview for all professionals (admin only). */
+  getOverview: async (startDate?: string, endDate?: string) => {
+    const params: { p_start_date?: string; p_end_date?: string } = {};
+    if (startDate) params.p_start_date = startDate;
+    if (endDate) params.p_end_date = endDate;
+    return supabase.rpc('get_capacity_overview', params);
+  },
+
+  /** Get the current user's own allocations + capacity (member). */
+  getMyAllocations: async (startDate?: string, endDate?: string) => {
+    const params: { p_start_date?: string; p_end_date?: string } = {};
+    if (startDate) params.p_start_date = startDate;
+    if (endDate) params.p_end_date = endDate;
+    return supabase.rpc('get_my_allocations', params);
+  },
+
+  /** List all capacity rules (admin sees all, member sees own). */
+  listCapacityRules: async () => {
+    return supabase
+      .from('professional_capacity_rules')
+      .select(
+        `
+        id, professional_id, weekly_capacity_minutes, valid_from, valid_until,
+        created_by, created_at, updated_at,
+        professional:profiles!professional_capacity_rules_professional_id_fkey(full_name, role)
+      `
+      )
+      .order('valid_from', { ascending: false });
+  },
+
+  /** Create a capacity rule (admin only). */
+  createCapacityRule: async (data: {
+    professional_id: string;
+    weekly_capacity_minutes: number;
+    valid_from: string;
+    valid_until?: string | null;
+  }) => {
+    return supabase.from('professional_capacity_rules').insert([
+      {
+        professional_id: data.professional_id,
+        weekly_capacity_minutes: data.weekly_capacity_minutes,
+        valid_from: data.valid_from,
+        valid_until: data.valid_until ?? null,
+      },
+    ]);
+  },
+
+  /** Update a capacity rule (admin only). */
+  updateCapacityRule: async (
+    id: string,
+    data: {
+      weekly_capacity_minutes?: number;
+      valid_from?: string;
+      valid_until?: string | null;
+    }
+  ) => {
+    return supabase
+      .from('professional_capacity_rules')
+      .update(data)
+      .eq('id', id);
+  },
+
+  /** Delete a capacity rule (admin only). */
+  deleteCapacityRule: async (id: string) => {
+    return supabase.from('professional_capacity_rules').delete().eq('id', id);
+  },
+
+  /** List all allocations (admin sees all, member sees own). */
+  listAllocations: async () => {
+    return supabase
+      .from('project_allocations')
+      .select(
+        `
+        id, project_id, professional_id, start_date, end_date,
+        allocated_minutes, allocation_type, notes, created_by, created_at, updated_at,
+        project:projects!project_allocations_project_id_fkey(name),
+        professional:profiles!project_allocations_professional_id_fkey(full_name, role)
+      `
+      )
+      .order('start_date', { ascending: false });
+  },
+
+  /** Create an allocation (admin only). */
+  createAllocation: async (data: {
+    project_id: string;
+    professional_id: string;
+    start_date: string;
+    end_date: string;
+    allocated_minutes: number;
+    allocation_type?: string;
+    notes?: string | null;
+  }) => {
+    return supabase.from('project_allocations').insert([
+      {
+        project_id: data.project_id,
+        professional_id: data.professional_id,
+        start_date: data.start_date,
+        end_date: data.end_date,
+        allocated_minutes: data.allocated_minutes,
+        allocation_type: data.allocation_type ?? 'planned',
+        notes: data.notes ?? null,
+      },
+    ]);
+  },
+
+  /** Update an allocation (admin only). */
+  updateAllocation: async (
+    id: string,
+    data: {
+      project_id?: string;
+      professional_id?: string;
+      start_date?: string;
+      end_date?: string;
+      allocated_minutes?: number;
+      allocation_type?: string;
+      notes?: string | null;
+    }
+  ) => {
+    return supabase.from('project_allocations').update(data).eq('id', id);
+  },
+
+  /** Delete an allocation (admin only). */
+  deleteAllocation: async (id: string) => {
+    return supabase.from('project_allocations').delete().eq('id', id);
+  },
+};
+

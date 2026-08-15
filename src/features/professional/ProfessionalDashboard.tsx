@@ -8,6 +8,7 @@ import { Timer } from '@/features/time-entries/Timer';
 import { TimeEntryDetailsModal, type TimeEntryDetail } from '@/features/time-entries/TimeEntryDetailsModal';
 import { ProfessionalActionCenter } from '@/features/professional/ProfessionalActionCenter';
 import { MyTasks } from '@/features/professional/MyTasks';
+import { MyAllocationCard } from '@/features/professional/MyAllocationCard';
 import { commandCenterAPI } from '@/lib/supabase/api';
 import type { ProfessionalDashboardStats } from '@/lib/supabase/api';
 import type { TimeEntryWithRelations } from '@/types/database';
@@ -300,6 +301,9 @@ export function ProfessionalDashboard() {
 
       {/* Minhas Tarefas */}
       <MyTasks stats={dashboardStats} loading={false} />
+
+      {/* Minha Alocação (Phase 4 Capacity Planning) */}
+      <MyAllocationCard />
 
       {/* Quick Actions */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
