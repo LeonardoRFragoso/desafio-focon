@@ -25,6 +25,7 @@ import { SystemStatusPage } from '@/pages/admin/SystemStatusPage';
 import { ProjectWorkspacePage } from '@/pages/admin/ProjectWorkspacePage';
 import { AdminTimeEntriesPage } from '@/pages/admin/AdminTimeEntriesPage';
 import { CapacityPlanningPage } from '@/pages/admin/CapacityPlanningPage';
+import { ProjectHealthPage } from '@/pages/admin/ProjectHealthPage';
 import { ProtectedRoute } from './ProtectedRoute';
 
 /**
@@ -206,6 +207,14 @@ export function AppRoutes() {
             element={
               <ProtectedRoute requiredRole="admin">
                 <CapacityPlanningPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/project-health"
+            element={
+              <ProtectedRoute requiredRole="admin">
+                <ProjectHealthPage />
               </ProtectedRoute>
             }
           />

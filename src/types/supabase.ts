@@ -485,6 +485,170 @@ export type Database = {
           },
         ]
       }
+      project_health_events: {
+        Row: {
+          id: string
+          project_id: string
+          previous_status: string | null
+          new_status: string
+          previous_score: number | null
+          new_score: number
+          drivers: Json
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          project_id: string
+          previous_status?: string | null
+          new_status: string
+          previous_score?: number | null
+          new_score: number
+          drivers?: Json
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          project_id?: string
+          previous_status?: string | null
+          new_status?: string
+          previous_score?: number | null
+          new_score?: number
+          drivers?: Json
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_health_events_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      project_health_states: {
+        Row: {
+          project_id: string
+          health_score: number
+          health_status: string
+          progress_percent: number | null
+          budget_utilization: number | null
+          forecast_completion_date: string | null
+          forecast_labor_cost: number | null
+          drivers: Json
+          calculated_at: string
+        }
+        Insert: {
+          project_id: string
+          health_score: number
+          health_status: string
+          progress_percent?: number | null
+          budget_utilization?: number | null
+          forecast_completion_date?: string | null
+          forecast_labor_cost?: number | null
+          drivers?: Json
+          calculated_at?: string
+        }
+        Update: {
+          project_id?: string
+          health_score?: number
+          health_status?: string
+          progress_percent?: number | null
+          budget_utilization?: number | null
+          forecast_completion_date?: string | null
+          forecast_labor_cost?: number | null
+          drivers?: Json
+          calculated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_health_states_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: true
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      project_milestones: {
+        Row: {
+          id: string
+          project_id: string
+          name: string
+          description: string | null
+          status: string
+          priority: string
+          owner_id: string | null
+          start_date: string | null
+          due_date: string | null
+          completed_at: string | null
+          progress_percent: number
+          weight: number
+          position: number
+          created_by: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          project_id: string
+          name: string
+          description?: string | null
+          status?: string
+          priority?: string
+          owner_id?: string | null
+          start_date?: string | null
+          due_date?: string | null
+          completed_at?: string | null
+          progress_percent?: number
+          weight?: number
+          position?: number
+          created_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          project_id?: string
+          name?: string
+          description?: string | null
+          status?: string
+          priority?: string
+          owner_id?: string | null
+          start_date?: string | null
+          due_date?: string | null
+          completed_at?: string | null
+          progress_percent?: number
+          weight?: number
+          position?: number
+          created_by?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_milestones_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_milestones_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_milestones_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       project_phases: {
         Row: {
           completed_at: string | null
@@ -561,6 +725,7 @@ export type Database = {
           due_date: string | null
           id: string
           phase_id: string | null
+          milestone_id: string | null
           planned_minutes: number | null
           priority: string
           project_id: string
@@ -578,6 +743,7 @@ export type Database = {
           due_date?: string | null
           id?: string
           phase_id?: string | null
+          milestone_id?: string | null
           planned_minutes?: number | null
           priority?: string
           project_id: string
@@ -595,6 +761,7 @@ export type Database = {
           due_date?: string | null
           id?: string
           phase_id?: string | null
+          milestone_id?: string | null
           planned_minutes?: number | null
           priority?: string
           project_id?: string
@@ -616,6 +783,13 @@ export type Database = {
             columns: ["created_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_tasks_milestone_id_fkey"
+            columns: ["milestone_id"]
+            isOneToOne: false
+            referencedRelation: "project_milestones"
             referencedColumns: ["id"]
           },
           {
@@ -1046,6 +1220,10 @@ export type Database = {
         Returns: number
       }
       calculate_tax: { Args: { p_project_id: string }; Returns: number }
+      calculate_project_health: {
+        Args: { p_project_id: string }
+        Returns: Json
+      }
       close_accounting_period: {
         Args: { p_period_key: string }
         Returns: {
@@ -1109,6 +1287,18 @@ export type Database = {
           tax: number
         }[]
       }
+      get_project_health: {
+        Args: { p_project_id: string }
+        Returns: Json
+      }
+      get_project_health_history: {
+        Args: { p_project_id: string }
+        Returns: Json
+      }
+      get_project_progress: {
+        Args: { p_project_id: string }
+        Returns: number
+      }
       get_project_realized_labor_cost: {
         Args: {
           p_end_date?: string
@@ -1141,6 +1331,10 @@ export type Database = {
         }[]
       }
       get_projects_attention_summary: { Args: never; Returns: Json }
+      get_projects_health_summary: {
+        Args: { p_status_filter?: string }
+        Returns: Json
+      }
       is_admin: { Args: { user_id: string }; Returns: boolean }
       is_period_closed: { Args: { p_date: string }; Returns: boolean }
       is_project_lead: {
@@ -1159,6 +1353,14 @@ export type Database = {
           rule_id: string
           status: string
         }[]
+      }
+      recalculate_all_project_health: {
+        Args: never
+        Returns: Json
+      }
+      recalculate_project_health: {
+        Args: { p_project_id: string }
+        Returns: Json
       }
       reject_time_entry: {
         Args: { p_entry_id: string; p_reason: string }

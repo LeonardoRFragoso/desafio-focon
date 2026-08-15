@@ -836,11 +836,12 @@ export const projectTasksAPI = {
       .from('project_tasks')
       .select(
         `
-        id, project_id, phase_id, title, description, status, priority,
+        id, project_id, phase_id, milestone_id, title, description, status, priority,
         assignee_id, planned_minutes, start_date, due_date, completed_at,
         created_by, created_at, updated_at,
         assignee:profiles!project_tasks_assignee_id_fkey(full_name),
-        phase:project_phases!project_tasks_phase_id_fkey(name)
+        phase:project_phases!project_tasks_phase_id_fkey(name),
+        milestone:project_milestones!project_tasks_milestone_id_fkey(name)
         `
       )
       .eq('project_id', projectId)
@@ -849,6 +850,7 @@ export const projectTasksAPI = {
   create: async (data: {
     project_id: string;
     phase_id?: string | null;
+    milestone_id?: string | null;
     title: string;
     description?: string | null;
     status?: string;
@@ -864,6 +866,7 @@ export const projectTasksAPI = {
     id: string,
     data: Partial<{
       phase_id: string | null;
+      milestone_id: string | null;
       title: string;
       description: string | null;
       status: string;
@@ -1037,7 +1040,7 @@ export interface ProfessionalDashboardStats {
 }
 
 export interface SearchResult {
-  type: 'project' | 'task' | 'professional' | 'time_entry';
+  type: 'project' | 'task' | 'milestone' | 'professional' | 'time_entry';
   id: string;
   title: string;
   subtitle: string;
@@ -1047,6 +1050,7 @@ export interface SearchResult {
 export interface GlobalSearchResults {
   projects: SearchResult[];
   tasks: SearchResult[];
+  milestones: SearchResult[];
   professionals: SearchResult[];
   time_entries: SearchResult[];
 }
@@ -1207,6 +1211,141 @@ export const capacityAPI = {
   /** Delete an allocation (admin only). */
   deleteAllocation: async (id: string) => {
     return supabase.from('project_allocations').delete().eq('id', id);
+  },
+};
+
+// ===========================================================================
+// Phase 6: Project Milestones API
+// ===========================================================================
+
+export const projectMilestonesAPI = {
+  listByProject: async (projectId: string) => {
+    return supabase
+      .from('project_milestones')
+      .select(
+        `
+        id, project_id, name, description, status, priority, owner_id,
+        start_date, due_date, completed_at, progress_percent, weight, position,
+        created_by, created_at, updated_at,
+        owner:profiles!project_milestones_owner_id_fkey(full_name)
+        `
+      )
+      .eq('project_id', projectId)
+      .order('position', { ascending: true });
+  },
+
+  getById: async (milestoneId: string) => {
+    return supabase
+      .from('project_milestones')
+      .select(
+        `
+        id, project_id, name, description, status, priority, owner_id,
+        start_date, due_date, completed_at, progress_percent, weight, position,
+        created_by, created_at, updated_at,
+        owner:profiles!project_milestones_owner_id_fkey(full_name)
+        `
+      )
+      .eq('id', milestoneId)
+      .maybeSingle();
+  },
+
+  create: async (data: {
+    project_id: string;
+    name: string;
+    description?: string | null;
+    status?: string;
+    priority?: string;
+    owner_id?: string | null;
+    start_date?: string | null;
+    due_date?: string | null;
+    progress_percent?: number;
+    weight?: number;
+    position?: number;
+  }) => {
+    return supabase.from('project_milestones').insert([data]).select('*').single();
+  },
+
+  update: async (
+    id: string,
+    data: Partial<{
+      name: string;
+      description: string | null;
+      status: string;
+      priority: string;
+      owner_id: string | null;
+      start_date: string | null;
+      due_date: string | null;
+      completed_at: string | null;
+      progress_percent: number;
+      weight: number;
+      position: number;
+    }>
+  ) => {
+    return supabase.from('project_milestones').update(data).eq('id', id).select('*').single();
+  },
+
+  remove: async (id: string) => {
+    return supabase.from('project_milestones').delete().eq('id', id);
+  },
+
+  /** Get tasks linked to a milestone */
+  getTasks: async (milestoneId: string) => {
+    return supabase
+      .from('project_tasks')
+      .select(
+        `
+        id, project_id, phase_id, milestone_id, title, description, status, priority,
+        assignee_id, planned_minutes, start_date, due_date, completed_at,
+        created_by, created_at, updated_at,
+        assignee:profiles!project_tasks_assignee_id_fkey(full_name),
+        phase:project_phases!project_tasks_phase_id_fkey(name)
+        `
+      )
+      .eq('milestone_id', milestoneId)
+      .order('created_at', { ascending: false });
+  },
+};
+
+// ===========================================================================
+// Phase 6: Project Health API
+// ===========================================================================
+
+export const projectHealthAPI = {
+  /** Get canonical project progress (weighted milestone or task fallback). */
+  getProgress: async (projectId: string) => {
+    return supabase.rpc('get_project_progress', { p_project_id: projectId });
+  },
+
+  /** Calculate health without persisting (admin only). */
+  calculate: async (projectId: string) => {
+    return supabase.rpc('calculate_project_health', { p_project_id: projectId });
+  },
+
+  /** Recalculate and persist health state + emit events/notifications (admin only). */
+  recalculate: async (projectId: string) => {
+    return supabase.rpc('recalculate_project_health', { p_project_id: projectId });
+  },
+
+  /** Recalculate health for all projects (admin only). */
+  recalculateAll: async () => {
+    return supabase.rpc('recalculate_all_project_health');
+  },
+
+  /** Get current health state (admin: full, member: sanitized). */
+  get: async (projectId: string) => {
+    return supabase.rpc('get_project_health', { p_project_id: projectId });
+  },
+
+  /** Get health summary for all active/planned projects (admin only). */
+  getSummary: async (statusFilter?: string) => {
+    const params: { p_status_filter?: string } = {};
+    if (statusFilter) params.p_status_filter = statusFilter;
+    return supabase.rpc('get_projects_health_summary', params);
+  },
+
+  /** Get health transition history (admin: full, member: sanitized). */
+  getHistory: async (projectId: string) => {
+    return supabase.rpc('get_project_health_history', { p_project_id: projectId });
   },
 };
 

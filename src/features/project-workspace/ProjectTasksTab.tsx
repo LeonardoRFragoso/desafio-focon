@@ -1,9 +1,9 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import { projectTasksAPI, projectPhasesAPI, profilesAPI } from '@/lib/supabase/api';
+import { projectTasksAPI, projectPhasesAPI, projectMilestonesAPI, profilesAPI } from '@/lib/supabase/api';
 import { mapDatabaseError } from '@/lib/errors';
 import { Modal } from '@/components/Modal';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
-import type { ProjectTask, TaskStatus, TaskPriority, ProjectPhase, Profile } from '@/types/database';
+import type { ProjectTask, TaskStatus, TaskPriority, ProjectPhase, ProjectMilestone, Profile } from '@/types/database';
 
 interface ProjectTasksTabProps {
   projectId: string;
@@ -47,6 +47,7 @@ const KANBAN_COLUMNS: TaskStatus[] = ['todo', 'in_progress', 'blocked', 'done'];
 export function ProjectTasksTab({ projectId, isAdmin, highlightTaskId, onTaskHighlightCleared }: ProjectTasksTabProps) {
   const [tasks, setTasks] = useState<ProjectTask[]>([]);
   const [phases, setPhases] = useState<ProjectPhase[]>([]);
+  const [milestones, setMilestones] = useState<ProjectMilestone[]>([]);
   const [professionals, setProfessionals] = useState<Profile[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -71,11 +72,13 @@ export function ProjectTasksTab({ projectId, isAdmin, highlightTaskId, onTaskHig
   }, [projectId]);
 
   const fetchMeta = useCallback(async () => {
-    const [{ data: phaseData }, { data: profData }] = await Promise.all([
+    const [{ data: phaseData }, { data: milestoneData }, { data: profData }] = await Promise.all([
       projectPhasesAPI.listByProject(projectId),
+      projectMilestonesAPI.listByProject(projectId),
       profilesAPI.list(),
     ]);
     if (phaseData) setPhases(phaseData as ProjectPhase[]);
+    if (milestoneData) setMilestones(milestoneData as ProjectMilestone[]);
     if (profData) setProfessionals(profData as Profile[]);
   }, [projectId]);
 
@@ -236,6 +239,7 @@ export function ProjectTasksTab({ projectId, isAdmin, highlightTaskId, onTaskHig
               <tr>
                 <th className="px-4 py-3 text-left text-sm font-semibold text-app-primary">Título</th>
                 <th className="px-4 py-3 text-left text-sm font-semibold text-app-primary">Fase</th>
+                <th className="px-4 py-3 text-left text-sm font-semibold text-app-primary">Marco</th>
                 <th className="px-4 py-3 text-left text-sm font-semibold text-app-primary">Status</th>
                 <th className="px-4 py-3 text-left text-sm font-semibold text-app-primary">Prioridade</th>
                 <th className="px-4 py-3 text-left text-sm font-semibold text-app-primary">Responsável</th>
@@ -258,6 +262,9 @@ export function ProjectTasksTab({ projectId, isAdmin, highlightTaskId, onTaskHig
                   <td className="px-4 py-3 text-sm text-app-primary font-medium">{t.title}</td>
                   <td className="px-4 py-3 text-sm text-app-secondary">
                     {t.phase?.name ?? '—'}
+                  </td>
+                  <td className="px-4 py-3 text-sm text-app-secondary">
+                    {t.milestone?.name ?? '—'}
                   </td>
                   <td className="px-4 py-3 text-sm">
                     {isAdmin ? (
@@ -393,6 +400,7 @@ export function ProjectTasksTab({ projectId, isAdmin, highlightTaskId, onTaskHig
         <TaskFormModal
           projectId={projectId}
           phases={phases}
+          milestones={milestones}
           professionals={professionals}
           onClose={() => setCreateOpen(false)}
           onSaved={() => {
@@ -407,6 +415,7 @@ export function ProjectTasksTab({ projectId, isAdmin, highlightTaskId, onTaskHig
         <TaskFormModal
           projectId={projectId}
           phases={phases}
+          milestones={milestones}
           professionals={professionals}
           task={editTarget}
           onClose={() => setEditTarget(null)}
@@ -448,6 +457,7 @@ export function ProjectTasksTab({ projectId, isAdmin, highlightTaskId, onTaskHig
 interface TaskFormModalProps {
   projectId: string;
   phases: ProjectPhase[];
+  milestones: ProjectMilestone[];
   professionals: Profile[];
   task?: ProjectTask;
   onClose: () => void;
@@ -455,12 +465,13 @@ interface TaskFormModalProps {
   onError: (msg: string) => void;
 }
 
-function TaskFormModal({ projectId, phases, professionals, task, onClose, onSaved, onError }: TaskFormModalProps) {
+function TaskFormModal({ projectId, phases, milestones, professionals, task, onClose, onSaved, onError }: TaskFormModalProps) {
   const [title, setTitle] = useState(task?.title ?? '');
   const [description, setDescription] = useState(task?.description ?? '');
   const [status, setStatus] = useState<TaskStatus>((task?.status as TaskStatus) ?? 'todo');
   const [priority, setPriority] = useState<TaskPriority>((task?.priority as TaskPriority) ?? 'medium');
   const [phaseId, setPhaseId] = useState(task?.phase_id ?? '');
+  const [milestoneId, setMilestoneId] = useState(task?.milestone_id ?? '');
   const [assigneeId, setAssigneeId] = useState(task?.assignee_id ?? '');
   const [plannedMinutes, setPlannedMinutes] = useState(
     task?.planned_minutes ? String(task.planned_minutes) : ''
@@ -483,6 +494,7 @@ function TaskFormModal({ projectId, phases, professionals, task, onClose, onSave
         status,
         priority,
         phase_id: phaseId || null,
+        milestone_id: milestoneId || null,
         assignee_id: assigneeId || null,
         planned_minutes: plannedMinutes ? Number(plannedMinutes) : null,
         start_date: startDate || null,
@@ -568,21 +580,38 @@ function TaskFormModal({ projectId, phases, professionals, task, onClose, onSave
           </div>
           <div>
             <label className="block text-sm font-medium text-app-secondary mb-1">
-              Responsável
+              Marco
             </label>
             <select
-              value={assigneeId}
-              onChange={(e) => setAssigneeId(e.target.value)}
+              value={milestoneId}
+              onChange={(e) => setMilestoneId(e.target.value)}
               className="w-full px-3 py-2.5 border border-app-strong bg-surface-secondary text-app-primary rounded-lg focus:outline-none focus:ring-2 focus:ring-focon-600"
             >
-              <option value="">Sem responsável</option>
-              {professionals.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.full_name}
+              <option value="">Sem marco</option>
+              {milestones.map((m) => (
+                <option key={m.id} value={m.id}>
+                  {m.name}
                 </option>
               ))}
             </select>
           </div>
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-app-secondary mb-1">
+            Responsável
+          </label>
+          <select
+            value={assigneeId}
+            onChange={(e) => setAssigneeId(e.target.value)}
+            className="w-full px-3 py-2.5 border border-app-strong bg-surface-secondary text-app-primary rounded-lg focus:outline-none focus:ring-2 focus:ring-focon-600"
+          >
+            <option value="">Sem responsável</option>
+            {professionals.map((p) => (
+              <option key={p.id} value={p.id}>
+                {p.full_name}
+              </option>
+            ))}
+          </select>
         </div>
         <div className="grid grid-cols-2 gap-4">
           <div>

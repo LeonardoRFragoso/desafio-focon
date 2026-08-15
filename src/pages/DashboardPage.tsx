@@ -4,6 +4,7 @@ import { AdminActionCenter } from '@/features/admin/AdminActionCenter';
 import { ExecutiveKpis } from '@/features/admin/ExecutiveKpis';
 import { ExecutivePeriodSelector, getPeriodRange, type PeriodPreset } from '@/features/admin/ExecutivePeriodSelector';
 import { ProjectsAttention } from '@/features/admin/ProjectsAttention';
+import { ProjectHealthSummary } from '@/features/admin/ProjectHealthSummary';
 import { ApprovalQueueSummary } from '@/features/admin/ApprovalQueueSummary';
 import { FinancialOverview } from '@/features/admin/FinancialOverview';
 import { TeamOverview } from '@/features/admin/TeamOverview';
@@ -132,6 +133,9 @@ export function DashboardPage() {
 
       {/* Projects that need attention — separate RPC (different data shape) */}
       <ProjectsAttention />
+
+      {/* Canonical Project Health summary */}
+      <ProjectHealthSummary />
 
       {/* Approval queue summary — from same summary */}
       <ApprovalQueueSummary summary={summary} loading={loading} error={error} onRetry={handleRefresh} />

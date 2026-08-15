@@ -125,6 +125,7 @@ export type NotificationType =
   | 'period_closing'
   | 'budget_threshold'
   | 'comment_received'
+  | 'project_health_changed'
   | 'system';
 
 export interface Notification {
@@ -247,6 +248,7 @@ export interface ProjectTask {
   id: string;
   project_id: string;
   phase_id: string | null;
+  milestone_id: string | null;
   title: string;
   description: string | null;
   status: TaskStatus;
@@ -261,6 +263,7 @@ export interface ProjectTask {
   updated_at: string;
   assignee?: { full_name: string } | null;
   phase?: { name: string } | null;
+  milestone?: { name: string } | null;
 }
 
 export type ProjectRole = 'manager' | 'technical_lead' | 'professional' | 'observer';
@@ -375,4 +378,113 @@ export interface MyAllocations {
     allocation_type: AllocationType;
     notes: string | null;
   }>;
+}
+
+// ============================================================================
+// Phase 6: Milestones, Project Health & Forecasting
+// ============================================================================
+
+export type MilestoneStatus = 'planned' | 'in_progress' | 'blocked' | 'completed' | 'cancelled';
+export type MilestonePriority = 'low' | 'medium' | 'high' | 'critical';
+
+export interface ProjectMilestone {
+  id: string;
+  project_id: string;
+  name: string;
+  description: string | null;
+  status: MilestoneStatus;
+  priority: MilestonePriority;
+  owner_id: string | null;
+  start_date: string | null;
+  due_date: string | null;
+  completed_at: string | null;
+  progress_percent: number;
+  weight: number;
+  position: number;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+  owner?: { full_name: string } | null;
+  task_count?: number;
+  completed_task_count?: number;
+}
+
+export type HealthStatus = 'healthy' | 'attention' | 'at_risk' | 'not_applicable';
+
+export interface HealthDrivers {
+  schedule?: {
+    overdue_end_penalty: number;
+    overdue_milestones: number;
+    milestone_penalty: number;
+    overdue_tasks: number;
+    task_penalty: number;
+    penalty: number;
+  };
+  budget?: {
+    has_budget: boolean;
+    utilization: number | null;
+    penalty: number;
+  };
+  profitability?: {
+    active_alerts: number;
+    penalty: number;
+  };
+  capacity?: {
+    available: boolean;
+    overallocated_members: number;
+    max_utilization: number;
+    penalty: number;
+  };
+  critical_delivery?: {
+    critical_milestones_blocked: number;
+    critical_milestones_overdue: number;
+    critical_milestones_due_soon: number;
+    critical_tasks_blocked: number;
+    critical_tasks_overdue: number;
+    critical_tasks_due_soon: number;
+    penalty: number;
+  };
+  hard_override?: string | null;
+  reason?: string;
+}
+
+export interface ProjectHealthState {
+  score: number | null;
+  status: HealthStatus | null;
+  progress: number | null;
+  budget_utilization: number | null;
+  forecast_completion_date: string | null;
+  forecast_labor_cost: number | null;
+  drivers: HealthDrivers | null;
+  calculated_at: string | null;
+}
+
+export interface ProjectHealthEvent {
+  id: string;
+  project_id: string;
+  previous_status: HealthStatus | null;
+  new_status: HealthStatus;
+  previous_score: number | null;
+  new_score: number;
+  drivers: HealthDrivers | null;
+  created_at: string;
+}
+
+export interface ProjectHealthSummaryItem {
+  id: string;
+  name: string;
+  client: string;
+  project_status: string;
+  start_date: string;
+  end_date: string;
+  health_score: number | null;
+  health_status: HealthStatus;
+  progress_percent: number | null;
+  budget_utilization: number | null;
+  forecast_completion_date: string | null;
+  forecast_labor_cost: number | null;
+  calculated_at: string | null;
+  overdue_milestones_count: number;
+  overdue_tasks_count: number;
+  total_milestones: number;
 }
