@@ -3,6 +3,7 @@ import { usePendingTimeEntries } from '@/hooks/usePendingTimeEntries';
 import type { TimeEntryWithRelations, TimeEntryApprovalHistory } from '@/types/database';
 import { Modal } from '@/components/Modal';
 import { timeEntriesAPI } from '@/lib/supabase/api';
+import { useDebounce } from '@/hooks/usePagination';
 
 interface TimeEntryApprovalProps {
   onStatusChanged?: () => void;
@@ -28,10 +29,30 @@ export function TimeEntryApproval({ onStatusChanged }: TimeEntryApprovalProps) {
   const [batchMode, setBatchMode] = useState<'approve' | 'reject' | null>(null);
   const [batchReason, setBatchReason] = useState('');
   const [batchError, setBatchError] = useState<string | null>(null);
+  const [search, setSearch] = useState('');
+  const [projectFilter, setProjectFilter] = useState('');
+  const debouncedSearch = useDebounce(search, 300);
+
+  const filteredEntries = useMemo(() => {
+    let result = entries;
+    if (debouncedSearch) {
+      const q = debouncedSearch.toLowerCase();
+      result = result.filter(
+        (e) =>
+          (e.description ?? '').toLowerCase().includes(q) ||
+          (e.professional?.full_name ?? '').toLowerCase().includes(q) ||
+          (e.project?.name ?? '').toLowerCase().includes(q)
+      );
+    }
+    if (projectFilter) {
+      result = result.filter((e) => e.project_id === projectFilter);
+    }
+    return result;
+  }, [entries, debouncedSearch, projectFilter]);
 
   const allVisibleSelected = useMemo(
-    () => entries.length > 0 && entries.every((e) => selectedIds.has(e.id)),
-    [entries, selectedIds]
+    () => filteredEntries.length > 0 && filteredEntries.every((e) => selectedIds.has(e.id)),
+    [filteredEntries, selectedIds]
   );
 
   const approveEntry = async (entryId: string) => {
@@ -71,7 +92,7 @@ export function TimeEntryApproval({ onStatusChanged }: TimeEntryApprovalProps) {
     if (allVisibleSelected) {
       setSelectedIds(new Set());
     } else {
-      setSelectedIds(new Set(entries.map((e) => e.id)));
+      setSelectedIds(new Set(filteredEntries.map((e) => e.id)));
     }
   };
 
@@ -142,6 +163,28 @@ export function TimeEntryApproval({ onStatusChanged }: TimeEntryApprovalProps) {
         </div>
       )}
 
+      {/* Search and filter */}
+      <div className="flex flex-wrap gap-2 mb-4">
+        <input
+          type="text"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Buscar por profissional, projeto ou descrição..."
+          className="flex-1 min-w-[180px] px-3 py-2 border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-focon-600"
+        />
+        <select
+          value={projectFilter}
+          onChange={(e) => setProjectFilter(e.target.value)}
+          className="px-3 py-2 border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-focon-600"
+        >
+          <option value="">Todos os projetos</option>
+          {[...new Set(entries.map((e) => e.project?.name).filter(Boolean))].map((name) => {
+            const entry = entries.find((e) => e.project?.name === name);
+            return <option key={entry?.project_id} value={entry?.project_id ?? ''}>{name}</option>;
+          })}
+        </select>
+      </div>
+
       {entries.length === 0 ? (
         <div className="rounded-lg bg-slate-50 border border-slate-200 p-8 text-center">
           <p className="text-slate-600">Nenhum apontamento pendente de aprovação</p>
@@ -204,7 +247,10 @@ export function TimeEntryApproval({ onStatusChanged }: TimeEntryApprovalProps) {
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-200">
-                {entries.map((entry) => (
+                {filteredEntries.length === 0 ? (
+                  <tr><td colSpan={6} className="px-4 py-8 text-center text-sm text-slate-500">Nenhum apontamento encontrado com os filtros selecionados</td></tr>
+                ) : (
+                filteredEntries.map((entry) => (
                   <tr
                     key={entry.id}
                     onClick={() => setSelectedEntry(entry)}
@@ -259,7 +305,8 @@ export function TimeEntryApproval({ onStatusChanged }: TimeEntryApprovalProps) {
                       </button>
                     </td>
                   </tr>
-                ))}
+                ))
+                )}
               </tbody>
             </table>
           </div>

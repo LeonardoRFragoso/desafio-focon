@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { supabase } from '@/lib/supabase/client';
@@ -7,9 +7,13 @@ import { useAuthContext } from '@/features/auth/useAuthContext';
 import { mapDatabaseError } from '@/lib/errors';
 import { Modal } from '@/components/Modal';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
+import { Pagination } from '@/components/Pagination';
+import { useDebounce, usePagination } from '@/hooks/usePagination';
 import { CommentsPanel } from '@/features/time-entries/CommentsPanel';
 import { AttachmentsPanel } from '@/features/time-entries/AttachmentsPanel';
 import { timeEntrySchema, type TimeEntryInput } from '@/schemas/time-entry';
+
+const PAGE_SIZE = 10;
 
 interface TimeEntry {
   id: string;
@@ -45,6 +49,11 @@ export function TimeEntryList() {
   const [error, setError] = useState<string | null>(null);
   const [dialog, setDialog] = useState<DialogState>(null);
   const [actionError, setActionError] = useState<string | null>(null);
+  const [search, setSearch] = useState('');
+  const [projectFilter, setProjectFilter] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
+  const debouncedSearch = useDebounce(search, 300);
+  const { page, setPage, resetPage } = usePagination({ pageSize: PAGE_SIZE });
 
   const fetchEntries = useCallback(async () => {
     if (!user) return;
@@ -109,6 +118,36 @@ export function TimeEntryList() {
     fetchEntries();
     fetchProjects();
   }, [fetchEntries, fetchProjects]);
+
+  // Reset page when filters change
+  useEffect(() => {
+    resetPage();
+  }, [debouncedSearch, projectFilter, statusFilter, resetPage]);
+
+  // Filter and paginate entries
+  const filteredEntries = useMemo(() => {
+    let result = entries;
+    if (debouncedSearch) {
+      const q = debouncedSearch.toLowerCase();
+      result = result.filter(
+        (e) =>
+          e.description.toLowerCase().includes(q) ||
+          e.project_name.toLowerCase().includes(q)
+      );
+    }
+    if (projectFilter) {
+      result = result.filter((e) => e.project_id === projectFilter);
+    }
+    if (statusFilter) {
+      result = result.filter((e) => e.approval_status === statusFilter);
+    }
+    return result;
+  }, [entries, debouncedSearch, projectFilter, statusFilter]);
+
+  const paginatedEntries = useMemo(() => {
+    const start = (page - 1) * PAGE_SIZE;
+    return filteredEntries.slice(start, start + PAGE_SIZE);
+  }, [filteredEntries, page]);
 
   const formatDuration = (minutes: number) => {
     const hours = Math.floor(minutes / 60);
@@ -185,6 +224,37 @@ export function TimeEntryList() {
           <p className="text-sm text-red-800">{actionError}</p>
         </div>
       )}
+
+      {/* Search and filters */}
+      <div className="flex flex-wrap gap-2">
+        <input
+          type="text"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Buscar por descrição ou projeto..."
+          className="flex-1 min-w-[180px] px-3 py-2 border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-focon-600"
+        />
+        <select
+          value={projectFilter}
+          onChange={(e) => setProjectFilter(e.target.value)}
+          className="px-3 py-2 border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-focon-600"
+        >
+          <option value="">Todos os projetos</option>
+          {projects.map((p) => (
+            <option key={p.id} value={p.id}>{p.name}</option>
+          ))}
+        </select>
+        <select
+          value={statusFilter}
+          onChange={(e) => setStatusFilter(e.target.value)}
+          className="px-3 py-2 border border-slate-300 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-focon-600"
+        >
+          <option value="">Todos os status</option>
+          <option value="pending">Pendente</option>
+          <option value="approved">Aprovado</option>
+          <option value="rejected">Rejeitado</option>
+        </select>
+      </div>
       <div className="overflow-x-auto rounded-xl border border-slate-200 shadow-sm">
         <table className="w-full">
           <caption className="sr-only">Histórico de apontamentos de horas</caption>
@@ -199,7 +269,7 @@ export function TimeEntryList() {
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-200">
-            {entries.map((entry) => {
+            {paginatedEntries.map((entry) => {
               const editable = canEditOrDelete(entry.approval_status);
               return (
                 <tr
@@ -254,6 +324,17 @@ export function TimeEntryList() {
           </tbody>
         </table>
       </div>
+
+      {filteredEntries.length === 0 ? (
+        <p className="text-center text-sm text-slate-500 py-4">Nenhum apontamento encontrado com os filtros selecionados</p>
+      ) : (
+        <Pagination
+          page={page}
+          pageSize={PAGE_SIZE}
+          total={filteredEntries.length}
+          onPageChange={setPage}
+        />
+      )}
 
       {dialog?.kind === 'details' && (
         <DetailsModal entry={dialog.entry} onClose={() => setDialog(null)} formatDuration={formatDuration} formatDate={formatDate} formatDateTime={formatDateTime} isAdmin={isAdmin} />
