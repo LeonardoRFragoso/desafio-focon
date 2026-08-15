@@ -213,13 +213,21 @@ BEGIN
 
   -- ====================================================================
   -- TEST 8: member deletes own pending entry -> PASS
+  -- Strengthened (hotfix 20240824040000): the statement must not raise AND
+  -- the row must actually be removed. Previously this only checked that the
+  -- DELETE did not raise, which passed falsely when the closed-period
+  -- trigger returned NULL (silently cancelling the delete).
   -- ====================================================================
   PERFORM pg_temp.assert_true(
     pg_temp.try_as(v_ana::text, format(
       'DELETE FROM time_entries WHERE id = %L',
       v_entry_id
     )),
-    'T8: member should delete own pending entry'
+    'T8: member should delete own pending entry (no error)'
+  );
+  PERFORM pg_temp.assert_true(
+    NOT pg_temp.entry_exists(v_entry_id),
+    'T8: own pending entry must actually be removed (row-count check)'
   );
 
   -- ====================================================================
