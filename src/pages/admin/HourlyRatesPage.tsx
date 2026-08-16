@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { hourlyRatesAPI, profilesAPI } from '@/lib/supabase/api';
 import { supabase } from '@/lib/supabase/client';
 import { mapDatabaseError } from '@/lib/errors';
+import { businessTodayStr } from '@/lib/businessDate';
 import { Modal } from '@/components/Modal';
 import type { Profile } from '@/types/database';
 
@@ -185,7 +186,7 @@ interface RateFormModalProps {
 function RateFormModal({ profiles, onClose, onSaved, onError }: RateFormModalProps) {
   const [professionalId, setProfessionalId] = useState('');
   const [hourlyRate, setHourlyRate] = useState('');
-  const [validFrom, setValidFrom] = useState(new Date().toISOString().slice(0, 10));
+  const [validFrom, setValidFrom] = useState(businessTodayStr());
   const [submitting, setSubmitting] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {

@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { projectsAPI } from '@/lib/supabase/api';
 import { mapDatabaseError } from '@/lib/errors';
+import { businessTodayStr } from '@/lib/businessDate';
 import { Modal } from '@/components/Modal';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
 import { useDebounce } from '@/hooks/usePagination';
@@ -324,7 +325,7 @@ function ProjectFormModal({ project, onClose, onSaved, onError }: ProjectFormMod
   const [name, setName] = useState(project?.name ?? '');
   const [client, setClient] = useState(project?.client ?? '');
   const [status, setStatus] = useState<ProjectStatus>((project?.status as ProjectStatus) ?? 'active');
-  const [startDate, setStartDate] = useState(project?.start_date ?? new Date().toISOString().slice(0, 10));
+  const [startDate, setStartDate] = useState(project?.start_date ?? businessTodayStr());
   const [endDate, setEndDate] = useState(project?.end_date ?? '');
   const [submitting, setSubmitting] = useState(false);
   const memberCount = project?.project_members?.[0]?.count ?? 0;

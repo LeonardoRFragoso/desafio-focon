@@ -23,7 +23,7 @@ test.describe('E2E 5: Admin approve time entry', () => {
     await page.waitForLoadState('networkidle');
 
     // Create a pending entry
-    const projectSelect = page.locator('#projectId');
+    const projectSelect = page.locator('#te-projectId');
     await projectSelect.waitFor({ state: 'visible', timeout: 10000 });
     const options = await projectSelect.locator('option').all();
     for (const opt of options) {
@@ -35,10 +35,10 @@ test.describe('E2E 5: Admin approve time entry', () => {
     }
 
     const today = businessTodayStr();
-    await page.fill('#entryDate', today);
-    await page.fill('#durationMinutes', '45');
+    await page.fill('#te-entryDate', today);
+    await page.fill('#te-durationMinutes', '45');
     const uniqueDesc = `E2E approve test ${Date.now()}`;
-    await page.fill('#description', uniqueDesc);
+    await page.fill('#te-description', uniqueDesc);
     await page.click('button[type="submit"]');
 
     // Wait for entry to appear
@@ -77,6 +77,13 @@ test.describe('E2E 5: Admin approve time entry', () => {
     const approveButton = page.getByRole('button', { name: /^aprovar$/i }).first();
     await expect(approveButton).toBeVisible({ timeout: 15000 });
     await approveButton.click();
+
+    // A confirmation dialog now appears — click the confirm button inside it.
+    // The dialog has a title "Aprovar Apontamento" and a confirm button "Aprovar".
+    const confirmDialog = page.getByRole('dialog');
+    await expect(confirmDialog).toBeVisible({ timeout: 5000 });
+    const confirmButton = confirmDialog.getByRole('button', { name: /^aprovar$/i });
+    await confirmButton.click();
 
     // Wait for the status to change — the "Aprovar" button should disappear
     // once the entry is no longer pending.

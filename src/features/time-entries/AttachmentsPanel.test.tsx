@@ -59,7 +59,8 @@ describe('AttachmentsPanel', () => {
   it('shows max size hint', async () => {
     renderWithProviders(<AttachmentsPanel entryId="entry-1" />);
     await waitFor(() => {
-      expect(screen.getByText(/Máx\. 10 MB/)).toBeInTheDocument();
+      expect(screen.getByText(/Máx\./)).toBeInTheDocument();
     });
+    expect(screen.getByText(/10\.0 MB/)).toBeInTheDocument();
   });
 });

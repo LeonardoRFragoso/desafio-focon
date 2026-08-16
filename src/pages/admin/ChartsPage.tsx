@@ -5,6 +5,7 @@ import {
   XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
 } from 'recharts';
 import { projectsAPI } from '@/lib/supabase/api';
+import { formatBusinessDate } from '@/lib/businessDate';
 import { useTheme } from '@/features/theme/ThemeContext';
 import { CHART_COLORS, FOCON_TEAL, SERIES_COLORS, getChartTheme, getChartTooltipStyle } from '@/lib/chartTheme';
 import type { Project } from '@/types/database';
@@ -41,7 +42,7 @@ export function ChartsPage() {
       const days = parseInt(periodFilter, 10);
       const startDate = new Date();
       startDate.setDate(startDate.getDate() - days);
-      const startDateStr = startDate.toISOString().slice(0, 10);
+      const startDateStr = formatBusinessDate(startDate);
 
       let query = supabase
         .from('time_entries')

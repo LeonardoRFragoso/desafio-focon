@@ -5,6 +5,7 @@ import { timeEntriesAPI, projectPhasesAPI, projectTasksAPI } from '@/lib/supabas
 import { mapDatabaseError } from '@/lib/errors';
 import { useAuthContext } from '@/features/auth/useAuthContext';
 import { Pagination } from '@/components/Pagination';
+import { ConfirmDialog } from '@/components/ConfirmDialog';
 import { useDebounce } from '@/hooks/usePagination';
 import { TimeEntryDetailsModal, type TimeEntryDetail } from '@/features/time-entries/TimeEntryDetailsModal';
 import { daysLate, isFutureDate } from '@/features/time-entries/temporalRules';
@@ -41,6 +42,7 @@ export function AdminTimeEntriesPage() {
   const [phases, setPhases] = useState<Phase[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [selectedEntry, setSelectedEntry] = useState<AdminEntry | null>(null);
+  const [approveTarget, setApproveTarget] = useState<AdminEntry | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
   const debouncedSearch = useDebounce(search, 300);
 
@@ -180,6 +182,15 @@ export function AdminTimeEntriesPage() {
     const { error: err } = await timeEntriesAPI.approve(entryId);
     if (err) throw err;
     fetchEntries();
+  };
+
+  const confirmApprove = async () => {
+    if (!approveTarget) return;
+    try {
+      await handleApprove(approveTarget.id);
+    } catch (err) {
+      setActionError(err instanceof Error ? mapDatabaseError(err) : 'Erro ao aprovar');
+    }
   };
 
   const handleReject = async (entryId: string, reason: string) => {
@@ -424,13 +435,7 @@ export function AdminTimeEntriesPage() {
                       {entry.approval_status === 'pending' && (
                         <>
                           <button
-                            onClick={async () => {
-                              try {
-                                await handleApprove(entry.id);
-                              } catch (err) {
-                                setActionError(err instanceof Error ? mapDatabaseError(err) : 'Erro ao aprovar');
-                              }
-                            }}
+                            onClick={() => setApproveTarget(entry)}
                             disabled={isFutureDate(entry.entry_date)}
                             title={isFutureDate(entry.entry_date) ? 'Apontamentos com data futura não podem ser aprovados.' : undefined}
                             className="px-2.5 py-1 rounded-md text-xs font-medium bg-green-600 hover:bg-green-700 text-white transition disabled:opacity-50 disabled:cursor-not-allowed"
@@ -508,13 +513,7 @@ export function AdminTimeEntriesPage() {
                   </button>
                   {entry.approval_status === 'pending' && (
                     <button
-                      onClick={async () => {
-                        try {
-                          await handleApprove(entry.id);
-                        } catch (err) {
-                          setActionError(err instanceof Error ? mapDatabaseError(err) : 'Erro ao aprovar');
-                        }
-                      }}
+                      onClick={() => setApproveTarget(entry)}
                       disabled={isFutureDate(entry.entry_date)}
                       title={isFutureDate(entry.entry_date) ? 'Apontamentos com data futura não podem ser aprovados.' : undefined}
                       className="px-3 py-1.5 rounded-lg text-xs font-medium bg-green-600 hover:bg-green-700 text-white transition disabled:opacity-50 disabled:cursor-not-allowed"
@@ -554,6 +553,27 @@ export function AdminTimeEntriesPage() {
           onReject={handleReject}
         />
       )}
+
+      {/* Approve confirmation */}
+      <ConfirmDialog
+        open={approveTarget !== null}
+        title="Aprovar Apontamento"
+        message={
+          approveTarget ? (
+            <>
+              Confirmar a aprovação do apontamento de{' '}
+              <strong>{approveTarget.professional?.full_name ?? 'profissional'}</strong> no projeto{' '}
+              <strong>{approveTarget.project?.name ?? 'projeto'}</strong> ({formatDate(approveTarget.entry_date)} —{' '}
+              {formatDuration(approveTarget.duration_minutes)})?
+              <br />
+              <span className="text-app-muted">Esta ação não pode ser desfeita.</span>
+            </>
+          ) : null
+        }
+        confirmLabel="Aprovar"
+        onConfirm={confirmApprove}
+        onClose={() => setApproveTarget(null)}
+      />
     </div>
   );
 }

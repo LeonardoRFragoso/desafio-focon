@@ -3,33 +3,17 @@ import { supabase } from '@/lib/supabase/client';
 import { useAuthContext } from '@/features/auth/useAuthContext';
 import { mapDatabaseError } from '@/lib/errors';
 import type { TimeEntryAttachment } from '@/types/database';
+import {
+  ATTACHMENT_BUCKET,
+  ATTACHMENT_MAX_SIZE,
+  ATTACHMENT_ALLOWED_LABEL,
+  validateAttachmentFile,
+  uploadTimeEntryAttachment,
+  formatFileSize,
+} from '@/features/time-entries/attachments';
 
 interface AttachmentsPanelProps {
   entryId: string;
-}
-
-const BUCKET = 'time-entry-attachments';
-const MAX_SIZE = 10 * 1024 * 1024; // 10 MB
-const ALLOWED_TYPES = [
-  'application/pdf',
-  'image/png',
-  'image/jpeg',
-  'image/jpg',
-  'image/gif',
-  'image/webp',
-  'text/plain',
-  'text/csv',
-  'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-  'application/vnd.ms-excel',
-  'application/msword',
-  'application/zip',
-];
-
-function formatFileSize(bytes: number): string {
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
 function formatDate(date: string): string {
@@ -82,51 +66,21 @@ export function AttachmentsPanel({ entryId }: AttachmentsPanelProps) {
 
     setUploadError(null);
 
-    // Validate file size
-    if (file.size > MAX_SIZE) {
-      setUploadError(`Arquivo muito grande. Máximo: ${formatFileSize(MAX_SIZE)}.`);
-      e.target.value = '';
-      return;
-    }
-
-    // Validate MIME type
-    if (!ALLOWED_TYPES.includes(file.type)) {
-      setUploadError(`Tipo de arquivo não permitido: ${file.type || 'desconhecido'}. Permitidos: PDF, imagens, texto, Office, ZIP.`);
+    const validation = validateAttachmentFile(file);
+    if (validation) {
+      setUploadError(validation.reason);
       e.target.value = '';
       return;
     }
 
     setUploading(true);
     try {
-      // Build storage path: userId/entryId/filename-timestamp
-      const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
-      const storagePath = `${user.id}/${entryId}/${Date.now()}-${safeName}`;
-
-      // Upload to storage
-      const { error: uploadErr } = await supabase.storage
-        .from(BUCKET)
-        .upload(storagePath, file, {
-          contentType: file.type,
-          upsert: false,
-        });
-      if (uploadErr) throw uploadErr;
-
-      // Insert metadata
-      const { error: metaErr } = await supabase.from('time_entry_attachments').insert([
-        {
-          time_entry_id: entryId,
-          uploaded_by: user.id,
-          file_name: file.name,
-          file_size: file.size,
-          content_type: file.type,
-          storage_path: storagePath,
-        },
-      ]);
-      if (metaErr) throw metaErr;
-
-      await fetchAttachments();
-    } catch (err) {
-      setUploadError(err instanceof Error ? mapDatabaseError(err) : 'Erro ao enviar arquivo');
+      const result = await uploadTimeEntryAttachment(entryId, user.id, file);
+      if (!result.success) {
+        setUploadError(result.error ?? 'Erro ao enviar arquivo');
+      } else {
+        await fetchAttachments();
+      }
     } finally {
       setUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = '';
@@ -136,7 +90,7 @@ export function AttachmentsPanel({ entryId }: AttachmentsPanelProps) {
   const handleDownload = async (attachment: TimeEntryAttachment) => {
     try {
       const { data, error: err } = await supabase.storage
-        .from(BUCKET)
+        .from(ATTACHMENT_BUCKET)
         .createSignedUrl(attachment.storage_path, 60); // 60 seconds
       if (err) throw err;
       if (data?.signedUrl) {
@@ -151,7 +105,7 @@ export function AttachmentsPanel({ entryId }: AttachmentsPanelProps) {
     try {
       // Delete from storage first
       const { error: storageErr } = await supabase.storage
-        .from(BUCKET)
+        .from(ATTACHMENT_BUCKET)
         .remove([attachment.storage_path]);
       if (storageErr) throw storageErr;
 
@@ -201,7 +155,7 @@ export function AttachmentsPanel({ entryId }: AttachmentsPanelProps) {
           {uploading ? 'Enviando...' : 'Adicionar Anexo'}
         </label>
         <p className="text-xs text-app-muted mt-1">
-          Máx. 10 MB. Permitidos: PDF, imagens, texto, Office, ZIP.
+          Máx. {formatFileSize(ATTACHMENT_MAX_SIZE)}. Permitidos: {ATTACHMENT_ALLOWED_LABEL}.
         </p>
       </div>
 

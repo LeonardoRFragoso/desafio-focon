@@ -1,16 +1,13 @@
 import { useState, useEffect } from 'react';
-import { useForm, useWatch } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { timeEntrySchema, type TimeEntryInput } from '@/schemas/time-entry';
 import { supabase } from '@/lib/supabase/client';
+import { timeEntriesAPI } from '@/lib/supabase/api';
 import { useAuthContext } from '@/features/auth/useAuthContext';
 import { mapDatabaseError } from '@/lib/errors';
-import { maxEntryDate, requiresLateReason, daysLate } from '@/features/time-entries/temporalRules';
-
-interface Project {
-  id: string;
-  name: string;
-}
+import { TimeEntryFields, type TimeEntryProject } from '@/features/time-entries/TimeEntryFields';
+import { useTimeEntryForm } from '@/features/time-entries/useTimeEntryForm';
+import { PendingAttachments } from '@/features/time-entries/PendingAttachments';
+import { uploadTimeEntryAttachments } from '@/features/time-entries/attachments';
+import type { TimeEntryInput } from '@/schemas/time-entry';
 
 interface TimeEntryFormProps {
   onSuccess?: () => void;
@@ -18,26 +15,21 @@ interface TimeEntryFormProps {
 
 export function TimeEntryForm({ onSuccess }: TimeEntryFormProps) {
   const { user } = useAuthContext();
-  const [projects, setProjects] = useState<Project[]>([]);
+  const [projects, setProjects] = useState<TimeEntryProject[]>([]);
   const [projectsLoading, setProjectsLoading] = useState(true);
   const [projectsError, setProjectsError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [submitSuccess, setSubmitSuccess] = useState(false);
+  const [pendingFiles, setPendingFiles] = useState<File[]>([]);
 
+  const form = useTimeEntryForm();
   const {
-    register,
     handleSubmit,
     reset,
-    control,
-    formState: { errors },
-  } = useForm<TimeEntryInput>({
-    resolver: zodResolver(timeEntrySchema),
-  });
-
-  const entryDate = useWatch({ control, name: 'entryDate' });
-  const showLateReason = entryDate ? requiresLateReason(entryDate) : false;
-  const lateDays = entryDate ? daysLate(entryDate) : 0;
+    showLateReason,
+    lateDays,
+  } = form;
 
   useEffect(() => {
     const fetchProjects = async () => {
@@ -52,11 +44,7 @@ export function TimeEntryForm({ onSuccess }: TimeEntryFormProps) {
 
         if (error) throw error;
 
-        if (!data || data.length === 0) {
-          setProjects([]);
-        } else {
-          setProjects(data);
-        }
+        setProjects(data || []);
       } catch (err) {
         const message = err instanceof Error ? err.message : 'Erro ao carregar projetos';
         setProjectsError(message);
@@ -101,25 +89,43 @@ export function TimeEntryForm({ onSuccess }: TimeEntryFormProps) {
       setSubmitError(null);
       setSubmitSuccess(false);
 
-      // The hourly rate is determined by the database trigger
-      // based on the professional's valid rate for the entry date
-      const { error } = await supabase.from('time_entries').insert([
-        {
-          project_id: data.projectId,
-          professional_id: user.id,
-          entry_date: data.entryDate,
-          duration_minutes: data.durationMinutes,
-          description: data.description,
-          approval_status: 'pending',
-          applied_hourly_rate: 0, // Placeholder; trigger will set the actual rate
-          late_submission_reason: data.lateSubmissionReason?.trim() || null,
-        },
-      ]);
+      const { data: created, error } = await timeEntriesAPI.create({
+        project_id: data.projectId,
+        professional_id: user.id,
+        entry_date: data.entryDate,
+        duration_minutes: data.durationMinutes,
+        description: data.description,
+        late_submission_reason: data.lateSubmissionReason?.trim() || null,
+      });
 
       if (error) {
         throw error;
       }
 
+      // Entry created — upload pending attachments (if any) to the new entry.
+      // Partial failures are surfaced explicitly: the entry is kept, but the
+      // user is told which attachments failed and that they can retry via edit.
+      if (pendingFiles.length > 0 && created?.id) {
+        const { succeeded, failed } = await uploadTimeEntryAttachments(
+          created.id,
+          user.id,
+          pendingFiles
+        );
+        if (failed > 0) {
+          setSubmitError(
+            `Apontamento criado, mas ${failed} de ${pendingFiles.length} anexo(s) falhou/falharam. ` +
+              `${succeeded} enviado(s). Tente adicionar os pendentes na edição do apontamento.`
+          );
+          // Keep the entry; clear pending files only for the ones that succeeded is complex,
+          // so clear all and let the user re-add via edit. The entry itself is valid.
+          setPendingFiles([]);
+          reset();
+          onSuccess?.();
+          return;
+        }
+      }
+
+      setPendingFiles([]);
       setSubmitSuccess(true);
       reset();
       onSuccess?.();
@@ -159,133 +165,19 @@ export function TimeEntryForm({ onSuccess }: TimeEntryFormProps) {
         </div>
       )}
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-        <div>
-          <label htmlFor="projectId" className="block text-sm font-medium text-app-secondary mb-2">
-            Projeto *
-          </label>
-          {projectsError && (
-            <div
-              className="mb-3 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 p-3"
-              role="alert"
-            >
-              <p className="text-sm text-red-800 dark:text-red-400 mb-2">{projectsError}</p>
-              <button
-                type="button"
-                onClick={handleRetryProjects}
-                className="text-sm font-medium text-red-700 dark:text-red-300 hover:text-red-800 dark:hover:text-red-200 underline"
-              >
-                Tentar novamente
-              </button>
-            </div>
-          )}
-          <select
-            {...register('projectId')}
-            id="projectId"
-            disabled={projectsLoading || projectsError !== null}
-            aria-invalid={!!errors.projectId}
-            aria-describedby={errors.projectId ? 'projectId-error' : undefined}
-            className="w-full px-3 py-2.5 border border-app-strong bg-surface-secondary text-app-primary rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-focon-600 focus:border-transparent transition disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {projectsLoading ? (
-              <option value="">Carregando projetos...</option>
-            ) : projects.length === 0 ? (
-              <option value="">Nenhum projeto ativo disponível para apontamento.</option>
-            ) : (
-              <>
-                <option value="">Selecione um projeto</option>
-                {projects.map((project) => (
-                  <option key={project.id} value={project.id}>
-                    {project.name}
-                  </option>
-                ))}
-              </>
-            )}
-          </select>
-          {errors.projectId && (
-            <p id="projectId-error" className="mt-1 text-sm text-red-600">{errors.projectId.message}</p>
-          )}
-        </div>
+      <TimeEntryFields
+        form={form}
+        showLateReason={showLateReason}
+        lateDays={lateDays}
+        projects={projects}
+        projectsLoading={projectsLoading}
+        projectsError={projectsError}
+        onRetryProjects={handleRetryProjects}
+        idPrefix="te"
+        descriptionRows={5}
+      />
 
-        <div>
-          <label htmlFor="entryDate" className="block text-sm font-medium text-app-secondary mb-2">
-            Data *
-          </label>
-          <input
-            {...register('entryDate')}
-            id="entryDate"
-            type="date"
-            max={maxEntryDate()}
-            aria-invalid={!!errors.entryDate}
-            aria-describedby={errors.entryDate ? 'entryDate-error' : undefined}
-            className="w-full px-3 py-2.5 border border-app-strong bg-surface-secondary text-app-primary rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-focon-600 focus:border-transparent transition"
-          />
-          {errors.entryDate && (
-            <p id="entryDate-error" className="mt-1 text-sm text-red-600">{errors.entryDate.message}</p>
-          )}
-        </div>
-
-        <div>
-          <label htmlFor="durationMinutes" className="block text-sm font-medium text-app-secondary mb-2">
-            Duração (minutos) *
-          </label>
-          <input
-            {...register('durationMinutes', { valueAsNumber: true })}
-            id="durationMinutes"
-            type="number"
-            min="1"
-            aria-invalid={!!errors.durationMinutes}
-            aria-describedby={errors.durationMinutes ? 'durationMinutes-error' : undefined}
-            className="w-full px-3 py-2.5 border border-app-strong bg-surface-secondary text-app-primary rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-focon-600 focus:border-transparent transition"
-            placeholder="60"
-          />
-          {errors.durationMinutes && (
-            <p id="durationMinutes-error" className="mt-1 text-sm text-red-600">{errors.durationMinutes.message}</p>
-          )}
-        </div>
-      </div>
-
-      <div>
-        <label htmlFor="description" className="block text-sm font-medium text-app-secondary mb-2">
-          Descrição *
-        </label>
-        <textarea
-          {...register('description')}
-          id="description"
-          rows={5}
-          aria-invalid={!!errors.description}
-          aria-describedby={errors.description ? 'description-error' : undefined}
-          className="w-full px-3 py-2.5 border border-app-strong bg-surface-secondary text-app-primary rounded-lg text-slate-900 placeholder-slate-500 placeholder-input focus:outline-none focus:ring-2 focus:ring-focon-600 focus:border-transparent transition"
-          placeholder="Descreva o trabalho realizado..."
-        />
-        {errors.description && (
-          <p id="description-error" className="mt-1 text-sm text-red-600">{errors.description.message}</p>
-        )}
-      </div>
-
-      {showLateReason && (
-        <div>
-          <label htmlFor="lateSubmissionReason" className="block text-sm font-medium text-app-secondary mb-2">
-            Justificativa do lançamento retroativo *
-          </label>
-          <p className="text-sm text-app-muted mb-2">
-            Este apontamento está sendo registrado com {lateDays} dias de atraso.
-            Informe o motivo do lançamento retroativo.
-          </p>
-          <textarea
-            {...register('lateSubmissionReason')}
-            id="lateSubmissionReason"
-            rows={3}
-            aria-invalid={!!errors.lateSubmissionReason}
-            aria-describedby={errors.lateSubmissionReason ? 'lateReason-error' : undefined}
-            className="w-full px-3 py-2.5 border border-app-strong bg-surface-secondary text-app-primary rounded-lg text-slate-900 placeholder-slate-500 placeholder-input focus:outline-none focus:ring-2 focus:ring-focon-600 focus:border-transparent transition"
-            placeholder="Ex: Estava em campo durante a semana e não pude registrar no tempo adequado..."
-          />
-          {errors.lateSubmissionReason && (
-            <p id="lateReason-error" className="mt-1 text-sm text-red-600">{errors.lateSubmissionReason.message}</p>
-          )}
-        </div>
-      )}
+      <PendingAttachments files={pendingFiles} onChange={setPendingFiles} disabled={loading} />
 
       <button
         type="submit"

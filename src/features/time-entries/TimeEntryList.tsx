@@ -1,7 +1,5 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { useForm, useWatch } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
 import { supabase } from '@/lib/supabase/client';
 import { timeEntriesAPI, projectPhasesAPI, projectTasksAPI } from '@/lib/supabase/api';
 import { useAuthContext } from '@/features/auth/useAuthContext';
@@ -11,8 +9,13 @@ import { ConfirmDialog } from '@/components/ConfirmDialog';
 import { Pagination } from '@/components/Pagination';
 import { useDebounce } from '@/hooks/usePagination';
 import { TimeEntryDetailsModal, type TimeEntryDetail } from '@/features/time-entries/TimeEntryDetailsModal';
-import { timeEntrySchema, type TimeEntryInput } from '@/schemas/time-entry';
-import { maxEntryDate, requiresLateReason, daysLate } from '@/features/time-entries/temporalRules';
+import { TimeEntryFields } from '@/features/time-entries/TimeEntryFields';
+import { useTimeEntryForm } from '@/features/time-entries/useTimeEntryForm';
+import { AttachmentsPanel } from '@/features/time-entries/AttachmentsPanel';
+import { useToast } from '@/components/useToast';
+import { requiresLateReason } from '@/features/time-entries/temporalRules';
+import { businessTodayStr } from '@/lib/businessDate';
+import type { TimeEntryInput } from '@/schemas/time-entry';
 
 const PAGE_SIZE = 20;
 
@@ -43,6 +46,7 @@ type DialogState =
 export function TimeEntryList() {
   const { user, isAdmin } = useAuthContext();
   const [searchParams, setSearchParams] = useSearchParams();
+  const { showToast } = useToast();
   const [entries, setEntries] = useState<TimeEntry[]>([]);
   const [total, setTotal] = useState(0);
   const [projects, setProjects] = useState<Project[]>([]);
@@ -536,6 +540,7 @@ export function TimeEntryList() {
           onSaved={() => {
             setDialog(null);
             fetchEntries();
+            showToast('Apontamento atualizado com sucesso!', 'success');
           }}
           onError={(msg) => setActionError(msg)}
         />
@@ -549,6 +554,7 @@ export function TimeEntryList() {
           onSaved={() => {
             setDialog(null);
             fetchEntries();
+            showToast('Apontamento criado com sucesso!', 'success');
           }}
           onError={(msg) => setActionError(msg)}
         />
@@ -570,6 +576,7 @@ export function TimeEntryList() {
             }
             setDialog(null);
             fetchEntries();
+            showToast('Apontamento excluído com sucesso!', 'success');
           }}
           message={
             <>
@@ -601,13 +608,7 @@ interface EditEntryModalProps {
 
 function EditEntryModal({ entry, projects, onClose, onSaved, onError }: EditEntryModalProps) {
   const [submitting, setSubmitting] = useState(false);
-  const {
-    register,
-    handleSubmit,
-    control,
-    formState: { errors },
-  } = useForm<TimeEntryInput>({
-    resolver: zodResolver(timeEntrySchema),
+  const form = useTimeEntryForm({
     defaultValues: {
       projectId: entry.project_id,
       entryDate: entry.entry_date,
@@ -616,10 +617,7 @@ function EditEntryModal({ entry, projects, onClose, onSaved, onError }: EditEntr
       lateSubmissionReason: entry.late_submission_reason ?? '',
     },
   });
-
-  const entryDate = useWatch({ control, name: 'entryDate' });
-  const showLateReason = entryDate ? requiresLateReason(entryDate) : false;
-  const lateDays = entryDate ? daysLate(entryDate) : 0;
+  const { handleSubmit, showLateReason, lateDays } = form;
 
   const onSubmit = async (data: TimeEntryInput) => {
     setSubmitting(true);
@@ -667,91 +665,19 @@ function EditEntryModal({ entry, projects, onClose, onSaved, onError }: EditEntr
       }
     >
       <form id="edit-entry-form" onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-        <div>
-          <label htmlFor="edit-projectId" className="block text-sm font-medium text-app-secondary mb-2">
-            Projeto *
-          </label>
-          <select
-            {...register('projectId')}
-            id="edit-projectId"
-            className="w-full px-3 py-2.5 border border-app-strong bg-surface-secondary text-app-primary rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-focon-600"
-          >
-            {projects.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.name}
-              </option>
-            ))}
-          </select>
-          {errors.projectId && <p className="mt-1 text-sm text-red-600">{errors.projectId.message}</p>}
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <label htmlFor="edit-entryDate" className="block text-sm font-medium text-app-secondary mb-2">
-              Data *
-            </label>
-            <input
-              {...register('entryDate')}
-              id="edit-entryDate"
-              type="date"
-              max={maxEntryDate()}
-              className="w-full px-3 py-2.5 border border-app-strong bg-surface-secondary text-app-primary rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-focon-600"
-            />
-            {errors.entryDate && <p className="mt-1 text-sm text-red-600">{errors.entryDate.message}</p>}
-          </div>
-          <div>
-            <label htmlFor="edit-durationMinutes" className="block text-sm font-medium text-app-secondary mb-2">
-              Duração (minutos) *
-            </label>
-            <input
-              {...register('durationMinutes', { valueAsNumber: true })}
-              id="edit-durationMinutes"
-              type="number"
-              min="1"
-              max="1440"
-              className="w-full px-3 py-2.5 border border-app-strong bg-surface-secondary text-app-primary rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-focon-600"
-            />
-            {errors.durationMinutes && (
-              <p className="mt-1 text-sm text-red-600">{errors.durationMinutes.message}</p>
-            )}
-          </div>
-        </div>
-        <div>
-          <label htmlFor="edit-description" className="block text-sm font-medium text-app-secondary mb-2">
-            Descrição *
-          </label>
-          <textarea
-            {...register('description')}
-            id="edit-description"
-            rows={3}
-            className="w-full px-3 py-2.5 border border-app-strong bg-surface-secondary text-app-primary rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-focon-600"
-          />
-          {errors.description && <p className="mt-1 text-sm text-red-600">{errors.description.message}</p>}
-        </div>
-        {showLateReason && (
-          <div>
-            <label htmlFor="edit-lateReason" className="block text-sm font-medium text-app-secondary mb-2">
-              Justificativa do lançamento retroativo *
-            </label>
-            <p className="text-sm text-app-muted mb-2">
-              Este apontamento está sendo registrado com {lateDays} dias de atraso.
-              Informe o motivo do lançamento retroativo.
-            </p>
-            <textarea
-              {...register('lateSubmissionReason')}
-              id="edit-lateReason"
-              rows={3}
-              className="w-full px-3 py-2.5 border border-app-strong bg-surface-secondary text-app-primary rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-focon-600"
-              placeholder="Ex: Estava em campo durante a semana e não pude registrar no tempo adequado..."
-            />
-            {errors.lateSubmissionReason && (
-              <p className="mt-1 text-sm text-red-600">{errors.lateSubmissionReason.message}</p>
-            )}
-          </div>
-        )}
+        <TimeEntryFields
+          form={form}
+          showLateReason={showLateReason}
+          lateDays={lateDays}
+          projects={projects}
+          idPrefix="edit"
+          descriptionRows={3}
+        />
         <p className="text-xs text-app-muted">
           Apenas apontamentos pendentes podem ser editados. O valor/hora é recalculado
           automaticamente pelo sistema ao alterar a data.
         </p>
+        <AttachmentsPanel entryId={entry.id} />
       </form>
     </Modal>
   );
@@ -768,14 +694,8 @@ interface DuplicateEntryModalProps {
 function DuplicateEntryModal({ entry, projects, onClose, onSaved, onError }: DuplicateEntryModalProps) {
   const { user } = useAuthContext();
   const [submitting, setSubmitting] = useState(false);
-  const today = new Date().toISOString().slice(0, 10);
-  const {
-    register,
-    handleSubmit,
-    control,
-    formState: { errors },
-  } = useForm<TimeEntryInput>({
-    resolver: zodResolver(timeEntrySchema),
+  const today = businessTodayStr();
+  const form = useTimeEntryForm({
     defaultValues: {
       projectId: entry.project_id,
       entryDate: today,
@@ -783,10 +703,7 @@ function DuplicateEntryModal({ entry, projects, onClose, onSaved, onError }: Dup
       description: entry.description,
     },
   });
-
-  const entryDate = useWatch({ control, name: 'entryDate' });
-  const showLateReason = entryDate ? requiresLateReason(entryDate) : false;
-  const lateDays = entryDate ? daysLate(entryDate) : 0;
+  const { handleSubmit, showLateReason, lateDays } = form;
 
   const onSubmit = async (data: TimeEntryInput) => {
     if (!user) return;
@@ -841,87 +758,15 @@ function DuplicateEntryModal({ entry, projects, onClose, onSaved, onError }: Dup
           Um novo apontamento <strong>pendente</strong> será criado copiando projeto, duração e
           descrição. A data pode ser ajustada abaixo. O valor/hora será definido pelo sistema.
         </p>
-        <div>
-          <label htmlFor="dup-projectId" className="block text-sm font-medium text-app-secondary mb-2">
-            Projeto *
-          </label>
-          <select
-            {...register('projectId')}
-            id="dup-projectId"
-            className="w-full px-3 py-2.5 border border-app-strong bg-surface-secondary text-app-primary rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-focon-600"
-          >
-            {projects.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.name}
-              </option>
-            ))}
-          </select>
-          {errors.projectId && <p className="mt-1 text-sm text-red-600">{errors.projectId.message}</p>}
-        </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <label htmlFor="dup-entryDate" className="block text-sm font-medium text-app-secondary mb-2">
-              Nova data *
-            </label>
-            <input
-              {...register('entryDate')}
-              id="dup-entryDate"
-              type="date"
-              max={maxEntryDate()}
-              className="w-full px-3 py-2.5 border border-app-strong bg-surface-secondary text-app-primary rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-focon-600"
-            />
-            {errors.entryDate && <p className="mt-1 text-sm text-red-600">{errors.entryDate.message}</p>}
-          </div>
-          <div>
-            <label htmlFor="dup-durationMinutes" className="block text-sm font-medium text-app-secondary mb-2">
-              Duração (minutos) *
-            </label>
-            <input
-              {...register('durationMinutes', { valueAsNumber: true })}
-              id="dup-durationMinutes"
-              type="number"
-              min="1"
-              max="1440"
-              className="w-full px-3 py-2.5 border border-app-strong bg-surface-secondary text-app-primary rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-focon-600"
-            />
-            {errors.durationMinutes && (
-              <p className="mt-1 text-sm text-red-600">{errors.durationMinutes.message}</p>
-            )}
-          </div>
-        </div>
-        <div>
-          <label htmlFor="dup-description" className="block text-sm font-medium text-app-secondary mb-2">
-            Descrição *
-          </label>
-          <textarea
-            {...register('description')}
-            id="dup-description"
-            rows={3}
-            className="w-full px-3 py-2.5 border border-app-strong bg-surface-secondary text-app-primary rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-focon-600"
-          />
-          {errors.description && <p className="mt-1 text-sm text-red-600">{errors.description.message}</p>}
-        </div>
-        {showLateReason && (
-          <div>
-            <label htmlFor="dup-lateReason" className="block text-sm font-medium text-app-secondary mb-2">
-              Justificativa do lançamento retroativo *
-            </label>
-            <p className="text-sm text-app-muted mb-2">
-              Este apontamento está sendo registrado com {lateDays} dias de atraso.
-              Informe o motivo do lançamento retroativo.
-            </p>
-            <textarea
-              {...register('lateSubmissionReason')}
-              id="dup-lateReason"
-              rows={3}
-              className="w-full px-3 py-2.5 border border-app-strong bg-surface-secondary text-app-primary rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-focon-600"
-              placeholder="Ex: Estava em campo durante a semana e não pude registrar no tempo adequado..."
-            />
-            {errors.lateSubmissionReason && (
-              <p className="mt-1 text-sm text-red-600">{errors.lateSubmissionReason.message}</p>
-            )}
-          </div>
-        )}
+        <TimeEntryFields
+          form={form}
+          showLateReason={showLateReason}
+          lateDays={lateDays}
+          projects={projects}
+          idPrefix="dup"
+          descriptionRows={3}
+          dateLabel="Nova data"
+        />
       </form>
     </Modal>
   );

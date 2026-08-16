@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { timeEntriesAPI } from '@/lib/supabase/api';
 import { useAuthContext } from '@/features/auth/useAuthContext';
+import { formatBusinessDate } from '@/lib/businessDate';
 
 interface CalendarEntry {
   id: string;
@@ -46,7 +47,7 @@ function formatDuration(minutes: number): string {
 }
 
 function dateKey(d: Date): string {
-  return d.toISOString().slice(0, 10);
+  return formatBusinessDate(d);
 }
 
 const dayNames = ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'];

@@ -63,8 +63,23 @@ describe('TimeEntryApproval', () => {
         expect(screen.getByText('John Doe')).toBeInTheDocument();
       });
 
+      // Click the row approve button — opens confirmation dialog
       const approveButton = screen.getByText('Aprovar');
       await fireEvent.click(approveButton);
+
+      // Confirm in the dialog
+      await waitFor(() => {
+        expect(screen.getByText('Aprovar Apontamento')).toBeInTheDocument();
+      });
+      const dialog = document.querySelector('[role="dialog"]');
+      const footerBtns = dialog?.querySelectorAll('button') ?? [];
+      const confirmBtn = Array.from(footerBtns).find(
+        (b) => b.textContent?.trim() === 'Aprovar'
+      );
+      if (!confirmBtn) throw new Error('confirm button not found');
+      await act(async () => {
+        fireEvent.click(confirmBtn);
+      });
 
       await waitFor(() => {
         expect(mockApprove).toHaveBeenCalledWith('entry-1');
@@ -85,7 +100,22 @@ describe('TimeEntryApproval', () => {
         expect(screen.getByText('John Doe')).toBeInTheDocument();
       });
 
+      // Click the row approve button — opens confirmation dialog
       await fireEvent.click(screen.getByText('Aprovar'));
+
+      // Confirm in the dialog
+      await waitFor(() => {
+        expect(screen.getByText('Aprovar Apontamento')).toBeInTheDocument();
+      });
+      const dialog = document.querySelector('[role="dialog"]');
+      const footerBtns = dialog?.querySelectorAll('button') ?? [];
+      const confirmBtn = Array.from(footerBtns).find(
+        (b) => b.textContent?.trim() === 'Aprovar'
+      );
+      if (!confirmBtn) throw new Error('confirm button not found');
+      await act(async () => {
+        fireEvent.click(confirmBtn);
+      });
 
       await waitFor(() => {
         expect(mockApprove).toHaveBeenCalledWith('entry-1');
