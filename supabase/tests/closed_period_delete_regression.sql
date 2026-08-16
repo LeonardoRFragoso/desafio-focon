@@ -120,7 +120,7 @@ DECLARE
   v_bruno  UUID := '550e8400-e29b-41d4-a716-446655550002';
   v_admin  UUID := '550e8400-e29b-41d4-a716-446655550099';
   v_proj   UUID := '550e8400-e29b-41d4-a716-446655440001';
-  v_today  DATE := CURRENT_DATE;
+  v_today  DATE := public.business_current_date();
   v_entry  UUID;
   v_other  UUID;
   v_count  INTEGER;

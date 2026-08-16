@@ -7,6 +7,7 @@
 set -euo pipefail
 
 FUNCTIONS_DIR="supabase/functions"
+DENO_CONFIG="$FUNCTIONS_DIR/deno.json"
 FAILED=0
 
 echo "=== Deno check (type checking) ==="
@@ -15,7 +16,7 @@ for dir in "$FUNCTIONS_DIR"/*/; do
   entry="${dir}index.ts"
   if [ -f "$entry" ]; then
     echo "  Checking $func_name..."
-    if ! deno check "$entry"; then
+    if ! deno check --config "$DENO_CONFIG" "$entry"; then
       echo "  FAIL: deno check failed for $func_name"
       FAILED=1
     fi
@@ -29,7 +30,7 @@ for dir in "$FUNCTIONS_DIR"/*/; do
   entry="${dir}index.ts"
   if [ -f "$entry" ]; then
     echo "  Linting $func_name..."
-    if ! deno lint "$entry"; then
+    if ! deno lint --config "$DENO_CONFIG" "$entry"; then
       echo "  FAIL: deno lint failed for $func_name"
       FAILED=1
     fi

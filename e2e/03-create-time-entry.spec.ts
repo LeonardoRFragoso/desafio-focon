@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { TEST_USERS } from './fixtures';
+import { TEST_USERS, businessTodayStr } from './fixtures';
 
 /**
  * E2E 3: Member create time entry → persistence verified
@@ -37,8 +37,8 @@ test.describe('E2E 3: Member create time entry', () => {
     }
     expect(selected).toBe(true);
 
-    // Set date to today
-    const today = new Date().toISOString().slice(0, 10);
+    // Set date to today (business timezone, not UTC — prevents CI failures)
+    const today = businessTodayStr();
     await page.fill('#entryDate', today);
 
     // Set duration (60 minutes)

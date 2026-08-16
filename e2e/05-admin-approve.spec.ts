@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { TEST_USERS } from './fixtures';
+import { TEST_USERS, businessTodayStr } from './fixtures';
 
 /**
  * E2E 5: Admin approve/reject → change persisted
@@ -34,7 +34,7 @@ test.describe('E2E 5: Admin approve time entry', () => {
       }
     }
 
-    const today = new Date().toISOString().slice(0, 10);
+    const today = businessTodayStr();
     await page.fill('#entryDate', today);
     await page.fill('#durationMinutes', '45');
     const uniqueDesc = `E2E approve test ${Date.now()}`;

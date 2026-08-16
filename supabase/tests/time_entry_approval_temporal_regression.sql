@@ -109,29 +109,29 @@ SET session_replication_role = 'replica';
 INSERT INTO time_entries (id, project_id, professional_id, entry_date, duration_minutes, description, approval_status, applied_hourly_rate, late_submission_reason, created_at, updated_at)
 VALUES
   -- T4: Legacy retroactive 10d, no reason
-  ('cccc0000-0000-0000-0000-000000000001', '550e8400-e29b-41d4-a716-446655440001', '550e8400-e29b-41d4-a716-446655550001', CURRENT_DATE - 10, 480, 'T4 legacy retro 10d no reason', 'pending', 50.0, NULL, CURRENT_DATE - 10, CURRENT_DATE - 10),
+  ('cccc0000-0000-0000-0000-000000000001', '550e8400-e29b-41d4-a716-446655440001', '550e8400-e29b-41d4-a716-446655550001', public.business_current_date() - 10, 480, 'T4 legacy retro 10d no reason', 'pending', 50.0, NULL, public.business_current_date() - 10, public.business_current_date() - 10),
   -- T5: Legacy retroactive 10d, no reason (for reject)
-  ('cccc0000-0000-0000-0000-000000000002', '550e8400-e29b-41d4-a716-446655440001', '550e8400-e29b-41d4-a716-446655550001', CURRENT_DATE - 10, 480, 'T5 legacy retro 10d no reason for reject', 'pending', 50.0, NULL, CURRENT_DATE - 10, CURRENT_DATE - 10),
+  ('cccc0000-0000-0000-0000-000000000002', '550e8400-e29b-41d4-a716-446655440001', '550e8400-e29b-41d4-a716-446655550001', public.business_current_date() - 10, 480, 'T5 legacy retro 10d no reason for reject', 'pending', 50.0, NULL, public.business_current_date() - 10, public.business_current_date() - 10),
   -- T6: Future legacy for approve denial
-  ('cccc0000-0000-0000-0000-000000000003', '550e8400-e29b-41d4-a716-446655440001', '550e8400-e29b-41d4-a716-446655550001', CURRENT_DATE + 11, 480, 'T6 future legacy for approve denial', 'pending', 50.0, NULL, CURRENT_DATE - 5, CURRENT_DATE - 5),
+  ('cccc0000-0000-0000-0000-000000000003', '550e8400-e29b-41d4-a716-446655440001', '550e8400-e29b-41d4-a716-446655550001', public.business_current_date() + 11, 480, 'T6 future legacy for approve denial', 'pending', 50.0, NULL, public.business_current_date() - 5, public.business_current_date() - 5),
   -- T7: Future legacy for reject
-  ('cccc0000-0000-0000-0000-000000000004', '550e8400-e29b-41d4-a716-446655440001', '550e8400-e29b-41d4-a716-446655550001', CURRENT_DATE + 11, 480, 'T7 future legacy for reject', 'pending', 50.0, NULL, CURRENT_DATE - 5, CURRENT_DATE - 5),
+  ('cccc0000-0000-0000-0000-000000000004', '550e8400-e29b-41d4-a716-446655440001', '550e8400-e29b-41d4-a716-446655550001', public.business_current_date() + 11, 480, 'T7 future legacy for reject', 'pending', 50.0, NULL, public.business_current_date() - 5, public.business_current_date() - 5),
   -- T8: Future legacy to be corrected to today
-  ('cccc0000-0000-0000-0000-000000000005', '550e8400-e29b-41d4-a716-446655440001', '550e8400-e29b-41d4-a716-446655550001', CURRENT_DATE + 11, 480, 'T8 future legacy to be corrected to today', 'pending', 50.0, NULL, CURRENT_DATE - 5, CURRENT_DATE - 5),
+  ('cccc0000-0000-0000-0000-000000000005', '550e8400-e29b-41d4-a716-446655440001', '550e8400-e29b-41d4-a716-446655550001', public.business_current_date() + 11, 480, 'T8 future legacy to be corrected to today', 'pending', 50.0, NULL, public.business_current_date() - 5, public.business_current_date() - 5),
   -- T9: Future legacy to be corrected to 5d ago (no reason)
-  ('cccc0000-0000-0000-0000-000000000006', '550e8400-e29b-41d4-a716-446655440001', '550e8400-e29b-41d4-a716-446655550001', CURRENT_DATE + 11, 480, 'T9 future legacy to be corrected to 5d ago no reason', 'pending', 50.0, NULL, CURRENT_DATE - 5, CURRENT_DATE - 5),
+  ('cccc0000-0000-0000-0000-000000000006', '550e8400-e29b-41d4-a716-446655440001', '550e8400-e29b-41d4-a716-446655550001', public.business_current_date() + 11, 480, 'T9 future legacy to be corrected to 5d ago no reason', 'pending', 50.0, NULL, public.business_current_date() - 5, public.business_current_date() - 5),
   -- T10: Future legacy to be corrected to 5d ago (with reason)
-  ('cccc0000-0000-0000-0000-000000000007', '550e8400-e29b-41d4-a716-446655440001', '550e8400-e29b-41d4-a716-446655550001', CURRENT_DATE + 11, 480, 'T10 future legacy to be corrected to 5d ago with reason', 'pending', 50.0, NULL, CURRENT_DATE - 5, CURRENT_DATE - 5),
+  ('cccc0000-0000-0000-0000-000000000007', '550e8400-e29b-41d4-a716-446655440001', '550e8400-e29b-41d4-a716-446655550001', public.business_current_date() + 11, 480, 'T10 future legacy to be corrected to 5d ago with reason', 'pending', 50.0, NULL, public.business_current_date() - 5, public.business_current_date() - 5),
   -- T11: Legacy retro status-only approve test
-  ('cccc0000-0000-0000-0000-000000000008', '550e8400-e29b-41d4-a716-446655440001', '550e8400-e29b-41d4-a716-446655550001', CURRENT_DATE - 10, 480, 'T11 legacy retro status-only approve test', 'pending', 50.0, NULL, CURRENT_DATE - 10, CURRENT_DATE - 10),
+  ('cccc0000-0000-0000-0000-000000000008', '550e8400-e29b-41d4-a716-446655440001', '550e8400-e29b-41d4-a716-446655550001', public.business_current_date() - 10, 480, 'T11 legacy retro status-only approve test', 'pending', 50.0, NULL, public.business_current_date() - 10, public.business_current_date() - 10),
   -- T12: Legacy retro status-only reject test
-  ('cccc0000-0000-0000-0000-000000000009', '550e8400-e29b-41d4-a716-446655440001', '550e8400-e29b-41d4-a716-446655550001', CURRENT_DATE - 10, 480, 'T12 legacy retro status-only reject test', 'pending', 50.0, NULL, CURRENT_DATE - 10, CURRENT_DATE - 10),
+  ('cccc0000-0000-0000-0000-000000000009', '550e8400-e29b-41d4-a716-446655440001', '550e8400-e29b-41d4-a716-446655550001', public.business_current_date() - 10, 480, 'T12 legacy retro status-only reject test', 'pending', 50.0, NULL, public.business_current_date() - 10, public.business_current_date() - 10),
   -- T17: Batch future legacy
-  ('cccc0000-0000-0000-0000-000000000010', '550e8400-e29b-41d4-a716-446655440001', '550e8400-e29b-41d4-a716-446655550001', CURRENT_DATE + 11, 480, 'T17 batch future legacy', 'pending', 50.0, NULL, CURRENT_DATE - 5, CURRENT_DATE - 5),
+  ('cccc0000-0000-0000-0000-000000000010', '550e8400-e29b-41d4-a716-446655440001', '550e8400-e29b-41d4-a716-446655550001', public.business_current_date() + 11, 480, 'T17 batch future legacy', 'pending', 50.0, NULL, public.business_current_date() - 5, public.business_current_date() - 5),
   -- T18: Batch reject future legacy
-  ('cccc0000-0000-0000-0000-000000000011', '550e8400-e29b-41d4-a716-446655440001', '550e8400-e29b-41d4-a716-446655550001', CURRENT_DATE + 11, 480, 'T18 batch reject future legacy', 'pending', 50.0, NULL, CURRENT_DATE - 5, CURRENT_DATE - 5),
+  ('cccc0000-0000-0000-0000-000000000011', '550e8400-e29b-41d4-a716-446655440001', '550e8400-e29b-41d4-a716-446655550001', public.business_current_date() + 11, 480, 'T18 batch reject future legacy', 'pending', 50.0, NULL, public.business_current_date() - 5, public.business_current_date() - 5),
   -- T19: Closed period entry
-  ('cccc0000-0000-0000-0000-000000000012', '550e8400-e29b-41d4-a716-446655440001', '550e8400-e29b-41d4-a716-446655550001', CURRENT_DATE - 60, 480, 'T19 closed period entry', 'pending', 50.0, NULL, CURRENT_DATE - 60, CURRENT_DATE - 60);
+  ('cccc0000-0000-0000-0000-000000000012', '550e8400-e29b-41d4-a716-446655440001', '550e8400-e29b-41d4-a716-446655550001', public.business_current_date() - 60, 480, 'T19 closed period entry', 'pending', 50.0, NULL, public.business_current_date() - 60, public.business_current_date() - 60);
 
 SET session_replication_role = 'origin';
 
@@ -139,8 +139,8 @@ SET session_replication_role = 'origin';
 -- Create accounting period for T19 (closed period test)
 -- ====================================================================
 INSERT INTO accounting_periods (period_key, status, created_at, updated_at)
-SELECT to_char(CURRENT_DATE - 60, 'YYYY-MM'), 'open', NOW(), NOW()
-WHERE NOT EXISTS (SELECT 1 FROM accounting_periods WHERE period_key = to_char(CURRENT_DATE - 60, 'YYYY-MM'));
+SELECT to_char(public.business_current_date() - 60, 'YYYY-MM'), 'open', NOW(), NOW()
+WHERE NOT EXISTS (SELECT 1 FROM accounting_periods WHERE period_key = to_char(public.business_current_date() - 60, 'YYYY-MM'));
 
 -- ====================================================================
 -- Test assertions
@@ -162,11 +162,11 @@ BEGIN
   -- T1: New today, approve → PASS
   -- ====================================================================
   PERFORM pg_temp.try_as(v_ana::text, format(
-    'INSERT INTO time_entries (project_id, professional_id, entry_date, duration_minutes, description, approval_status, applied_hourly_rate) VALUES (%L, %L, CURRENT_DATE, 480, ''T1 normal today entry for approval testing'', ''pending'', 50.0)',
+    'INSERT INTO time_entries (project_id, professional_id, entry_date, duration_minutes, description, approval_status, applied_hourly_rate) VALUES (%L, %L, public.business_current_date(), 480, ''T1 normal today entry for approval testing'', ''pending'', 50.0)',
     v_proj, v_ana
   ));
   v_id := pg_temp.val_as(v_ana::text, format(
-    'SELECT id FROM time_entries WHERE professional_id = %L AND entry_date = CURRENT_DATE AND description = ''T1 normal today entry for approval testing'' ORDER BY created_at DESC LIMIT 1',
+    'SELECT id FROM time_entries WHERE professional_id = %L AND entry_date = public.business_current_date() AND description = ''T1 normal today entry for approval testing'' ORDER BY created_at DESC LIMIT 1',
     v_ana
   ))::UUID;
 
@@ -181,11 +181,11 @@ BEGIN
   -- T2: New today, reject → PASS
   -- ====================================================================
   PERFORM pg_temp.try_as(v_ana::text, format(
-    'INSERT INTO time_entries (project_id, professional_id, entry_date, duration_minutes, description, approval_status, applied_hourly_rate) VALUES (%L, %L, CURRENT_DATE, 480, ''T2 normal today entry for rejection testing'', ''pending'', 50.0)',
+    'INSERT INTO time_entries (project_id, professional_id, entry_date, duration_minutes, description, approval_status, applied_hourly_rate) VALUES (%L, %L, public.business_current_date(), 480, ''T2 normal today entry for rejection testing'', ''pending'', 50.0)',
     v_proj, v_ana
   ));
   v_id := pg_temp.val_as(v_ana::text, format(
-    'SELECT id FROM time_entries WHERE professional_id = %L AND entry_date = CURRENT_DATE AND description = ''T2 normal today entry for rejection testing'' ORDER BY created_at DESC LIMIT 1',
+    'SELECT id FROM time_entries WHERE professional_id = %L AND entry_date = public.business_current_date() AND description = ''T2 normal today entry for rejection testing'' ORDER BY created_at DESC LIMIT 1',
     v_ana
   ))::UUID;
 
@@ -200,7 +200,7 @@ BEGIN
   -- T3: New yesterday, approve → PASS
   -- ====================================================================
   PERFORM pg_temp.try_as(v_ana::text, format(
-    'INSERT INTO time_entries (project_id, professional_id, entry_date, duration_minutes, description, approval_status, applied_hourly_rate) VALUES (%L, %L, CURRENT_DATE - 1, 480, ''T3 yesterday entry for approval testing'', ''pending'', 50.0)',
+    'INSERT INTO time_entries (project_id, professional_id, entry_date, duration_minutes, description, approval_status, applied_hourly_rate) VALUES (%L, %L, public.business_current_date() - 1, 480, ''T3 yesterday entry for approval testing'', ''pending'', 50.0)',
     v_proj, v_ana
   ));
   v_id := pg_temp.val_as(v_ana::text, format(
@@ -264,7 +264,7 @@ BEGIN
   v_id := 'cccc0000-0000-0000-0000-000000000005';
   PERFORM pg_temp.assert_true(
     pg_temp.try_as(v_ana::text, format(
-      'UPDATE time_entries SET entry_date = CURRENT_DATE, updated_at = NOW() WHERE id = %L',
+      'UPDATE time_entries SET entry_date = public.business_current_date(), updated_at = NOW() WHERE id = %L',
       v_id
     )),
     'T8: editing future legacy to today should PASS'
@@ -279,7 +279,7 @@ BEGIN
   -- ====================================================================
   v_id := 'cccc0000-0000-0000-0000-000000000006';
   v_err := pg_temp.err_as(v_ana::text, format(
-    'UPDATE time_entries SET entry_date = CURRENT_DATE - 5, updated_at = NOW() WHERE id = %L',
+    'UPDATE time_entries SET entry_date = public.business_current_date() - 5, updated_at = NOW() WHERE id = %L',
     v_id
   ));
   PERFORM pg_temp.assert_true(
@@ -293,7 +293,7 @@ BEGIN
   v_id := 'cccc0000-0000-0000-0000-000000000007';
   PERFORM pg_temp.assert_true(
     pg_temp.try_as(v_ana::text, format(
-      'UPDATE time_entries SET entry_date = CURRENT_DATE - 5, late_submission_reason = ''Corrigindo data futura legada para data retroativa valida'', updated_at = NOW() WHERE id = %L',
+      'UPDATE time_entries SET entry_date = public.business_current_date() - 5, late_submission_reason = ''Corrigindo data futura legada para data retroativa valida'', updated_at = NOW() WHERE id = %L',
       v_id
     )),
     'T10: editing future to 5d ago with reason should PASS'
@@ -322,7 +322,7 @@ BEGIN
   -- ====================================================================
   PERFORM pg_temp.assert_false(
     pg_temp.try_as(v_ana::text, format(
-      'INSERT INTO time_entries (project_id, professional_id, entry_date, duration_minutes, description, approval_status, applied_hourly_rate) VALUES (%L, %L, CURRENT_DATE + 1, 480, ''T13 should be denied future'', ''pending'', 50.0)',
+      'INSERT INTO time_entries (project_id, professional_id, entry_date, duration_minutes, description, approval_status, applied_hourly_rate) VALUES (%L, %L, public.business_current_date() + 1, 480, ''T13 should be denied future'', ''pending'', 50.0)',
       v_proj, v_ana
     )),
     'T13: create tomorrow should DENIED'
@@ -333,7 +333,7 @@ BEGIN
   -- ====================================================================
   PERFORM pg_temp.assert_false(
     pg_temp.try_as(v_ana::text, format(
-      'INSERT INTO time_entries (project_id, professional_id, entry_date, duration_minutes, description, approval_status, applied_hourly_rate) VALUES (%L, %L, CURRENT_DATE + 7, 480, ''T14 should be denied 7d future'', ''pending'', 50.0)',
+      'INSERT INTO time_entries (project_id, professional_id, entry_date, duration_minutes, description, approval_status, applied_hourly_rate) VALUES (%L, %L, public.business_current_date() + 7, 480, ''T14 should be denied 7d future'', ''pending'', 50.0)',
       v_proj, v_ana
     )),
     'T14: create 7d future should DENIED'
@@ -344,7 +344,7 @@ BEGIN
   -- ====================================================================
   PERFORM pg_temp.assert_false(
     pg_temp.try_as(v_ana::text, format(
-      'INSERT INTO time_entries (project_id, professional_id, entry_date, duration_minutes, description, approval_status, applied_hourly_rate) VALUES (%L, %L, CURRENT_DATE - 3, 480, ''T15 should be denied no reason'', ''pending'', 50.0)',
+      'INSERT INTO time_entries (project_id, professional_id, entry_date, duration_minutes, description, approval_status, applied_hourly_rate) VALUES (%L, %L, public.business_current_date() - 3, 480, ''T15 should be denied no reason'', ''pending'', 50.0)',
       v_proj, v_ana
     )),
     'T15: create 3d old without reason should DENIED'
@@ -355,7 +355,7 @@ BEGIN
   -- ====================================================================
   PERFORM pg_temp.assert_true(
     pg_temp.try_as(v_ana::text, format(
-      'INSERT INTO time_entries (project_id, professional_id, entry_date, duration_minutes, description, approval_status, applied_hourly_rate, late_submission_reason) VALUES (%L, %L, CURRENT_DATE - 3, 480, ''T16 valid retroactive with reason'', ''pending'', 50.0, ''Trabalho realizado em campo com atraso na registracao'')',
+      'INSERT INTO time_entries (project_id, professional_id, entry_date, duration_minutes, description, approval_status, applied_hourly_rate, late_submission_reason) VALUES (%L, %L, public.business_current_date() - 3, 480, ''T16 valid retroactive with reason'', ''pending'', 50.0, ''Trabalho realizado em campo com atraso na registracao'')',
       v_proj, v_ana
     )),
     'T16: create 3d old with reason should PASS'
@@ -366,13 +366,13 @@ BEGIN
   -- ====================================================================
   -- Create normal pending entries
   PERFORM pg_temp.try_as(v_ana::text, format(
-    'INSERT INTO time_entries (project_id, professional_id, entry_date, duration_minutes, description, approval_status, applied_hourly_rate) VALUES (%L, %L, CURRENT_DATE, 480, ''T17 batch normal 1'', ''pending'', 50.0)',
+    'INSERT INTO time_entries (project_id, professional_id, entry_date, duration_minutes, description, approval_status, applied_hourly_rate) VALUES (%L, %L, public.business_current_date(), 480, ''T17 batch normal 1'', ''pending'', 50.0)',
     v_proj, v_ana
   ));
   SELECT id INTO v_normal1 FROM time_entries WHERE description = 'T17 batch normal 1' ORDER BY created_at DESC LIMIT 1;
 
   PERFORM pg_temp.try_as(v_ana::text, format(
-    'INSERT INTO time_entries (project_id, professional_id, entry_date, duration_minutes, description, approval_status, applied_hourly_rate) VALUES (%L, %L, CURRENT_DATE - 1, 480, ''T17 batch normal 2'', ''pending'', 50.0)',
+    'INSERT INTO time_entries (project_id, professional_id, entry_date, duration_minutes, description, approval_status, applied_hourly_rate) VALUES (%L, %L, public.business_current_date() - 1, 480, ''T17 batch normal 2'', ''pending'', 50.0)',
     v_proj, v_ana
   ));
   SELECT id INTO v_normal2 FROM time_entries WHERE description = 'T17 batch normal 2' ORDER BY created_at DESC LIMIT 1;
@@ -419,7 +419,7 @@ BEGIN
   -- T19: Closed period behavior → unchanged
   -- ====================================================================
   v_id := 'cccc0000-0000-0000-0000-000000000012';
-  v_period_key := to_char(CURRENT_DATE - 60, 'YYYY-MM');
+  v_period_key := to_char(public.business_current_date() - 60, 'YYYY-MM');
   PERFORM pg_temp.try_as(v_admin::text, format('SELECT public.close_accounting_period(%L)', v_period_key));
 
   v_err := pg_temp.err_as(v_admin::text, format('SELECT public.approve_time_entry(%L)', v_id));
@@ -445,7 +445,7 @@ BEGIN
     -- Reset to the session user (postgres) so the EXECUTE grant check passes.
     -- SET LOCAL ROLE from pg_temp helpers leaks to the outer transaction.
     RESET ROLE;
-    PERFORM public.process_recurring_time_entries(CURRENT_DATE + 7);
+    PERFORM public.process_recurring_time_entries(public.business_current_date() + 7);
   EXCEPTION WHEN OTHERS THEN
     v_err := SQLERRM;
   END;

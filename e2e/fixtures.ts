@@ -21,6 +21,23 @@ export const TEST_USERS = {
 } as const;
 
 /**
+ * Returns today's date as YYYY-MM-DD in the canonical business timezone
+ * (America/Sao_Paulo). This MUST be used instead of
+ * `new Date().toISOString().slice(0, 10)` (which returns UTC) because the
+ * database temporal trigger uses `business_current_date()` (America/Sao_Paulo).
+ * On CI runners (UTC), the UTC date can be 1 day ahead of the business date,
+ * causing entries to be rejected as "future dates".
+ */
+export function businessTodayStr(): string {
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'America/Sao_Paulo',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(new Date());
+}
+
+/**
  * Login via the UI (real auth flow, no API mocking).
  * Waits for redirect to the role-appropriate dashboard.
  */

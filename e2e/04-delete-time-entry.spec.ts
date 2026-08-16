@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { TEST_USERS } from './fixtures';
+import { TEST_USERS, businessTodayStr } from './fixtures';
 
 /**
  * E2E 4: Member delete pending time entry → row disappears
@@ -36,7 +36,7 @@ test.describe('E2E 4: Member delete pending time entry', () => {
     }
     expect(selected).toBe(true);
 
-    const today = new Date().toISOString().slice(0, 10);
+    const today = businessTodayStr();
     await page.fill('#entryDate', today);
     await page.fill('#durationMinutes', '30');
     const uniqueDesc = `E2E delete test ${Date.now()}`;
