@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { timeEntrySchema, type TimeEntryInput } from '@/schemas/time-entry';
 import { supabase } from '@/lib/supabase/client';
@@ -29,13 +29,13 @@ export function TimeEntryForm({ onSuccess }: TimeEntryFormProps) {
     register,
     handleSubmit,
     reset,
-    watch,
+    control,
     formState: { errors },
   } = useForm<TimeEntryInput>({
     resolver: zodResolver(timeEntrySchema),
   });
 
-  const entryDate = watch('entryDate');
+  const entryDate = useWatch({ control, name: 'entryDate' });
   const showLateReason = entryDate ? requiresLateReason(entryDate) : false;
   const lateDays = entryDate ? daysLate(entryDate) : 0;
 

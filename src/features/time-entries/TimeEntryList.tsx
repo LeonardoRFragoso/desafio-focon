@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { useForm } from 'react-hook-form';
+import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { supabase } from '@/lib/supabase/client';
 import { timeEntriesAPI, projectPhasesAPI, projectTasksAPI } from '@/lib/supabase/api';
@@ -604,7 +604,7 @@ function EditEntryModal({ entry, projects, onClose, onSaved, onError }: EditEntr
   const {
     register,
     handleSubmit,
-    watch,
+    control,
     formState: { errors },
   } = useForm<TimeEntryInput>({
     resolver: zodResolver(timeEntrySchema),
@@ -617,7 +617,7 @@ function EditEntryModal({ entry, projects, onClose, onSaved, onError }: EditEntr
     },
   });
 
-  const entryDate = watch('entryDate');
+  const entryDate = useWatch({ control, name: 'entryDate' });
   const showLateReason = entryDate ? requiresLateReason(entryDate) : false;
   const lateDays = entryDate ? daysLate(entryDate) : 0;
 
@@ -772,7 +772,7 @@ function DuplicateEntryModal({ entry, projects, onClose, onSaved, onError }: Dup
   const {
     register,
     handleSubmit,
-    watch,
+    control,
     formState: { errors },
   } = useForm<TimeEntryInput>({
     resolver: zodResolver(timeEntrySchema),
@@ -784,7 +784,7 @@ function DuplicateEntryModal({ entry, projects, onClose, onSaved, onError }: Dup
     },
   });
 
-  const entryDate = watch('entryDate');
+  const entryDate = useWatch({ control, name: 'entryDate' });
   const showLateReason = entryDate ? requiresLateReason(entryDate) : false;
   const lateDays = entryDate ? daysLate(entryDate) : 0;
 

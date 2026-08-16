@@ -130,7 +130,7 @@ BEGIN
   SELECT id INTO v_proj FROM projects LIMIT 1;
 
   -- Compute test dates
-  v_today := CURRENT_DATE;
+  v_today := public.business_current_date();
   v_tomorrow := v_today + 1;
   v_yesterday := v_today - 1;
   v_2days_ago := v_today - 2;

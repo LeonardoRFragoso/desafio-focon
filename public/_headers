@@ -1,0 +1,24 @@
+# Security headers for static SPA hosting (Netlify / Cloudflare Pages).
+# Apply to all routes. Adjust per-deployment as needed.
+
+/*
+  X-Frame-Options: DENY
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: geolocation=(), microphone=(), camera=()
+  Strict-Transport-Security: max-age=31536000; includeSubDomains; preload
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'sha256-530942439d43bd759a701ede20e0d0e832112aed86b17dfe003d77755e219023' https://*.sentry-cdn.com https://browser.sentry-cdn.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https: blob:; font-src 'self' data:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.sentry.io https://ingest.sentry.io; worker-src 'self' blob:; manifest-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'
+
+# Static assets — long cache (immutable, content-hashed by Vite)
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# Service worker — short cache so updates are picked up quickly
+/sw.js
+  Cache-Control: public, max-age=0, must-revalidate
+/workbox-*.js
+  Cache-Control: public, max-age=0, must-revalidate
+
+# index.html — never cache (entry point must always be fresh)
+/index.html
+  Cache-Control: public, max-age=0, must-revalidate

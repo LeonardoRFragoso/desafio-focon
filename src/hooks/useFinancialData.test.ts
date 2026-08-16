@@ -249,13 +249,14 @@ describe('useFinancialData', () => {
 
     await waitFor(() => {
       expect(result.current.loading).toBe(false);
+      expect(result.current.error).toBeDefined();
     });
 
     // Should have error state
     expect(result.current.error).toBeDefined();
   });
 
-  it('should expose refetch function', () => {
+  it('should expose refetch function', async () => {
     const filters: AdminFilterValues = {
       projectId: '',
       projectName: '',
@@ -278,6 +279,10 @@ describe('useFinancialData', () => {
     } as any);
 
     const { result } = renderHook(() => useFinancialData(filters));
+
+    await waitFor(() => {
+      expect(result.current.loading).toBe(false);
+    });
 
     expect(typeof result.current.refetch).toBe('function');
   });

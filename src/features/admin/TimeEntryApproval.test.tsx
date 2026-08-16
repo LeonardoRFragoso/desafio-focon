@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, waitFor, fireEvent } from '@testing-library/react';
+import { render, screen, waitFor, fireEvent, act } from '@testing-library/react';
 import { TimeEntryApproval } from './TimeEntryApproval';
 import * as usePendingTimeEntriesModule from '@/hooks/usePendingTimeEntries';
 
@@ -123,7 +123,9 @@ describe('TimeEntryApproval', () => {
         (b) => b.textContent?.trim() === 'Rejeitar'
       );
       if (!confirmBtn) throw new Error('modal confirm button not found');
-      await fireEvent.click(confirmBtn);
+      await act(async () => {
+        fireEvent.click(confirmBtn);
+      });
 
       await waitFor(() => {
         expect(mockReject).toHaveBeenCalledWith('entry-1', 'Descrição insuficiente para aprovação');
@@ -184,7 +186,9 @@ describe('TimeEntryApproval', () => {
       const confirmBtns = screen.getAllByText('Aprovar 1');
       const confirmBtn = confirmBtns[0];
       if (!confirmBtn) throw new Error('confirm button not found');
-      await fireEvent.click(confirmBtn);
+      await act(async () => {
+        fireEvent.click(confirmBtn);
+      });
 
       await waitFor(() => {
         expect(mockBatchApprove).toHaveBeenCalledWith(['entry-1']);
@@ -358,7 +362,9 @@ describe('TimeEntryApproval', () => {
       const confirmBtns = screen.getAllByText('Aprovar 2');
       const confirmBtn = confirmBtns[0];
       if (!confirmBtn) throw new Error('confirm button not found');
-      await fireEvent.click(confirmBtn);
+      await act(async () => {
+        fireEvent.click(confirmBtn);
+      });
 
       await waitFor(() => {
         // Should only call batchApprove with the non-future entry

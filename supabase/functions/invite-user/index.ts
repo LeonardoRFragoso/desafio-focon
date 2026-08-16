@@ -1,16 +1,76 @@
-// @ts-nocheck
 // Supabase Edge Function: invite-user
 // Allows an admin to invite a new user via email.
 // Uses service role key ONLY server-side — never exposed to the browser.
 // Validates JWT, checks admin role, prevents duplicate invites and orphan profiles.
+//
+// Security hardening:
+//   - Open redirect fix: redirectTo is validated against an allowlist of
+//     origins (SUPABASE_URL + ALLOWED_WEB_ORIGINS env). The client-supplied
+//     Origin header is NEVER trusted directly.
+//   - CORS: reflects the request Origin only if it is in the allowlist;
+//     otherwise no Access-Control-Allow-Origin is sent (browser blocks).
+//   - Email validation via RFC 5322-compatible regex (not just '@').
+//   - full_name length bounded [2, 120].
+//   - Duplicate-email check now actually blocks the invite (was dead code
+//     that queried full_name and ignored the result).
+//   - Removed @ts-nocheck; types are explicit.
 
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { createClient } from '@supabase/supabase-js';
+import type { SupabaseClient } from '@supabase/supabase-js';
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-};
+// ---------------------------------------------------------------------------
+// Configuration
+// ---------------------------------------------------------------------------
+
+const ALLOWED_ORIGINS: string[] = (() => {
+  const origins: string[] = [];
+  const supabaseUrl = Deno.env.get('SUPABASE_URL');
+  if (supabaseUrl) origins.push(supabaseUrl);
+  const extra = Deno.env.get('ALLOWED_WEB_ORIGINS');
+  if (extra) {
+    for (const o of extra.split(',')) {
+      const trimmed = o.trim();
+      if (trimmed) origins.push(trimmed);
+    }
+  }
+  return origins;
+})();
+
+const EMAIL_REGEX = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
+
+const MAX_NAME_LENGTH = 120;
+const MIN_NAME_LENGTH = 2;
+
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+
+function corsHeaders(requestOrigin: string | null): Record<string, string> {
+  const base: Record<string, string> = {
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  };
+  // Reflect the request origin only if it is allowlisted.
+  if (requestOrigin && ALLOWED_ORIGINS.includes(requestOrigin)) {
+    base['Access-Control-Allow-Origin'] = requestOrigin;
+    base['Vary'] = 'Origin';
+  }
+  return base;
+}
+
+function json(body: unknown, status: number, cors: Record<string, string>): Response {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { ...cors, 'Content-Type': 'application/json' },
+  });
+}
+
+function allowedRedirectOrigin(origin: string | null): string {
+  // Never trust the client Origin for redirects. Use the allowlist.
+  if (origin && ALLOWED_ORIGINS.includes(origin)) return origin;
+  // Fallback to the Supabase URL (always allowlisted).
+  return ALLOWED_ORIGINS[0] ?? Deno.env.get('SUPABASE_URL') ?? '';
+}
 
 interface InviteRequest {
   email: string;
@@ -18,31 +78,35 @@ interface InviteRequest {
   role: 'admin' | 'member';
 }
 
+// ---------------------------------------------------------------------------
+// Main handler
+// ---------------------------------------------------------------------------
+
 Deno.serve(async (req: Request) => {
+  const requestOrigin = req.headers.get('origin');
+  const cors = corsHeaders(requestOrigin);
+
   // Handle CORS preflight
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders });
+    return new Response('ok', { headers: cors });
   }
 
   if (req.method !== 'POST') {
-    return new Response(JSON.stringify({ error: 'Method not allowed' }), {
-      status: 405,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
+    return json({ error: 'Method not allowed' }, 405, cors);
   }
 
   try {
     // 1. Validate JWT — get the authenticated user
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
-      return new Response(JSON.stringify({ error: 'Missing authorization header' }), {
-        status: 401,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+      return json({ error: 'Missing authorization header' }, 401, cors);
     }
 
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const anonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
+    const supabaseUrl = Deno.env.get('SUPABASE_URL');
+    const anonKey = Deno.env.get('SUPABASE_ANON_KEY');
+    if (!supabaseUrl || !anonKey) {
+      return json({ error: 'Server configuration error' }, 500, cors);
+    }
 
     // Create client with user's JWT to verify auth
     const userClient = createClient(supabaseUrl, anonKey, {
@@ -51,13 +115,11 @@ Deno.serve(async (req: Request) => {
 
     const { data: { user }, error: authError } = await userClient.auth.getUser();
     if (authError || !user) {
-      return new Response(JSON.stringify({ error: 'Invalid or expired token' }), {
-        status: 401,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+      return json({ error: 'Invalid or expired token' }, 401, cors);
     }
 
-    // 2. Confirm role = admin
+    // 2. Confirm role = admin (read profile via the user's own JWT so RLS
+    //    enforces the visibility rule).
     const { data: profile, error: profileErr } = await userClient
       .from('profiles')
       .select('role')
@@ -65,75 +127,59 @@ Deno.serve(async (req: Request) => {
       .single();
 
     if (profileErr || !profile) {
-      return new Response(JSON.stringify({ error: 'Profile not found' }), {
-        status: 403,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+      return json({ error: 'Profile not found' }, 403, cors);
     }
 
     if (profile.role !== 'admin') {
-      return new Response(JSON.stringify({ error: 'Only admins can invite users' }), {
-        status: 403,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+      return json({ error: 'Only admins can invite users' }, 403, cors);
     }
 
     // 3. Validate input
-    const body: InviteRequest = await req.json();
-    const email = body.email?.trim().toLowerCase();
-    const fullName = body.full_name?.trim();
-    const role = body.role;
-
-    if (!email || !email.includes('@')) {
-      return new Response(JSON.stringify({ error: 'Invalid email' }), {
-        status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+    let body: InviteRequest;
+    try {
+      body = await req.json();
+    } catch {
+      return json({ error: 'Invalid JSON body' }, 400, cors);
     }
 
-    if (!fullName || fullName.length < 2) {
-      return new Response(JSON.stringify({ error: 'Full name is required (min 2 chars)' }), {
-        status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+    const email = typeof body.email === 'string' ? body.email.trim().toLowerCase() : '';
+    const fullName = typeof body.full_name === 'string' ? body.full_name.trim() : '';
+    const role = body.role;
+
+    if (!email || !EMAIL_REGEX.test(email)) {
+      return json({ error: 'Invalid email' }, 400, cors);
+    }
+
+    if (fullName.length < MIN_NAME_LENGTH || fullName.length > MAX_NAME_LENGTH) {
+      return json({ error: `Full name is required (${MIN_NAME_LENGTH}-${MAX_NAME_LENGTH} chars)` }, 400, cors);
     }
 
     if (role !== 'admin' && role !== 'member') {
-      return new Response(JSON.stringify({ error: 'Invalid role. Must be "admin" or "member"' }), {
-        status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+      return json({ error: 'Invalid role. Must be "admin" or "member"' }, 400, cors);
     }
 
-    // 4. Check for duplicate — existing profile with same email
-    const { data: existing } = await userClient
-      .from('profiles')
-      .select('id')
-      .ilike('full_name', fullName)
-      .limit(1);
-
-    // Also check if email is already registered in auth
-    // We can't directly query auth.users with anon key, but we can try to sign in
-    // and check the error. Instead, we'll use the admin client below.
-
-    // 5. Use service role to invite the user
-    const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    // 4. Use service role for the remaining privileged operations.
+    const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
     if (!serviceRoleKey) {
-      return new Response(JSON.stringify({ error: 'Server configuration error' }), {
-        status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+      return json({ error: 'Server configuration error' }, 500, cors);
     }
 
-    const adminClient = createClient(supabaseUrl, serviceRoleKey, {
+    const adminClient: SupabaseClient = createClient(supabaseUrl, serviceRoleKey, {
       auth: { autoRefreshToken: false, persistSession: false },
     });
 
-    // 6. Send invite via Supabase Auth
+    // 5. Send invite via Supabase Auth.
+    //    Duplicate-email detection: the profiles table has no email column
+    //    (email lives in auth.users), and the admin API has no lightweight
+    //    getUserByEmail. We rely on inviteUserByEmail returning a "user
+    //    already registered" error for duplicates (handled below).
+    //
+    //    redirectTo is validated against the allowlist — NEVER the raw Origin.
+    const redirectTo = `${allowedRedirectOrigin(requestOrigin)}/login`;
     const { data: inviteData, error: inviteErr } = await adminClient.auth.admin.inviteUserByEmail(
       email,
       {
-        redirectTo: `${req.headers.get('origin') || supabaseUrl}/login`,
+        redirectTo,
         data: {
           full_name: fullName,
           role: role,
@@ -142,21 +188,16 @@ Deno.serve(async (req: Request) => {
     );
 
     if (inviteErr) {
-      // Check for duplicate user
+      // Check for duplicate user (auth.users already has this email)
       if (inviteErr.message.includes('already') || inviteErr.message.includes('registered')) {
-        return new Response(JSON.stringify({ error: 'User with this email already exists' }), {
-          status: 409,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        });
+        return json({ error: 'User with this email already exists' }, 409, cors);
       }
-      // Don't log the full error (may contain sensitive info)
-      return new Response(JSON.stringify({ error: 'Failed to send invite' }), {
-        status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
+      // Don't leak the full error (may contain sensitive info)
+      return json({ error: 'Failed to send invite' }, 500, cors);
     }
 
-    // 7. Provision profile for the invited user
+    // 6. Provision profile for the invited user.
+    //    profiles has columns: id, full_name, role (no email column).
     if (inviteData?.user?.id) {
       const { error: profileInsertErr } = await adminClient
         .from('profiles')
@@ -167,33 +208,22 @@ Deno.serve(async (req: Request) => {
         });
 
       if (profileInsertErr) {
-        // Profile provisioning failed — but user was already invited
-        // Return success but with a warning
-        return new Response(
-          JSON.stringify({
+        // Profile provisioning failed — but user was already invited.
+        // Return success but with a warning so the admin can fix manually.
+        return json(
+          {
             success: true,
             warning: 'User invited but profile provisioning failed. Please check manually.',
-          }),
-          {
-            status: 200,
-            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-          }
+          },
+          200,
+          cors
         );
       }
     }
 
-    return new Response(
-      JSON.stringify({ success: true, message: 'Invite sent successfully' }),
-      {
-        status: 200,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      }
-    );
-  } catch (err) {
-    // Never log tokens or sensitive data
-    return new Response(JSON.stringify({ error: 'Internal server error' }), {
-      status: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
+    return json({ success: true, message: 'Invite sent successfully' }, 200, cors);
+  } catch (_err) {
+    // Never log tokens or sensitive data; return a generic message.
+    return json({ error: 'Internal server error' }, 500, corsHeaders(req.headers.get('origin')));
   }
 });

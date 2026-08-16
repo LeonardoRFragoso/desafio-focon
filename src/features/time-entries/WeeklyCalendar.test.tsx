@@ -42,7 +42,9 @@ describe('WeeklyCalendar', () => {
   it('renders week navigation controls', async () => {
     vi.mocked(timeEntriesAPI.getByUser).mockResolvedValue({ data: [], error: null } as never);
     renderWithProviders(<WeeklyCalendar />);
-    expect(screen.getByLabelText('Semana anterior')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByLabelText('Semana anterior')).toBeInTheDocument();
+    });
     expect(screen.getByLabelText('Próxima semana')).toBeInTheDocument();
     expect(screen.getByText('Hoje')).toBeInTheDocument();
   });

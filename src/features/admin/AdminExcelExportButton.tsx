@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { supabase } from '@/lib/supabase/client';
-import { exportAdminExcel } from '@/lib/excel-export';
 import type { AdminFilterValues } from '@/types/admin';
 import type { TimeEntryWithRelations, Project, ProjectBudget } from '@/types/database';
 
@@ -58,6 +57,10 @@ export function AdminExcelExportButton({ filters }: Props) {
       const result = revenue - laborCost - tax - indirectCost;
       const margin = revenue > 0 ? (result / revenue) * 100 : 0;
 
+      // Lazy-load exceljs + export logic only when the user actually clicks
+      // "Exportar Excel". This keeps the heavy ExcelJS dependency (~300 KB)
+      // out of the main bundle.
+      const { exportAdminExcel } = await import('@/lib/excel-export');
       await exportAdminExcel({
         entries,
         projects: (projectsData as Project[]) || [],

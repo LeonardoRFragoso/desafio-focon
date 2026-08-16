@@ -7,10 +7,13 @@ import {
   requiresLateReason,
 } from './temporalRules';
 
-/** Helper: shift today's date by N days and return YYYY-MM-DD */
+/** Helper: shift today's business date by N days and return YYYY-MM-DD.
+ * Uses businessTodayStr() (America/Sao_Paulo) so the test is timezone-independent
+ * and doesn't break on CI runners where the system TZ is UTC. */
 function shiftDate(days: number): string {
-  const today = new Date();
-  const shifted = new Date(today.getFullYear(), today.getMonth(), today.getDate() + days);
+  const today = todayStr();
+  const parts = today.split('-').map(Number);
+  const shifted = new Date(parts[0]!, parts[1]! - 1, parts[2]! + days);
   return `${shifted.getFullYear()}-${String(shifted.getMonth() + 1).padStart(2, '0')}-${String(shifted.getDate()).padStart(2, '0')}`;
 }
 
