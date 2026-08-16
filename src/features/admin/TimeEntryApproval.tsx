@@ -139,7 +139,12 @@ export function TimeEntryApproval({ onStatusChanged }: TimeEntryApprovalProps) {
     }
     const results = await batchApprove(approvableIds);
     if (results) {
-      showToast(`${approvableIds.length} apontamento(s) aprovado(s) com sucesso!`, 'success');
+      const successes = results.filter((r) => r.status === 'approved').length;
+      const failures = results.filter((r) => r.status === 'failed').length;
+      const toastMessage = failures > 0
+        ? `${successes} apontamento(s) aprovado(s); ${failures} falhou/falharam.`
+        : `${successes} apontamento(s) aprovado(s) com sucesso!`;
+      showToast(toastMessage, failures > 0 ? 'error' : 'success');
       setSelectedIds(new Set());
       setBatchMode(null);
       onStatusChanged?.();
@@ -154,7 +159,12 @@ export function TimeEntryApproval({ onStatusChanged }: TimeEntryApprovalProps) {
     const ids = Array.from(selectedIds);
     const results = await batchReject(ids, batchReason.trim());
     if (results) {
-      showToast(`${ids.length} apontamento(s) rejeitado(s) com sucesso!`, 'success');
+      const successes = results.filter((r) => r.status === 'rejected').length;
+      const failures = results.filter((r) => r.status === 'failed').length;
+      const toastMessage = failures > 0
+        ? `${successes} apontamento(s) rejeitado(s); ${failures} falhou/falharam.`
+        : `${successes} apontamento(s) rejeitado(s) com sucesso!`;
+      showToast(toastMessage, failures > 0 ? 'error' : 'success');
       setSelectedIds(new Set());
       setBatchMode(null);
       setBatchReason('');

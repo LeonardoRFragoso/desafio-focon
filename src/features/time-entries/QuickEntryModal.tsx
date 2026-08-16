@@ -3,7 +3,7 @@ import { supabase } from '@/lib/supabase/client';
 import { timeEntriesAPI, projectPhasesAPI, projectTasksAPI } from '@/lib/supabase/api';
 import { mapDatabaseError } from '@/lib/errors';
 import { Modal } from '@/components/Modal';
-import { maxEntryDate, requiresLateReason, daysLate } from '@/features/time-entries/temporalRules';
+import { maxEntryDate, requiresLateReason, daysLate, todayStr } from '@/features/time-entries/temporalRules';
 
 interface QuickEntryModalProps {
   isOpen: boolean;
@@ -35,7 +35,7 @@ export function QuickEntryModal({ isOpen, onClose, userId, onSaved }: QuickEntry
   const [projectId, setProjectId] = useState('');
   const [phaseId, setPhaseId] = useState('');
   const [taskId, setTaskId] = useState('');
-  const [entryDate, setEntryDate] = useState(new Date().toISOString().split('T')[0]);
+  const [entryDate, setEntryDate] = useState(todayStr());
   const [durationMinutes, setDurationMinutes] = useState('');
   const [description, setDescription] = useState('');
   const [lateReason, setLateReason] = useState('');
@@ -135,7 +135,7 @@ export function QuickEntryModal({ isOpen, onClose, userId, onSaved }: QuickEntry
       setDurationMinutes('');
       setDescription('');
       setLateReason('');
-      setEntryDate(new Date().toISOString().split('T')[0]);
+      setEntryDate(todayStr());
     } catch (err) {
       setError(err instanceof Error ? mapDatabaseError(err) : 'Erro ao criar apontamento');
     } finally {

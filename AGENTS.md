@@ -107,3 +107,28 @@ All destructive or significant state-changing actions. Includes confirmation, lo
 **Partial failure**: Batch operations (batch approve, batch reject) can fail for individual entries. Attachment uploads can fail after entry creation. Both cases return explicit error messages and allow retry.
 
 **P0 gaps**: None identified. All destructive actions have confirmation + feedback.
+
+## Corrections Applied (2026-08-16)
+
+### Provisioning Access Fix
+- **Issue**: `service_role` lacked SELECT/INSERT/UPDATE/DELETE on `project_budgets` and `profitability_alerts`
+- **Root Cause**: RLS policies required `auth.uid()` context; service_role had no table-level grants
+- **Fix**: Migration `20240816080000_fix_provisioning_service_role_grants.sql` grants SELECT, INSERT, UPDATE, DELETE to service_role
+- **Safety**: RLS policies remain in place; service_role access is safe and necessary for demo provisioning
+
+### Accounting Period Close Fix
+- **Issue**: Period 2024-08 remained `open` instead of being closed
+- **Root Cause**: `close_accounting_period` RPC requires `auth.uid()` to be an authenticated admin; provisioning script used service_role
+- **Fix**: Provisioning script now creates separate admin client, authenticates as admin@example.com, calls RPC with admin context
+- **Idempotency**: Already-closed periods are handled gracefully (no error thrown)
+
+### Quick Entry Business Date Fix
+- **Issue**: `QuickEntryModal` used `new Date().toISOString().split('T')[0]` (UTC), not business timezone
+- **Fix**: Changed to `todayStr()` from `temporalRules` module (America/Sao_Paulo)
+- **Locations**: Initial state (line 38) and reset after save (line 138)
+
+### Batch Partial Failure UX Fix
+- **Issue**: Toast showed hardcoded count of approvable IDs, ignoring actual RPC success/failure breakdown
+- **Fix**: Toast now uses actual results from RPC: "X approved; Y failed" when failures occur
+- **Locations**: `TimeEntryApproval.tsx` confirmBatchApprove (lines 140-149) and confirmBatchReject (lines 160-171)
+- **Toast type**: Changes to 'error' when failures > 0, 'success' otherwise
