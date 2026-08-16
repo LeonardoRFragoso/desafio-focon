@@ -3,7 +3,17 @@ import { auditAPI } from '@/lib/supabase/api';
 import { mapDatabaseError } from '@/lib/errors';
 import { useDebounce, usePagination } from '@/hooks/usePagination';
 import { Pagination } from '@/components/Pagination';
+import { Modal } from '@/components/Modal';
 import type { AuditLog } from '@/types/database';
+import {
+  getAuditActionLabel,
+  getAuditEntityLabel,
+  getAuditActionColor,
+  AUDIT_COLOR_BADGE_CLASSES,
+  formatAuditDateTime,
+  diffAuditData,
+  formatAuditMetadata,
+} from '@/lib/audit-format';
 
 const PAGE_SIZE = 20;
 
@@ -38,11 +48,11 @@ export function AuditLogPage() {
 
   // Reset page when filters change
   useEffect(() => {
-     
+
     resetPage();
   }, [debouncedSearch, actionFilter, resetPage]);
 
-  // Filter logs
+  // Filter logs — search matches human-readable labels too, not just raw strings
   const filteredLogs = useMemo(() => {
     let result = logs;
     if (debouncedSearch) {
@@ -50,7 +60,9 @@ export function AuditLogPage() {
       result = result.filter(
         (l) =>
           l.action.toLowerCase().includes(q) ||
+          getAuditActionLabel(l.action).toLowerCase().includes(q) ||
           l.entity_type.toLowerCase().includes(q) ||
+          getAuditEntityLabel(l.entity_type).toLowerCase().includes(q) ||
           (l.actor?.full_name?.toLowerCase().includes(q) ?? false)
       );
     }
@@ -69,18 +81,6 @@ export function AuditLogPage() {
   const uniqueActions = useMemo(() => {
     return Array.from(new Set(logs.map((l) => l.action))).sort();
   }, [logs]);
-
-  const formatDateTime = (d: string) =>
-    new Date(d).toLocaleString('pt-BR', { dateStyle: 'short', timeStyle: 'short' });
-
-  const formatData = (data: Record<string, unknown> | null) => {
-    if (!data) return '—';
-    try {
-      return JSON.stringify(data, null, 2);
-    } catch {
-      return String(data);
-    }
-  };
 
   if (loading) {
     return (
@@ -113,7 +113,7 @@ export function AuditLogPage() {
         >
           <option value="">Todas as ações</option>
           {uniqueActions.map((a) => (
-            <option key={a} value={a}>{a}</option>
+            <option key={a} value={a}>{getAuditActionLabel(a)}</option>
           ))}
         </select>
       </div>
@@ -142,37 +142,44 @@ export function AuditLogPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-table-divider">
-                {paginatedLogs.map((log) => (
-                  <tr
-                    key={log.id}
-                    onClick={() => setSelected(log)}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' || e.key === ' ') {
-                        e.preventDefault();
-                        setSelected(log);
-                      }
-                    }}
-                    tabIndex={0}
-                    role="button"
-                    aria-label={`Ver detalhes da ação ${log.action}`}
-                    className="hover:bg-hover-surface/50 transition cursor-pointer focus:outline-none focus:ring-2 focus:ring-inset focus:ring-focon-600"
-                  >
-                    <td className="px-4 py-3 text-sm text-app-secondary whitespace-nowrap">{formatDateTime(log.created_at)}</td>
-                    <td className="px-4 py-3 text-sm text-app-primary font-medium font-mono">{log.action}</td>
-                    <td className="px-4 py-3 text-sm text-app-secondary">{log.entity_type}</td>
-                    <td className="px-4 py-3 text-sm text-app-secondary">
-                      {log.actor?.full_name || log.actor_id?.slice(0, 8) || 'Sistema'}
-                    </td>
-                    <td className="px-4 py-3 text-sm" onClick={(e) => e.stopPropagation()}>
-                      <button
-                        onClick={() => setSelected(log)}
-                        className="px-2.5 py-1 rounded-md text-xs font-medium border border-app-strong text-app-secondary hover:bg-hover-surface transition"
-                      >
-                        Detalhes
-                      </button>
-                    </td>
-                  </tr>
-                ))}
+                {paginatedLogs.map((log) => {
+                  const color = getAuditActionColor(log.action);
+                  return (
+                    <tr
+                      key={log.id}
+                      onClick={() => setSelected(log)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault();
+                          setSelected(log);
+                        }
+                      }}
+                      tabIndex={0}
+                      role="button"
+                      aria-label={`Ver detalhes: ${getAuditActionLabel(log.action)}`}
+                      className="hover:bg-hover-surface/50 transition cursor-pointer focus:outline-none focus:ring-2 focus:ring-inset focus:ring-focon-600"
+                    >
+                      <td className="px-4 py-3 text-sm text-app-secondary whitespace-nowrap">{formatAuditDateTime(log.created_at)}</td>
+                      <td className="px-4 py-3 text-sm">
+                        <span className={`inline-block px-2 py-0.5 rounded text-xs font-medium ${AUDIT_COLOR_BADGE_CLASSES[color]}`}>
+                          {getAuditActionLabel(log.action)}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-sm text-app-secondary">{getAuditEntityLabel(log.entity_type)}</td>
+                      <td className="px-4 py-3 text-sm text-app-secondary">
+                        {log.actor?.full_name || log.actor_id?.slice(0, 8) || 'Sistema'}
+                      </td>
+                      <td className="px-4 py-3 text-sm" onClick={(e) => e.stopPropagation()}>
+                        <button
+                          onClick={() => setSelected(log)}
+                          className="px-2.5 py-1 rounded-md text-xs font-medium border border-app-strong text-app-secondary hover:bg-hover-surface transition"
+                        >
+                          Detalhes
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
@@ -186,63 +193,105 @@ export function AuditLogPage() {
       )}
 
       {selected && (
-        <div
-          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
-          onClick={() => setSelected(null)}
-          role="dialog"
-          aria-modal="true"
-        >
-          <div
-            className="bg-surface-primary rounded-xl shadow-lg w-full max-w-2xl max-h-[90vh] overflow-y-auto"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="sticky top-0 bg-surface-primary border-b border-app-primary p-6 flex justify-between items-center">
-              <h2 className="text-xl font-bold text-app-primary">
-                Detalhes: {selected.action}
-              </h2>
-              <button
-                onClick={() => setSelected(null)}
-                className="text-app-muted hover:text-app-secondary text-2xl leading-none"
-                aria-label="Fechar"
-              >
-                ×
-              </button>
-            </div>
-            <div className="p-6 space-y-4">
-              <div className="grid grid-cols-2 gap-4 text-sm">
-                <div>
-                  <p className="text-app-muted">Entidade</p>
-                  <p className="font-medium text-app-primary">{selected.entity_type}</p>
-                </div>
-                <div>
-                  <p className="text-app-muted">ID da entidade</p>
-                  <p className="font-mono text-xs text-app-primary break-all">{selected.entity_id || '—'}</p>
-                </div>
-                <div>
-                  <p className="text-app-muted">Ator</p>
-                  <p className="font-medium text-app-primary">{selected.actor?.full_name || 'Sistema'}</p>
-                </div>
-                <div>
-                  <p className="text-app-muted">Data/Hora</p>
-                  <p className="font-medium text-app-primary">{formatDateTime(selected.created_at)}</p>
-                </div>
-              </div>
-              <div>
-                <p className="text-sm text-app-muted mb-1">Antes</p>
-                <pre className="bg-surface-secondary rounded-lg p-3 text-xs text-app-secondary overflow-x-auto border border-app-primary">
-                  {formatData(selected.before_data)}
-                </pre>
-              </div>
-              <div>
-                <p className="text-sm text-app-muted mb-1">Depois</p>
-                <pre className="bg-surface-secondary rounded-lg p-3 text-xs text-app-secondary overflow-x-auto border border-app-primary">
-                  {formatData(selected.after_data)}
-                </pre>
-              </div>
-            </div>
-          </div>
-        </div>
+        <AuditLogDetailModal log={selected} onClose={() => setSelected(null)} />
       )}
     </div>
+  );
+}
+
+function AuditLogDetailModal({ log, onClose }: { log: AuditLog; onClose: () => void }) {
+  const color = getAuditActionColor(log.action);
+  const fields = diffAuditData(log.before_data, log.after_data);
+  const metadata = formatAuditMetadata(log.metadata);
+
+  return (
+    <Modal
+      open
+      onClose={onClose}
+      title={getAuditActionLabel(log.action)}
+      maxWidth="max-w-2xl"
+    >
+      <div className="space-y-6">
+        {/* Summary */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+          <div>
+            <p className="text-app-muted">Entidade</p>
+            <p className="font-medium text-app-primary">{getAuditEntityLabel(log.entity_type)}</p>
+          </div>
+          <div>
+            <p className="text-app-muted">ID da entidade</p>
+            <p className="font-mono text-xs text-app-primary break-all">{log.entity_id || '—'}</p>
+          </div>
+          <div>
+            <p className="text-app-muted">Ator</p>
+            <p className="font-medium text-app-primary">{log.actor?.full_name || 'Sistema'}</p>
+          </div>
+          <div>
+            <p className="text-app-muted">Data/Hora</p>
+            <p className="font-medium text-app-primary">{formatAuditDateTime(log.created_at)}</p>
+          </div>
+        </div>
+
+        {/* Action badge */}
+        <div>
+          <span className={`inline-block px-3 py-1 rounded text-sm font-medium ${AUDIT_COLOR_BADGE_CLASSES[color]}`}>
+            {getAuditActionLabel(log.action)}
+          </span>
+        </div>
+
+        {/* Changed fields (before/after diff) */}
+        {fields.length > 0 ? (
+          <div>
+            <h3 className="text-sm font-semibold text-app-primary mb-3">Campos alterados</h3>
+            <div className="space-y-2">
+              {fields.map((field) => (
+                <div
+                  key={field.key}
+                  className={`rounded-lg p-3 border ${
+                    field.changed
+                      ? 'border-focon-200 dark:border-focon-800 bg-focon-50 dark:bg-focon-900/10'
+                      : 'border-app-primary bg-surface-secondary'
+                  }`}
+                >
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-sm font-medium text-app-primary">{field.label}</span>
+                    {field.changed && (
+                      <span className="text-xs text-focon-600 dark:text-focon-400 font-medium">alterado</span>
+                    )}
+                  </div>
+                  <div className="grid grid-cols-2 gap-2 text-xs">
+                    <div>
+                      <span className="text-app-muted">Antes: </span>
+                      <span className="text-app-secondary break-all">{field.before}</span>
+                    </div>
+                    <div>
+                      <span className="text-app-muted">Depois: </span>
+                      <span className="text-app-secondary break-all">{field.after}</span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : (
+          <p className="text-sm text-app-muted">Nenhum dado de antes/depois registrado.</p>
+        )}
+
+        {/* Metadata */}
+        {metadata && metadata.length > 0 && (
+          <div>
+            <h3 className="text-sm font-semibold text-app-primary mb-3">Metadados</h3>
+            <div className="rounded-lg p-3 bg-surface-secondary border border-app-primary space-y-1">
+              {metadata.map((m) => (
+                <div key={m.key} className="text-xs flex gap-2">
+                  <span className="text-app-muted font-medium">{m.key}:</span>
+                  <span className="text-app-secondary break-all">{m.value}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    </Modal>
   );
 }
