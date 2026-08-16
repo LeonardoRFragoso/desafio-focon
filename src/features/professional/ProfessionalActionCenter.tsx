@@ -14,7 +14,7 @@ interface ProfessionalActionCenterProps {
 type Severity = 'info' | 'warning' | 'critical' | 'success';
 
 const SEVERITY_STYLES: Record<Severity, string> = {
-  info: 'border-blue-200 border-app-strong bg-blue-50 bg-surface-primary/20',
+  info: 'border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/20',
   warning: 'border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-900/20',
   critical: 'border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20',
   success: 'border-green-200 dark:border-green-800 bg-green-50 dark:bg-green-900/20',

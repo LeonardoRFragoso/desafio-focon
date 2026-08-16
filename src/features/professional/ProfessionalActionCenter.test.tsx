@@ -192,4 +192,67 @@ describe('ProfessionalActionCenter', () => {
     await userEvent.setup().click(screen.getByText(/Ver rejeitados/));
     expect(navigateMock).toHaveBeenCalledWith('/time-entries?status=rejected');
   });
+
+  // Regression: info severity cards must use dark: variants for bg and border
+  // (previously used light-only bg-blue-50 + bg-surface-primary/20 which produced
+  // extremely low contrast in dark mode).
+  describe('info card dark mode contrast', () => {
+    function getInfoCard(): HTMLElement {
+      // Info cards are rendered with role="listitem" inside the items grid.
+      // We find the card containing an info-severity item by its icon/text.
+      const list = screen.getByRole('list');
+      return list;
+    }
+
+    it('notification info card has dark:border and dark:bg classes', () => {
+      const stats = makeStats({ unread_notifications: 10 });
+      renderCenter({ stats });
+      const list = getInfoCard();
+      const items = list.querySelectorAll('[role="listitem"]');
+      // Find the notification card by its text content
+      const notifCard = Array.from(items).find((el) =>
+        el.textContent?.includes('notificação(ões) não lida(s)')
+      );
+      expect(notifCard).toBeDefined();
+      const classes = notifCard!.className;
+      // Must have dark: border variant
+      expect(classes).toMatch(/dark:border-blue-800/);
+      // Must have dark: bg variant
+      expect(classes).toMatch(/dark:bg-blue-900/);
+      // Must NOT have competing light-only utilities without dark variants
+      expect(classes).not.toMatch(/bg-surface-primary/);
+      expect(classes).not.toMatch(/border-app-strong/);
+    });
+
+    it('weekly goal not configured info card has dark:border and dark:bg classes', () => {
+      renderCenter();
+      const list = getInfoCard();
+      const items = list.querySelectorAll('[role="listitem"]');
+      const goalCard = Array.from(items).find((el) =>
+        el.textContent?.includes('Meta semanal não definida')
+      );
+      expect(goalCard).toBeDefined();
+      const classes = goalCard!.className;
+      expect(classes).toMatch(/dark:border-blue-800/);
+      expect(classes).toMatch(/dark:bg-blue-900/);
+      expect(classes).not.toMatch(/bg-surface-primary/);
+      expect(classes).not.toMatch(/border-app-strong/);
+    });
+
+    it('info card uses exactly one bg utility per theme (clean and dark)', () => {
+      const stats = makeStats({ unread_notifications: 5 });
+      renderCenter({ stats });
+      const list = getInfoCard();
+      const items = list.querySelectorAll('[role="listitem"]');
+      const notifCard = Array.from(items).find((el) =>
+        el.textContent?.includes('notificação(ões) não lida(s)')
+      );
+      const classes = notifCard!.className;
+      // Count bg-* utilities (excluding dark: prefixed)
+      const cleanBg = classes.match(/(?<!dark:)bg-\S+/g) ?? [];
+      const darkBg = classes.match(/dark:bg-\S+/g) ?? [];
+      expect(cleanBg.length).toBe(1);
+      expect(darkBg.length).toBe(1);
+    });
+  });
 });
