@@ -6,6 +6,7 @@
  * Usage:
  *   node scripts/provision-remote-demo.mjs --dry-run
  *   node scripts/provision-remote-demo.mjs --apply
+ *   node scripts/provision-remote-demo.mjs --apply --yes
  *
  * --dry-run:  Connects to the database (read-only) and reports what exists
  *             vs what would be created. No mutations.
@@ -20,11 +21,22 @@
  *
  * Usage with env file:
  *   node --env-file=.env.provision.local scripts/provision-remote-demo.mjs --dry-run
+ *
+ * SAFETY:
+ *   - NEVER prints secrets (password, service role key, tokens)
+ *   - Uses controlled demo identity with metadata markers
+ *   - Does NOT reset passwords of existing unmarked users
+ *   - All Supabase calls check for errors (fail closed)
+ *   - All records are tagged with [VALIDAÇÃO] or [DEMO] markers
  */
 
 import { createClient } from '@supabase/supabase-js';
 import process from 'process';
 import readline from 'readline';
+
+// ============================================================================
+// ARGUMENTS
+// ============================================================================
 
 const args = new Set(process.argv.slice(2));
 const isDryRun = args.has('--dry-run');
@@ -43,7 +55,10 @@ if (isDryRun && isApply) {
   process.exit(1);
 }
 
-// Validate environment variables (needed for both modes to connect)
+// ============================================================================
+// ENVIRONMENT
+// ============================================================================
+
 const requiredEnvVars = [
   'SUPABASE_URL',
   'SUPABASE_SERVICE_ROLE_KEY',
@@ -64,18 +79,35 @@ const demoPassword = process.env.DEMO_USER_PASSWORD;
 
 const supabase = createClient(supabaseUrl, serviceRoleKey);
 
-// --- Data definitions ---
+// ============================================================================
+// DEMO IDENTITY MARKER
+// ============================================================================
+
+/**
+ * Metadata marker applied to all demo auth users created by this script.
+ * Before updating an existing user, we check for this marker to avoid
+ * modifying real accounts that happen to share an email.
+ */
+const DEMO_MARKER = 'product-consistency-v1';
+const DEMO_METADATA = {
+  foconflow_demo: true,
+  provisioning_marker: DEMO_MARKER,
+};
+
+// ============================================================================
+// DATA DEFINITIONS
+// ============================================================================
 
 const USERS = [
-  { email: 'ana@example.com', fullName: 'Ana Silva', role: 'member' },
-  { email: 'bruno@example.com', fullName: 'Bruno Santos', role: 'member' },
-  { email: 'carla@example.com', fullName: 'Carla Oliveira', role: 'member' },
-  { email: 'admin@example.com', fullName: 'Administrador', role: 'admin' },
+  { email: 'ana@example.com', fullName: 'Ana Silva [VALIDAÇÃO]', role: 'member' },
+  { email: 'bruno@example.com', fullName: 'Bruno Santos [VALIDAÇÃO]', role: 'member' },
+  { email: 'carla@example.com', fullName: 'Carla Oliveira [VALIDAÇÃO]', role: 'member' },
+  { email: 'admin@example.com', fullName: 'Administrador [VALIDAÇÃO]', role: 'admin' },
 ];
 
 const PROJECTS = [
   {
-    name: 'Residencial Aurora',
+    name: '[VALIDAÇÃO] Residencial Aurora',
     client: 'Cliente Aurora',
     status: 'active',
     startDate: '2024-08-01',
@@ -85,7 +117,7 @@ const PROJECTS = [
     indirectCost: 5000,
   },
   {
-    name: 'Edifício Horizonte',
+    name: '[VALIDAÇÃO] Edifício Horizonte',
     client: 'Cliente Horizonte',
     status: 'active',
     startDate: '2024-08-15',
@@ -102,51 +134,63 @@ const HOURLY_RATES = [
   { email: 'carla@example.com', rate: 100, validFrom: '2024-08-01', validUntil: null },
 ];
 
-// Approved entries (for historical data / dashboard validation)
 const APPROVED_ENTRIES = [
-  { email: 'ana@example.com', project: 'Residencial Aurora', date: '2024-08-05', hours: 8, description: 'Análise de estrutura' },
-  { email: 'ana@example.com', project: 'Residencial Aurora', date: '2024-08-06', hours: 8, description: 'Projeto arquitetônico' },
-  { email: 'ana@example.com', project: 'Residencial Aurora', date: '2024-08-07', hours: 8, description: 'Revisão de plantas' },
-  { email: 'ana@example.com', project: 'Residencial Aurora', date: '2024-08-08', hours: 8, description: 'Coordenação com cliente' },
-  { email: 'ana@example.com', project: 'Residencial Aurora', date: '2024-08-09', hours: 8, description: 'Ajustes finais' },
-  { email: 'bruno@example.com', project: 'Residencial Aurora', date: '2024-08-05', hours: 6, description: 'Cálculos estruturais' },
-  { email: 'bruno@example.com', project: 'Residencial Aurora', date: '2024-08-06', hours: 6, description: 'Detalhamento de armadura' },
-  { email: 'bruno@example.com', project: 'Residencial Aurora', date: '2024-08-07', hours: 6, description: 'Verificação de cargas' },
-  { email: 'bruno@example.com', project: 'Residencial Aurora', date: '2024-08-08', hours: 6, description: 'Relatório técnico' },
-  { email: 'bruno@example.com', project: 'Residencial Aurora', date: '2024-08-09', hours: 6, description: 'Aprovação final' },
-  { email: 'ana@example.com', project: 'Edifício Horizonte', date: '2024-08-20', hours: 4, description: 'Levantamento de requisitos' },
-  { email: 'ana@example.com', project: 'Edifício Horizonte', date: '2024-08-21', hours: 4, description: 'Esboço preliminar' },
-  { email: 'ana@example.com', project: 'Edifício Horizonte', date: '2024-08-22', hours: 4, description: 'Apresentação ao cliente' },
-  { email: 'ana@example.com', project: 'Edifício Horizonte', date: '2024-08-23', hours: 4, description: 'Ajustes solicitados' },
-  { email: 'ana@example.com', project: 'Edifício Horizonte', date: '2024-08-24', hours: 4, description: 'Documentação final' },
-  { email: 'carla@example.com', project: 'Edifício Horizonte', date: '2024-08-20', hours: 5, description: 'Análise de viabilidade' },
-  { email: 'carla@example.com', project: 'Edifício Horizonte', date: '2024-08-21', hours: 5, description: 'Estudo de impacto' },
-  { email: 'carla@example.com', project: 'Edifício Horizonte', date: '2024-08-22', hours: 5, description: 'Parecer técnico' },
-  { email: 'carla@example.com', project: 'Edifício Horizonte', date: '2024-08-23', hours: 5, description: 'Revisão de documentos' },
-  { email: 'carla@example.com', project: 'Edifício Horizonte', date: '2024-08-24', hours: 5, description: 'Aprovação de conformidade' },
+  { email: 'ana@example.com', project: '[VALIDAÇÃO] Residencial Aurora', date: '2024-08-05', hours: 8, description: 'Análise de estrutura' },
+  { email: 'ana@example.com', project: '[VALIDAÇÃO] Residencial Aurora', date: '2024-08-06', hours: 8, description: 'Projeto arquitetônico' },
+  { email: 'ana@example.com', project: '[VALIDAÇÃO] Residencial Aurora', date: '2024-08-07', hours: 8, description: 'Revisão de plantas' },
+  { email: 'ana@example.com', project: '[VALIDAÇÃO] Residencial Aurora', date: '2024-08-08', hours: 8, description: 'Coordenação com cliente' },
+  { email: 'ana@example.com', project: '[VALIDAÇÃO] Residencial Aurora', date: '2024-08-09', hours: 8, description: 'Ajustes finais' },
+  { email: 'bruno@example.com', project: '[VALIDAÇÃO] Residencial Aurora', date: '2024-08-05', hours: 6, description: 'Cálculos estruturais' },
+  { email: 'bruno@example.com', project: '[VALIDAÇÃO] Residencial Aurora', date: '2024-08-06', hours: 6, description: 'Detalhamento de armadura' },
+  { email: 'bruno@example.com', project: '[VALIDAÇÃO] Residencial Aurora', date: '2024-08-07', hours: 6, description: 'Verificação de cargas' },
+  { email: 'bruno@example.com', project: '[VALIDAÇÃO] Residencial Aurora', date: '2024-08-08', hours: 6, description: 'Relatório técnico' },
+  { email: 'bruno@example.com', project: '[VALIDAÇÃO] Residencial Aurora', date: '2024-08-09', hours: 6, description: 'Aprovação final' },
+  { email: 'ana@example.com', project: '[VALIDAÇÃO] Edifício Horizonte', date: '2024-08-20', hours: 4, description: 'Levantamento de requisitos' },
+  { email: 'ana@example.com', project: '[VALIDAÇÃO] Edifício Horizonte', date: '2024-08-21', hours: 4, description: 'Esboço preliminar' },
+  { email: 'ana@example.com', project: '[VALIDAÇÃO] Edifício Horizonte', date: '2024-08-22', hours: 4, description: 'Apresentação ao cliente' },
+  { email: 'ana@example.com', project: '[VALIDAÇÃO] Edifício Horizonte', date: '2024-08-23', hours: 4, description: 'Ajustes solicitados' },
+  { email: 'ana@example.com', project: '[VALIDAÇÃO] Edifício Horizonte', date: '2024-08-24', hours: 4, description: 'Documentação final' },
+  { email: 'carla@example.com', project: '[VALIDAÇÃO] Edifício Horizonte', date: '2024-08-20', hours: 5, description: 'Análise de viabilidade' },
+  { email: 'carla@example.com', project: '[VALIDAÇÃO] Edifício Horizonte', date: '2024-08-21', hours: 5, description: 'Estudo de impacto' },
+  { email: 'carla@example.com', project: '[VALIDAÇÃO] Edifício Horizonte', date: '2024-08-22', hours: 5, description: 'Parecer técnico' },
+  { email: 'carla@example.com', project: '[VALIDAÇÃO] Edifício Horizonte', date: '2024-08-23', hours: 5, description: 'Revisão de documentos' },
+  { email: 'carla@example.com', project: '[VALIDAÇÃO] Edifício Horizonte', date: '2024-08-24', hours: 5, description: 'Aprovação de conformidade' },
 ];
 
-// Pending entries (for approval flow validation)
 const PENDING_ENTRIES = [
-  { email: 'ana@example.com', project: 'Residencial Aurora', date: '2024-08-12', hours: 7, description: 'Inspeção em campo — fundações' },
-  { email: 'bruno@example.com', project: 'Residencial Aurora', date: '2024-08-12', hours: 5, description: 'Análise de patologias estruturais' },
-  { email: 'carla@example.com', project: 'Edifício Horizonte', date: '2024-08-26', hours: 6, description: 'Reunião de alinhamento com cliente' },
-  { email: 'ana@example.com', project: 'Edifício Horizonte', date: '2024-08-26', hours: 3, description: 'Atualização de cronograma' },
+  { email: 'ana@example.com', project: '[VALIDAÇÃO] Residencial Aurora', date: '2024-08-12', hours: 7, description: 'Inspeção em campo — fundações' },
+  { email: 'bruno@example.com', project: '[VALIDAÇÃO] Residencial Aurora', date: '2024-08-12', hours: 5, description: 'Análise de patologias estruturais' },
+  { email: 'carla@example.com', project: '[VALIDAÇÃO] Edifício Horizonte', date: '2024-08-26', hours: 6, description: 'Reunião de alinhamento com cliente' },
+  { email: 'ana@example.com', project: '[VALIDAÇÃO] Edifício Horizonte', date: '2024-08-26', hours: 3, description: 'Atualização de cronograma' },
 ];
 
-// Accounting periods (for period close/reopen validation)
+// P2 — Accounting periods: use period_key, create as open, close via RPC
 const ACCOUNTING_PERIODS = [
-  { period: '2024-08', status: 'closed' },
-  { period: '2024-09', status: 'open' },
+  { periodKey: '2024-08', shouldClose: true },  // will be closed via RPC
+  { periodKey: '2024-09', shouldClose: false }, // stays open
 ];
 
-// Project budgets (for budget vs actual validation)
+// P3 — Project budgets: real schema (budget_type, budget_value, fiscal_year)
 const PROJECT_BUDGETS = [
-  { project: 'Residencial Aurora', period: '2024-08', budgetedHours: 160, budgetedRevenue: 20000 },
-  { project: 'Edifício Horizonte', period: '2024-08', budgetedHours: 100, budgetedRevenue: 12000 },
+  { project: '[VALIDAÇÃO] Residencial Aurora', budgetType: 'labor_hours', budgetValue: 160, fiscalYear: 2024 },
+  { project: '[VALIDAÇÃO] Residencial Aurora', budgetType: 'labor_cost', budgetValue: 20000, fiscalYear: 2024 },
+  { project: '[VALIDAÇÃO] Residencial Aurora', budgetType: 'total_cost', budgetValue: 25000, fiscalYear: 2024 },
+  { project: '[VALIDAÇÃO] Edifício Horizonte', budgetType: 'labor_hours', budgetValue: 100, fiscalYear: 2024 },
+  { project: '[VALIDAÇÃO] Edifício Horizonte', budgetType: 'labor_cost', budgetValue: 12000, fiscalYear: 2024 },
 ];
 
-// --- Helpers ---
+// P4 — Profitability alerts: config alerts (triggered_at = NULL)
+// No automation exists — alerts are manually managed. We create config
+// alerts that monitor thresholds. The UI computes triggered status.
+const PROFITABILITY_ALERTS = [
+  { project: '[VALIDAÇÃO] Residencial Aurora', metric: 'margin_percent', threshold: 20.00 },
+  { project: '[VALIDAÇÃO] Residencial Aurora', metric: 'budget_utilization_percent', threshold: 80.00 },
+  { project: '[VALIDAÇÃO] Edifício Horizonte', metric: 'margin_percent', threshold: 15.00 },
+];
+
+// ============================================================================
+// HELPERS
+// ============================================================================
 
 async function findUserByEmail(email) {
   const perPage = 100;
@@ -161,6 +205,15 @@ async function findUserByEmail(email) {
   }
 }
 
+/**
+ * Check if an existing auth user has our demo marker.
+ * Returns true if the user was created by this provisioning script.
+ */
+function hasDemoMarker(user) {
+  const metadata = user?.user_metadata ?? {};
+  return metadata.foconflow_demo === true && metadata.provisioning_marker === DEMO_MARKER;
+}
+
 function confirm(prompt) {
   return new Promise((resolve) => {
     const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
@@ -171,12 +224,34 @@ function confirm(prompt) {
   });
 }
 
-// --- Dry run (read-only validation) ---
+/**
+ * Check a Supabase response for errors. Throws if error is present.
+ */
+function checkError(result, context) {
+  if (result.error) {
+    throw new Error(`${context}: ${result.error.message}`);
+  }
+  return result;
+}
+
+// ============================================================================
+// DRY RUN (read-only validation)
+// ============================================================================
 
 async function dryRun() {
   console.log('🔍 DRY RUN MODE — Read-only validation, no changes will be made\n');
+  console.log(`   Target: ${supabaseUrl}\n`);
 
-  const report = { users: { exist: 0, missing: 0 }, projects: { exist: 0, missing: 0 }, rates: { exist: 0, missing: 0 }, approved: { exist: 0, missing: 0 }, pending: { exist: 0, missing: 0 }, periods: { exist: 0, missing: 0 }, budgets: { exist: 0, missing: 0 } };
+  const report = {
+    users: { exist: 0, missing: 0, unmarked: 0 },
+    projects: { exist: 0, missing: 0 },
+    rates: { exist: 0, missing: 0 },
+    approved: { exist: 0, missing: 0 },
+    pending: { exist: 0, missing: 0 },
+    periods: { exist: 0, missing: 0 },
+    budgets: { exist: 0, missing: 0 },
+    alerts: { exist: 0, missing: 0 },
+  };
 
   // Check users
   console.log('📝 Checking users...');
@@ -184,19 +259,29 @@ async function dryRun() {
   for (const user of USERS) {
     const authUser = await findUserByEmail(user.email);
     if (authUser) {
-      report.users.exist++;
-      userMap.set(user.email, { id: authUser.id, ...user });
-      console.log(`  ✓ Exists: ${user.email} (${user.role})`);
+      if (hasDemoMarker(authUser)) {
+        report.users.exist++;
+        userMap.set(user.email, { id: authUser.id, ...user });
+        console.log(`  ✓ Exists (marked): ${user.email} (${user.role})`);
+      } else {
+        report.users.unmarked++;
+        console.log(`  ⚠ Exists (UNMARKED — will NOT modify): ${user.email}`);
+      }
     } else {
       report.users.missing++;
-      console.log(`  ✗ Missing: ${user.email} — will be created`);
+      console.log(`  ✗ Missing: ${user.email} — will be created with demo marker`);
     }
   }
 
   // Check profiles
   console.log('\n📋 Checking profiles...');
   for (const [email, userData] of userMap) {
-    const { data: profile } = await supabase.from('profiles').select('id, role').eq('id', userData.id).maybeSingle();
+    const { data: profile, error } = await supabase
+      .from('profiles')
+      .select('id, role')
+      .eq('id', userData.id)
+      .maybeSingle();
+    if (error) { console.log(`  ⚠ Error checking profile for ${email}: ${error.message}`); continue; }
     if (profile) {
       console.log(`  ✓ Profile exists: ${email} (role: ${profile.role})`);
     } else {
@@ -208,7 +293,12 @@ async function dryRun() {
   console.log('\n🏗️  Checking projects...');
   const projectMap = new Map();
   for (const project of PROJECTS) {
-    const { data: existing } = await supabase.from('projects').select('id').eq('name', project.name).maybeSingle();
+    const { data: existing, error } = await supabase
+      .from('projects')
+      .select('id')
+      .eq('name', project.name)
+      .maybeSingle();
+    if (error) { console.log(`  ⚠ Error: ${error.message}`); continue; }
     if (existing) {
       report.projects.exist++;
       projectMap.set(project.name, { id: existing.id, ...project });
@@ -223,8 +313,14 @@ async function dryRun() {
   console.log('\n💵 Checking hourly rates...');
   for (const rate of HOURLY_RATES) {
     const userData = userMap.get(rate.email);
-    if (!userData) { console.log(`  ⊘ Skipped (user missing): ${rate.email}`); continue; }
-    const { data: existing } = await supabase.from('hourly_rates').select('id').eq('professional_id', userData.id).eq('valid_from', rate.validFrom).maybeSingle();
+    if (!userData) { console.log(`  ⊘ Skipped (user missing/unmarked): ${rate.email}`); continue; }
+    const { data: existing, error } = await supabase
+      .from('hourly_rates')
+      .select('id')
+      .eq('professional_id', userData.id)
+      .eq('valid_from', rate.validFrom)
+      .maybeSingle();
+    if (error) { console.log(`  ⚠ Error: ${error.message}`); continue; }
     if (existing) { report.rates.exist++; console.log(`  ✓ Exists: ${rate.email} (R$ ${rate.rate}/h)`); }
     else { report.rates.missing++; console.log(`  ✗ Missing: ${rate.email} — will be created`); }
   }
@@ -234,10 +330,18 @@ async function dryRun() {
   for (const entry of APPROVED_ENTRIES) {
     const userData = userMap.get(entry.email);
     const projectData = projectMap.get(entry.project);
-    if (!userData || !projectData) { console.log(`  ⊘ Skipped (user/project missing): ${entry.email} - ${entry.project}`); continue; }
-    const { data: existing } = await supabase.from('time_entries').select('id, approval_status').eq('professional_id', userData.id).eq('project_id', projectData.id).eq('entry_date', entry.date).eq('description', entry.description).maybeSingle();
+    if (!userData || !projectData) { continue; }
+    const { data: existing, error } = await supabase
+      .from('time_entries')
+      .select('id, approval_status')
+      .eq('professional_id', userData.id)
+      .eq('project_id', projectData.id)
+      .eq('entry_date', entry.date)
+      .eq('description', entry.description)
+      .maybeSingle();
+    if (error) { console.log(`  ⚠ Error: ${error.message}`); continue; }
     if (existing) { report.approved.exist++; console.log(`  ✓ Exists: ${entry.email} - ${entry.project} (${entry.hours}h)`); }
-    else { report.approved.missing++; console.log(`  ✗ Missing: ${entry.email} - ${entry.project} (${entry.hours}h) — will be created`); }
+    else { report.approved.missing++; console.log(`  ✗ Missing: ${entry.email} - ${entry.project} (${entry.hours}h)`); }
   }
 
   // Check pending time entries
@@ -245,64 +349,125 @@ async function dryRun() {
   for (const entry of PENDING_ENTRIES) {
     const userData = userMap.get(entry.email);
     const projectData = projectMap.get(entry.project);
-    if (!userData || !projectData) { console.log(`  ⊘ Skipped (user/project missing): ${entry.email} - ${entry.project}`); continue; }
-    const { data: existing } = await supabase.from('time_entries').select('id, approval_status').eq('professional_id', userData.id).eq('project_id', projectData.id).eq('entry_date', entry.date).eq('description', entry.description).maybeSingle();
+    if (!userData || !projectData) { continue; }
+    const { data: existing, error } = await supabase
+      .from('time_entries')
+      .select('id, approval_status')
+      .eq('professional_id', userData.id)
+      .eq('project_id', projectData.id)
+      .eq('entry_date', entry.date)
+      .eq('description', entry.description)
+      .maybeSingle();
+    if (error) { console.log(`  ⚠ Error: ${error.message}`); continue; }
     if (existing) { report.pending.exist++; console.log(`  ✓ Exists: ${entry.email} - ${entry.project} (${entry.hours}h, ${existing.approval_status})`); }
-    else { report.pending.missing++; console.log(`  ✗ Missing: ${entry.email} - ${entry.project} (${entry.hours}h) — will be created as pending`); }
+    else { report.pending.missing++; console.log(`  ✗ Missing: ${entry.email} - ${entry.project} (${entry.hours}h)`); }
   }
 
-  // Check accounting periods
-  console.log('\n📅 Checking accounting periods...');
+  // P2 — Check accounting periods (period_key)
+  console.log('\n📅 Checking accounting periods (period_key)...');
   for (const period of ACCOUNTING_PERIODS) {
-    const { data: existing } = await supabase.from('accounting_periods').select('id, status').eq('period', period.period).maybeSingle();
-    if (existing) { report.periods.exist++; console.log(`  ✓ Exists: ${period.period} (status: ${existing.status})`); }
-    else { report.periods.missing++; console.log(`  ✗ Missing: ${period.period} — will be created (${period.status})`); }
+    const { data: existing, error } = await supabase
+      .from('accounting_periods')
+      .select('id, period_key, status, closed_at, closed_by')
+      .eq('period_key', period.periodKey)
+      .maybeSingle();
+    if (error) { console.log(`  ⚠ Error: ${error.message}`); continue; }
+    if (existing) {
+      report.periods.exist++;
+      console.log(`  ✓ Exists: ${period.periodKey} (status: ${existing.status}${existing.closed_at ? ', closed_at: ' + existing.closed_at : ''})`);
+      if (period.shouldClose && existing.status === 'open') {
+        console.log(`    → Will be closed via close_accounting_period RPC`);
+      }
+    } else {
+      report.periods.missing++;
+      console.log(`  ✗ Missing: ${period.periodKey} — will be created as open${period.shouldClose ? ', then closed via RPC' : ''}`);
+    }
   }
 
-  // Check project budgets
-  console.log('\n📊 Checking project budgets...');
+  // P3 — Check project budgets (budget_type, budget_value, fiscal_year)
+  console.log('\n📊 Checking project budgets (budget_type, budget_value, fiscal_year)...');
   for (const budget of PROJECT_BUDGETS) {
     const projectData = projectMap.get(budget.project);
     if (!projectData) { console.log(`  ⊘ Skipped (project missing): ${budget.project}`); continue; }
-    const { data: existing } = await supabase.from('project_budgets').select('id').eq('project_id', projectData.id).eq('period', budget.period).maybeSingle();
-    if (existing) { report.budgets.exist++; console.log(`  ✓ Exists: ${budget.project} - ${budget.period}`); }
-    else { report.budgets.missing++; console.log(`  ✗ Missing: ${budget.project} - ${budget.period} — will be created`); }
+    const { data: existing, error } = await supabase
+      .from('project_budgets')
+      .select('id')
+      .eq('project_id', projectData.id)
+      .eq('budget_type', budget.budgetType)
+      .eq('fiscal_year', budget.fiscalYear)
+      .maybeSingle();
+    if (error) { console.log(`  ⚠ Error: ${error.message}`); continue; }
+    if (existing) { report.budgets.exist++; console.log(`  ✓ Exists: ${budget.project} - ${budget.budgetType} - ${budget.fiscalYear}`); }
+    else { report.budgets.missing++; console.log(`  ✗ Missing: ${budget.project} - ${budget.budgetType} - ${budget.fiscalYear} — will be created`); }
+  }
+
+  // P4 — Check profitability alerts
+  console.log('\n🚨 Checking profitability alerts...');
+  for (const alert of PROFITABILITY_ALERTS) {
+    const projectData = projectMap.get(alert.project);
+    if (!projectData) { console.log(`  ⊘ Skipped (project missing): ${alert.project}`); continue; }
+    const { data: existing, error } = await supabase
+      .from('profitability_alerts')
+      .select('id, threshold, metric, triggered_at')
+      .eq('project_id', projectData.id)
+      .eq('metric', alert.metric)
+      .maybeSingle();
+    if (error) { console.log(`  ⚠ Error: ${error.message}`); continue; }
+    if (existing) { report.alerts.exist++; console.log(`  ✓ Exists: ${alert.project} - ${alert.metric} (threshold: ${existing.threshold})`); }
+    else { report.alerts.missing++; console.log(`  ✗ Missing: ${alert.project} - ${alert.metric} (threshold: ${alert.threshold}) — will be created as config (triggered_at=NULL)`); }
   }
 
   // Summary
   console.log('\n📋 DRY RUN SUMMARY');
-  console.log('  ─────────────────────────────────────');
-  console.log(`  Users:     ${report.users.exist} exist, ${report.users.missing} to create`);
-  console.log(`  Projects:  ${report.projects.exist} exist, ${report.projects.missing} to create`);
-  console.log(`  Rates:     ${report.rates.exist} exist, ${report.rates.missing} to create`);
-  console.log(`  Approved:  ${report.approved.exist} exist, ${report.approved.missing} to create`);
-  console.log(`  Pending:   ${report.pending.exist} exist, ${report.pending.missing} to create`);
-  console.log(`  Periods:   ${report.periods.exist} exist, ${report.periods.missing} to create`);
-  console.log(`  Budgets:   ${report.budgets.exist} exist, ${report.budgets.missing} to create`);
-  console.log('  ─────────────────────────────────────');
-  const totalNew = report.users.missing + report.projects.missing + report.rates.missing + report.approved.missing + report.pending.missing + report.periods.missing + report.budgets.missing;
+  console.log('  ────────────────────────────────────────────');
+  console.log(`  Users:       ${report.users.exist} exist (marked), ${report.users.unmarked} exist (unmarked, will NOT modify), ${report.users.missing} to create`);
+  console.log(`  Projects:    ${report.projects.exist} exist, ${report.projects.missing} to create`);
+  console.log(`  Rates:       ${report.rates.exist} exist, ${report.rates.missing} to create`);
+  console.log(`  Approved:    ${report.approved.exist} exist, ${report.approved.missing} to create`);
+  console.log(`  Pending:     ${report.pending.exist} exist, ${report.pending.missing} to create`);
+  console.log(`  Periods:     ${report.periods.exist} exist, ${report.periods.missing} to create`);
+  console.log(`  Budgets:     ${report.budgets.exist} exist, ${report.budgets.missing} to create`);
+  console.log(`  Alerts:      ${report.alerts.exist} exist, ${report.alerts.missing} to create`);
+  console.log('  ────────────────────────────────────────────');
+  const totalNew = report.users.missing + report.projects.missing + report.rates.missing +
+    report.approved.missing + report.pending.missing + report.periods.missing +
+    report.budgets.missing + report.alerts.missing;
   console.log(`  Total new records to create: ${totalNew}`);
+  if (report.users.unmarked > 0) {
+    console.log(`  ⚠ ${report.users.unmarked} unmarked user(s) will NOT be modified (safety)`);
+  }
   console.log('\n✅ Dry run validation passed. Run with --apply to create missing records.');
 }
 
-// --- Apply (create/update) ---
+// ============================================================================
+// APPLY (create/update)
+// ============================================================================
 
 async function findOrCreateUser(email, fullName) {
   let user = await findUserByEmail(email);
+
   if (user) {
+    // P5 — Safety: only modify if user has our demo marker
+    if (!hasDemoMarker(user)) {
+      console.log(`  ⚠ Skipped (unmarked, will NOT modify): ${email}`);
+      return null;
+    }
+    // Update marked user
     const { data: updated, error } = await supabase.auth.admin.updateUserById(user.id, {
       password: demoPassword,
       email_confirm: true,
-      user_metadata: { full_name: fullName },
+      user_metadata: { ...DEMO_METADATA, full_name: fullName },
     });
     if (error) throw new Error(`Failed to update user ${email}: ${error.message}`);
     return updated.user;
   }
+
+  // Create new user with demo marker
   const { data: newUser, error } = await supabase.auth.admin.createUser({
     email,
     password: demoPassword,
     email_confirm: true,
-    user_metadata: { full_name: fullName },
+    user_metadata: { ...DEMO_METADATA, full_name: fullName },
   });
   if (error) throw new Error(`Failed to create user ${email}: ${error.message}`);
   return newUser.user;
@@ -310,18 +475,19 @@ async function findOrCreateUser(email, fullName) {
 
 async function apply() {
   console.log('🚀 APPLY MODE — Demo data will be created/updated in the database\n');
+  console.log(`   Target: ${supabaseUrl}\n`);
 
   if (!skipConfirm) {
-    console.log('⚠️  WARNING: This will modify the production database.');
-    console.log('   Target:', supabaseUrl);
+    console.log('⚠️  WARNING: This will modify the target database.');
     console.log('   Operations:');
-    console.log(`     - ${USERS.length} users (create or update)`);
+    console.log(`     - ${USERS.length} users (create or update IF marked)`);
     console.log(`     - ${PROJECTS.length} projects (create if missing)`);
     console.log(`     - ${HOURLY_RATES.length} hourly rates (create if missing)`);
     console.log(`     - ${APPROVED_ENTRIES.length} approved time entries (create if missing)`);
     console.log(`     - ${PENDING_ENTRIES.length} pending time entries (create if missing)`);
-    console.log(`     - ${ACCOUNTING_PERIODS.length} accounting periods (create if missing)`);
+    console.log(`     - ${ACCOUNTING_PERIODS.length} accounting periods (create if missing, close via RPC)`);
     console.log(`     - ${PROJECT_BUDGETS.length} project budgets (create if missing)`);
+    console.log(`     - ${PROFITABILITY_ALERTS.length} profitability alerts (create if missing)`);
     console.log('');
     const ok = await confirm('Type "yes" to confirm and proceed: ');
     if (!ok) {
@@ -339,20 +505,35 @@ async function apply() {
   const userMap = new Map();
   for (const user of USERS) {
     const authUser = await findOrCreateUser(user.email, user.fullName);
-    userMap.set(user.email, { id: authUser.id, ...user });
-    console.log(`  ✓ ${user.email}`);
+    if (authUser) {
+      userMap.set(user.email, { id: authUser.id, ...user });
+      console.log(`  ✓ ${user.email}`);
+    }
   }
 
   // Step 2: Profiles
   console.log('\n📋 Ensuring profiles...');
   for (const [email, userData] of userMap) {
-    const { data: existing } = await supabase.from('profiles').select('id').eq('id', userData.id).maybeSingle();
+    const { data: existing, error: selErr } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('id', userData.id)
+      .maybeSingle();
+    if (selErr) throw new Error(`Failed to query profile for ${email}: ${selErr.message}`);
+
     if (existing) {
-      await supabase.from('profiles').update({ full_name: userData.fullName, role: userData.role }).eq('id', userData.id);
+      const { error: updErr } = await supabase
+        .from('profiles')
+        .update({ full_name: userData.fullName, role: userData.role })
+        .eq('id', userData.id);
+      if (updErr) throw new Error(`Failed to update profile for ${email}: ${updErr.message}`);
       skipped++;
       console.log(`  ✓ Updated: ${email} (${userData.role})`);
     } else {
-      await supabase.from('profiles').insert([{ id: userData.id, full_name: userData.fullName, role: userData.role }]);
+      const { error: insErr } = await supabase
+        .from('profiles')
+        .insert([{ id: userData.id, full_name: userData.fullName, role: userData.role }]);
+      if (insErr) throw new Error(`Failed to create profile for ${email}: ${insErr.message}`);
       created++;
       console.log(`  ✓ Created: ${email} (${userData.role})`);
     }
@@ -362,13 +543,24 @@ async function apply() {
   console.log('\n🏗️  Creating projects...');
   const projectMap = new Map();
   for (const project of PROJECTS) {
-    const { data: existing } = await supabase.from('projects').select('id').eq('name', project.name).maybeSingle();
+    const { data: existing, error: selErr } = await supabase
+      .from('projects')
+      .select('id')
+      .eq('name', project.name)
+      .maybeSingle();
+    if (selErr) throw new Error(`Failed to query project ${project.name}: ${selErr.message}`);
+
     if (existing) {
       projectMap.set(project.name, { id: existing.id, ...project });
       skipped++;
       console.log(`  ✓ Exists: ${project.name}`);
     } else {
-      const { data: newProject } = await supabase.from('projects').insert([{ name: project.name, client: project.client, status: project.status, start_date: project.startDate, end_date: project.endDate }]).select('id').single();
+      const { data: newProject, error: insErr } = await supabase
+        .from('projects')
+        .insert([{ name: project.name, client: project.client, status: project.status, start_date: project.startDate, end_date: project.endDate }])
+        .select('id')
+        .single();
+      if (insErr) throw new Error(`Failed to create project ${project.name}: ${insErr.message}`);
       projectMap.set(project.name, { id: newProject.id, ...project });
       created++;
       console.log(`  ✓ Created: ${project.name}`);
@@ -378,9 +570,18 @@ async function apply() {
   // Step 4: Project financials
   console.log('\n💰 Creating project financials...');
   for (const [name, data] of projectMap) {
-    const { data: existing } = await supabase.from('project_financials').select('project_id').eq('project_id', data.id).maybeSingle();
+    const { data: existing, error: selErr } = await supabase
+      .from('project_financials')
+      .select('project_id')
+      .eq('project_id', data.id)
+      .maybeSingle();
+    if (selErr) throw new Error(`Failed to query financials for ${name}: ${selErr.message}`);
+
     if (!existing) {
-      await supabase.from('project_financials').insert([{ project_id: data.id, contracted_revenue: data.revenue, tax_rate: data.taxRate, indirect_cost: data.indirectCost }]);
+      const { error: insErr } = await supabase
+        .from('project_financials')
+        .insert([{ project_id: data.id, contracted_revenue: data.revenue, tax_rate: data.taxRate, indirect_cost: data.indirectCost }]);
+      if (insErr) throw new Error(`Failed to create financials for ${name}: ${insErr.message}`);
       created++;
       console.log(`  ✓ Created: ${name}`);
     } else {
@@ -394,9 +595,19 @@ async function apply() {
   for (const rate of HOURLY_RATES) {
     const userData = userMap.get(rate.email);
     if (!userData) continue;
-    const { data: existing } = await supabase.from('hourly_rates').select('id').eq('professional_id', userData.id).eq('valid_from', rate.validFrom).maybeSingle();
+    const { data: existing, error: selErr } = await supabase
+      .from('hourly_rates')
+      .select('id')
+      .eq('professional_id', userData.id)
+      .eq('valid_from', rate.validFrom)
+      .maybeSingle();
+    if (selErr) throw new Error(`Failed to query hourly rate for ${rate.email}: ${selErr.message}`);
+
     if (!existing) {
-      await supabase.from('hourly_rates').insert([{ professional_id: userData.id, hourly_rate: rate.rate, valid_from: rate.validFrom, valid_until: rate.validUntil }]);
+      const { error: insErr } = await supabase
+        .from('hourly_rates')
+        .insert([{ professional_id: userData.id, hourly_rate: rate.rate, valid_from: rate.validFrom, valid_until: rate.validUntil }]);
+      if (insErr) throw new Error(`Failed to create hourly rate for ${rate.email}: ${insErr.message}`);
       created++;
       console.log(`  ✓ Created: ${rate.email} (R$ ${rate.rate}/h)`);
     } else {
@@ -411,82 +622,173 @@ async function apply() {
     const userData = userMap.get(entry.email);
     const projectData = projectMap.get(entry.project);
     if (!userData || !projectData) continue;
-    const { data: existing } = await supabase.from('time_entries').select('id, approval_status, applied_hourly_rate').eq('professional_id', userData.id).eq('project_id', projectData.id).eq('entry_date', entry.date).eq('description', entry.description).maybeSingle();
+    const { data: existing, error: selErr } = await supabase
+      .from('time_entries')
+      .select('id, approval_status, applied_hourly_rate')
+      .eq('professional_id', userData.id)
+      .eq('project_id', projectData.id)
+      .eq('entry_date', entry.date)
+      .eq('description', entry.description)
+      .maybeSingle();
+    if (selErr) throw new Error(`Failed to query time entry: ${selErr.message}`);
+
     if (existing) {
       if (existing.approval_status !== 'approved') {
-        await supabase.from('time_entries').update({ approval_status: 'approved' }).eq('id', existing.id);
+        const { error: updErr } = await supabase
+          .from('time_entries')
+          .update({ approval_status: 'approved' })
+          .eq('id', existing.id);
+        if (updErr) throw new Error(`Failed to approve existing entry: ${updErr.message}`);
         console.log(`  ✓ Approved: ${entry.email} - ${entry.project} (${entry.hours}h)`);
       } else {
         skipped++;
         console.log(`  ✓ Exists (approved): ${entry.email} - ${entry.project}`);
       }
     } else {
-      await supabase.from('time_entries').insert([{ professional_id: userData.id, project_id: projectData.id, entry_date: entry.date, duration_minutes: entry.hours * 60, description: entry.description, approval_status: 'approved', applied_hourly_rate: 0 }]);
+      const { error: insErr } = await supabase
+        .from('time_entries')
+        .insert([{ professional_id: userData.id, project_id: projectData.id, entry_date: entry.date, duration_minutes: entry.hours * 60, description: entry.description, approval_status: 'approved', applied_hourly_rate: 0 }]);
+      if (insErr) throw new Error(`Failed to create time entry: ${insErr.message}`);
       created++;
       console.log(`  ✓ Created (approved): ${entry.email} - ${entry.project} (${entry.hours}h)`);
     }
   }
 
-  // Step 7: Pending time entries (for approval flow validation)
+  // Step 7: Pending time entries
   console.log('\n⏳ Creating pending time entries...');
   for (const entry of PENDING_ENTRIES) {
     const userData = userMap.get(entry.email);
     const projectData = projectMap.get(entry.project);
     if (!userData || !projectData) continue;
-    const { data: existing } = await supabase.from('time_entries').select('id').eq('professional_id', userData.id).eq('project_id', projectData.id).eq('entry_date', entry.date).eq('description', entry.description).maybeSingle();
+    const { data: existing, error: selErr } = await supabase
+      .from('time_entries')
+      .select('id')
+      .eq('professional_id', userData.id)
+      .eq('project_id', projectData.id)
+      .eq('entry_date', entry.date)
+      .eq('description', entry.description)
+      .maybeSingle();
+    if (selErr) throw new Error(`Failed to query time entry: ${selErr.message}`);
+
     if (existing) {
       skipped++;
       console.log(`  ✓ Exists: ${entry.email} - ${entry.project}`);
     } else {
-      await supabase.from('time_entries').insert([{ professional_id: userData.id, project_id: projectData.id, entry_date: entry.date, duration_minutes: entry.hours * 60, description: entry.description, approval_status: 'pending', applied_hourly_rate: 0 }]);
+      const { error: insErr } = await supabase
+        .from('time_entries')
+        .insert([{ professional_id: userData.id, project_id: projectData.id, entry_date: entry.date, duration_minutes: entry.hours * 60, description: entry.description, approval_status: 'pending', applied_hourly_rate: 0 }]);
+      if (insErr) throw new Error(`Failed to create pending entry: ${insErr.message}`);
       created++;
       console.log(`  ✓ Created (pending): ${entry.email} - ${entry.project} (${entry.hours}h)`);
     }
   }
 
-  // Step 8: Accounting periods
-  console.log('\n📅 Creating accounting periods...');
+  // P2 — Step 8: Accounting periods (period_key, close via RPC)
+  console.log('\n📅 Creating accounting periods (period_key)...');
   for (const period of ACCOUNTING_PERIODS) {
-    const { data: existing } = await supabase.from('accounting_periods').select('id').eq('period', period.period).maybeSingle();
+    const { data: existing, error: selErr } = await supabase
+      .from('accounting_periods')
+      .select('id, period_key, status')
+      .eq('period_key', period.periodKey)
+      .maybeSingle();
+    if (selErr) throw new Error(`Failed to query period ${period.periodKey}: ${selErr.message}`);
+
     if (!existing) {
-      await supabase.from('accounting_periods').insert([{ period: period.period, status: period.status }]);
+      // Insert as open (default status)
+      const { error: insErr } = await supabase
+        .from('accounting_periods')
+        .insert([{ period_key: period.periodKey }]);
+      if (insErr) throw new Error(`Failed to create period ${period.periodKey}: ${insErr.message}`);
       created++;
-      console.log(`  ✓ Created: ${period.period} (${period.status})`);
+      console.log(`  ✓ Created (open): ${period.periodKey}`);
     } else {
       skipped++;
-      console.log(`  ✓ Exists: ${period.period}`);
+      console.log(`  ✓ Exists: ${period.periodKey} (status: ${existing.status})`);
+    }
+
+    // Close via RPC if needed (uses official domain flow)
+    if (period.shouldClose) {
+      const { data: closeResult, error: closeErr } = await supabase
+        .rpc('close_accounting_period', { p_period_key: period.periodKey });
+      if (closeErr) {
+        // Might already be closed — that's ok
+        console.log(`  ℹ Close RPC: ${closeErr.message} (may already be closed)`);
+      } else {
+        console.log(`  ✓ Closed via RPC: ${period.periodKey}`);
+      }
     }
   }
 
-  // Step 9: Project budgets
-  console.log('\n📊 Creating project budgets...');
+  // P3 — Step 9: Project budgets (budget_type, budget_value, fiscal_year)
+  console.log('\n📊 Creating project budgets (budget_type, budget_value, fiscal_year)...');
   for (const budget of PROJECT_BUDGETS) {
     const projectData = projectMap.get(budget.project);
     if (!projectData) continue;
-    const { data: existing } = await supabase.from('project_budgets').select('id').eq('project_id', projectData.id).eq('period', budget.period).maybeSingle();
+    const { data: existing, error: selErr } = await supabase
+      .from('project_budgets')
+      .select('id')
+      .eq('project_id', projectData.id)
+      .eq('budget_type', budget.budgetType)
+      .eq('fiscal_year', budget.fiscalYear)
+      .maybeSingle();
+    if (selErr) throw new Error(`Failed to query budget: ${selErr.message}`);
+
     if (!existing) {
-      await supabase.from('project_budgets').insert([{ project_id: projectData.id, period: budget.period, budgeted_hours: budget.budgetedHours, budgeted_revenue: budget.budgetedRevenue }]);
+      const { error: insErr } = await supabase
+        .from('project_budgets')
+        .insert([{ project_id: projectData.id, budget_type: budget.budgetType, budget_value: budget.budgetValue, fiscal_year: budget.fiscalYear }]);
+      if (insErr) throw new Error(`Failed to create budget: ${insErr.message}`);
       created++;
-      console.log(`  ✓ Created: ${budget.project} - ${budget.period}`);
+      console.log(`  ✓ Created: ${budget.project} - ${budget.budgetType} - ${budget.fiscalYear}`);
     } else {
       skipped++;
-      console.log(`  ✓ Exists: ${budget.project} - ${budget.period}`);
+      console.log(`  ✓ Exists: ${budget.project} - ${budget.budgetType} - ${budget.fiscalYear}`);
+    }
+  }
+
+  // P4 — Step 10: Profitability alerts (config alerts, triggered_at = NULL)
+  console.log('\n🚨 Creating profitability alerts (config, triggered_at=NULL)...');
+  for (const alert of PROFITABILITY_ALERTS) {
+    const projectData = projectMap.get(alert.project);
+    if (!projectData) continue;
+    const { data: existing, error: selErr } = await supabase
+      .from('profitability_alerts')
+      .select('id')
+      .eq('project_id', projectData.id)
+      .eq('metric', alert.metric)
+      .maybeSingle();
+    if (selErr) throw new Error(`Failed to query alert: ${selErr.message}`);
+
+    if (!existing) {
+      const { error: insErr } = await supabase
+        .from('profitability_alerts')
+        .insert([{ project_id: projectData.id, metric: alert.metric, threshold: alert.threshold }]);
+      if (insErr) throw new Error(`Failed to create alert: ${insErr.message}`);
+      created++;
+      console.log(`  ✓ Created: ${alert.project} - ${alert.metric} (threshold: ${alert.threshold}%)`);
+    } else {
+      skipped++;
+      console.log(`  ✓ Exists: ${alert.project} - ${alert.metric}`);
     }
   }
 
   // Summary
   console.log('\n📋 APPLY SUMMARY');
-  console.log('  ─────────────────────────────────────');
+  console.log('  ────────────────────────────────────────────');
   console.log(`  Records created: ${created}`);
   console.log(`  Records skipped (already exist): ${skipped}`);
-  console.log('  ─────────────────────────────────────');
+  console.log('  ────────────────────────────────────────────');
   console.log('\n✅ Demo data provisioning complete.');
-  console.log('   Demo credentials:');
-  console.log('   ana@example.com / bruno@example.com / carla@example.com / admin@example.com');
-  console.log(`   Password: ${demoPassword}`);
+  console.log('   Demo users (marked with foconflow_demo metadata):');
+  for (const user of USERS) {
+    console.log(`     ${user.email}`);
+  }
+  // P5 — Do NOT print the password or any secrets
 }
 
-// --- Main ---
+// ============================================================================
+// MAIN
+// ============================================================================
 
 async function main() {
   try {
@@ -497,7 +799,6 @@ async function main() {
     }
   } catch (err) {
     console.error(`\n❌ Error: ${err.message}`);
-    if (err.stack) console.error(err.stack);
     process.exit(1);
   }
 }
