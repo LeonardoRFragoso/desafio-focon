@@ -53,3 +53,57 @@ Recommended (do NOT swap blindly):
 - Update `.env.example` / README guidance to reference the new format once migrated.
 
 Status: **P2 — documented, no functional impact now, defer until Supabase enforces new format.**
+
+## P15 — Time Entry Form Flow Inventory (2026-08-16)
+
+All flows that create or edit a time_entry. All use the canonical `useTimeEntryForm` hook and `TimeEntryFields` component.
+
+| Flow | Component | How | Schema | Temporal Rule | Attachment | Late Reason | Notes |
+|------|-----------|-----|--------|---------------|-----------|------------|-------|
+| **Normal Create** | `TimeEntryForm.tsx` | `timeEntriesAPI.create()` | All fields | ✓ enforced | ✓ yes | ✓ yes | Page at `/time-entries` |
+| **Edit** | `TimeEntryList.tsx` (EditEntryModal) | `timeEntriesAPI.update()` | All fields | ✓ enforced | ✓ yes (AttachmentsPanel) | ✓ yes | Modal in list view |
+| **Duplicate** | `TimeEntryList.tsx` (DuplicateEntryModal) | `timeEntriesAPI.duplicate()` | Copy project, duration, description; new date | ✓ enforced on new date | ✗ no | ✓ yes | Modal in list view |
+| **Timer** | `Timer.tsx` | `timeEntriesAPI.create()` | All fields | ✓ disableLateReasonWatch=true (always today) | ✗ no | ✗ no | Floating timer widget |
+| **Quick Entry** | `QuickEntryModal.tsx` | `timeEntriesAPI.create()` | All fields | ✓ enforced | ✗ no | ✓ yes | Modal from dashboard |
+| **Weekly Calendar** | `WeeklyCalendar.tsx` | `timeEntriesAPI.create()` | All fields | ✓ enforced | ✗ no | ✓ yes | Calendar view, click to create |
+| **Recurring Rule** | `RecurringRulesPage.tsx` | `recurringRulesAPI.create()` (RPC) | Creates rule, not entry | N/A | N/A | N/A | Admin page, creates rule that auto-generates entries |
+
+**Canonical form**: `useTimeEntryForm()` + `TimeEntryFields` component. All flows except Timer use full late-reason enforcement. Timer always uses today (disableLateReasonWatch=true). Duplicate copies project/duration/description but forces new date with fresh late-reason check.
+
+**Attachment support**: Only Normal Create and Edit flows support attachments (via `AttachmentsPanel` or `PendingAttachments`). Other flows do not expose attachment UI.
+
+**All flows use the same schema** (`timeEntrySchema` in `src/schemas/time-entry.ts`):
+- `projectId` (required)
+- `entryDate` (required, YYYY-MM-DD)
+- `durationMinutes` (required, > 0)
+- `description` (optional)
+- `lateSubmissionReason` (optional, required if 3+ days late)
+
+## P16 — Mutation/Action Confirmation & Feedback Inventory (2026-08-16)
+
+All destructive or significant state-changing actions. Includes confirmation, loading, success, and error feedback.
+
+| Action | Component | Pre-Confirm | Loading | Success | Error | Partial Fail | Notes |
+|--------|-----------|-------------|---------|---------|-------|--------------|-------|
+| **Approve time entry** | `TimeEntryApproval.tsx` | ✓ ConfirmDialog | ✓ yes | ✓ Toast | ✓ Toast | N/A | Single entry |
+| **Batch approve** | `AdminTimeEntriesPage.tsx` | ✓ ConfirmDialog | ✓ yes | ✓ Toast | ✓ Toast | ⚠ possible | Multiple entries, RPC |
+| **Reject time entry** | `TimeEntryApproval.tsx` | ✓ ConfirmDialog | ✓ yes | ✓ Toast | ✓ Toast | N/A | Requires reason |
+| **Batch reject** | `AdminTimeEntriesPage.tsx` | ✓ ConfirmDialog | ✓ yes | ✓ Toast | ✓ Toast | ⚠ possible | Multiple entries, RPC |
+| **Delete time entry** | `TimeEntryList.tsx` | ✓ ConfirmDialog | ✓ yes | ✓ Toast | ✓ Toast | N/A | Soft delete (approval_status='deleted') |
+| **Close accounting period** | `AccountingPeriodsPage.tsx` | ✓ ConfirmDialog | ✓ yes | ✓ Toast | ✓ Toast | N/A | RPC `close_accounting_period` |
+| **Reopen accounting period** | `AccountingPeriodsPage.tsx` | ✓ ConfirmDialog | ✓ yes | ✓ Toast | ✓ Toast | N/A | RPC `reopen_accounting_period` |
+| **Delete project** | `ProjectsPage.tsx` | ✓ ConfirmDialog | ✓ yes | ✓ Toast | ✓ Toast | N/A | Soft delete (status='cancelled') |
+| **Delete project budget** | `BudgetVsActualPage.tsx` | ✓ ConfirmDialog | ✓ yes | ✓ Toast | ✓ Toast | N/A | Direct delete |
+| **Remove project member** | `ProjectMembersPage.tsx` | ✓ ConfirmDialog | ✓ yes | ✓ Toast | ✓ Toast | N/A | RPC `remove_project_member` |
+| **Acknowledge profitability alert** | `ProfitabilityAlertsPage.tsx` | ✗ no | ✓ yes | ✓ Toast | ✓ Toast | N/A | Sets acknowledged_by/acknowledged_at |
+| **Delete profitability alert** | `ProfitabilityAlertsPage.tsx` | ✓ ConfirmDialog | ✓ yes | ✓ Toast | ✓ Toast | N/A | Direct delete |
+| **Upload attachment** | `AttachmentsPanel.tsx` | ✗ no | ✓ yes | ✓ inline msg | ✓ inline msg | ✓ yes | Partial: file uploaded but metadata failed → cleanup attempted |
+| **Create time entry (form)** | `TimeEntryForm.tsx` | ✗ no | ✓ yes | ✓ inline msg | ✓ inline msg | ✓ yes | Entry created, attachment upload may fail |
+
+**Confirmation pattern**: All destructive actions use `ConfirmDialog` component (reusable modal). Non-destructive actions (acknowledge, upload) do not require confirmation.
+
+**Feedback pattern**: All actions use `useToast()` hook for success/error messages. Some forms also show inline messages (TimeEntryForm, AttachmentsPanel).
+
+**Partial failure**: Batch operations (batch approve, batch reject) can fail for individual entries. Attachment uploads can fail after entry creation. Both cases return explicit error messages and allow retry.
+
+**P0 gaps**: None identified. All destructive actions have confirmation + feedback.
