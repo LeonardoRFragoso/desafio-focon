@@ -95,7 +95,7 @@ describe('audit-format', () => {
         { duration_minutes: 60 },
         { duration_minutes: 120 }
       );
-      expect(fields[0].label).toBe('Duração (min)');
+      expect(fields[0]?.label).toBe('Duração (min)');
     });
 
     it('sorts changed fields first', () => {
@@ -155,7 +155,7 @@ describe('audit-format', () => {
     it('returns formatted key-value pairs', () => {
       const result = formatAuditMetadata({ batch_size: 5, reason: 'Test reason' });
       expect(result).toHaveLength(2);
-      expect(result?.[0].value).toBe('5');
+      expect(result?.[0]?.value).toBe('5');
     });
   });
 
