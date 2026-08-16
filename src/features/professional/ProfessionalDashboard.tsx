@@ -38,10 +38,23 @@ export function ProfessionalDashboard() {
   const [toast, setToast] = useState<string | null>(null);
   const [goalEditorSignal, setGoalEditorSignal] = useState(0);
   const timerRef = useRef<HTMLDivElement>(null);
+  const goalWidgetRef = useRef<HTMLDivElement>(null);
 
-  // Handle deep link actions from Command Palette (?action=quick-entry or ?action=start-timer).
-  // We key off the URL param itself (not a sticky ref) so repeated navigations
-  // to the same action type work across multiple Command Palette invocations.
+  // Canonical handler to open the weekly goal editor and scroll to it.
+  // Used by the Action Center CTA and the ?action=define-goal deep link.
+  const handleOpenWeeklyGoal = useCallback(() => {
+    setGoalEditorSignal((n) => n + 1);
+    // Use a double-rAF so React commits the editing state before scrolling.
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        goalWidgetRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      });
+    });
+  }, []);
+
+  // Handle deep link actions from Command Palette (?action=quick-entry, ?action=start-timer,
+  // ?action=define-goal). We key off the URL param itself (not a sticky ref) so repeated
+  // navigations to the same action type work across multiple invocations.
   // The param is removed from the URL after handling, so a fresh navigation
   // with the same param will be handled again.
   useEffect(() => {
@@ -61,8 +74,13 @@ export function ProfessionalDashboard() {
       const params = new URLSearchParams(searchParams);
       params.delete('action');
       setSearchParams(params, { replace: true });
+    } else if (action === 'define-goal') {
+      handleOpenWeeklyGoal();
+      const params = new URLSearchParams(searchParams);
+      params.delete('action');
+      setSearchParams(params, { replace: true });
     }
-  }, [searchParams, setSearchParams]);
+  }, [searchParams, setSearchParams, handleOpenWeeklyGoal]);
 
   const fetchUserEntries = useCallback(async () => {
     if (!user) return;
@@ -298,7 +316,7 @@ export function ProfessionalDashboard() {
       <ProfessionalActionCenter
         stats={dashboardStats}
         loading={false}
-        onDefineGoal={() => setGoalEditorSignal((n) => n + 1)}
+        onDefineGoal={handleOpenWeeklyGoal}
       />
 
       {/* Minhas Tarefas */}
@@ -329,7 +347,7 @@ export function ProfessionalDashboard() {
           Action Center (single source of truth). When the goal is saved or
           removed, onGoalChanged triggers a full dashboard refetch so both
           widgets update immediately without a manual page reload. */}
-      <div id="hour-goal-widget">
+      <div id="hour-goal-widget" ref={goalWidgetRef} className="scroll-mt-20">
         <HourGoalWidget
           weeklyGoal={dashboardStats?.weekly_goal ?? null}
           openEditorSignal={goalEditorSignal}

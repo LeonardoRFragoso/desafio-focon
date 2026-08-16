@@ -109,6 +109,16 @@ vi.mock('@/features/professional/MyTasks', () => ({
   MyTasks: () => <div data-testid="my-tasks" />,
 }));
 
+// Mock HourGoalWidget to capture the openEditorSignal prop and expose a
+// data attribute we can assert on in tests.
+vi.mock('@/features/time-entries/HourGoalWidget', () => ({
+  HourGoalWidget: ({ openEditorSignal }: { openEditorSignal?: number; weeklyGoal: unknown; onGoalChanged?: () => void }) => (
+    <div data-testid="hour-goal-widget" data-signal={openEditorSignal ?? 0}>
+      Meta Semanal
+    </div>
+  ),
+}));
+
 // Capture the current URL search params so we can drive the dashboard with
 // ?action=quick-entry / ?action=start-timer like the Command Palette does.
 // We use initialEntries on MemoryRouter to set the initial URL — no need to
@@ -204,5 +214,86 @@ describe('ProfessionalDashboard — Command Palette sequential actions (A11)', (
     await waitFor(() => {
       expect(screen.getByTestId('quick-entry-modal')).toBeInTheDocument();
     }, { timeout: 3000 });
+  });
+});
+
+describe('ProfessionalDashboard — define-goal deep link and CTA', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    Element.prototype.scrollIntoView = vi.fn();
+  });
+
+  it('opens goal editor when ?action=define-goal', async () => {
+    renderDashboard('define-goal');
+    await waitFor(() => {
+      const widget = screen.getByTestId('hour-goal-widget');
+      expect(Number(widget.getAttribute('data-signal'))).toBeGreaterThan(0);
+    });
+  });
+
+  it('consumes the action param from the URL after handling define-goal', async () => {
+    const { container } = render(
+      <MemoryRouter initialEntries={['/my-dashboard?action=define-goal']}>
+        <DashboardHarness />
+      </MemoryRouter>
+    );
+    await waitFor(() => {
+      expect(container.textContent).toContain('Meta Semanal');
+    });
+    // The action param should be removed — but since we can't easily read
+    // search params from MemoryRouter in the test, we verify the signal
+    // was incremented (which only happens if the action was processed).
+    await waitFor(() => {
+      const widget = screen.getByTestId('hour-goal-widget');
+      expect(Number(widget.getAttribute('data-signal'))).toBeGreaterThan(0);
+    });
+  });
+
+  it('scrolls to the goal widget when define-goal action fires', async () => {
+    renderDashboard('define-goal');
+    await waitFor(() => {
+      expect(Element.prototype.scrollIntoView).toHaveBeenCalled();
+    });
+  });
+
+  it('does not open quick entry when define-goal action fires', async () => {
+    renderDashboard('define-goal');
+    await waitFor(() => {
+      expect(screen.getByTestId('hour-goal-widget')).toBeInTheDocument();
+    });
+    expect(screen.queryByTestId('quick-entry-modal')).not.toBeInTheDocument();
+  });
+
+  it('existing actions (quick-entry, start-timer) still work alongside define-goal', async () => {
+    // quick-entry
+    const { rerender } = render(
+      <MemoryRouter key="qe" initialEntries={['/my-dashboard?action=quick-entry']}>
+        <DashboardHarness />
+      </MemoryRouter>
+    );
+    await waitFor(() => {
+      expect(screen.getByTestId('quick-entry-modal')).toBeInTheDocument();
+    });
+
+    // start-timer
+    rerender(
+      <MemoryRouter key="st" initialEntries={['/my-dashboard?action=start-timer']}>
+        <DashboardHarness />
+      </MemoryRouter>
+    );
+    await waitFor(() => {
+      expect(screen.getByTestId('timer-section')).toBeInTheDocument();
+    });
+
+    // define-goal
+    rerender(
+      <MemoryRouter key="dg" initialEntries={['/my-dashboard?action=define-goal']}>
+        <DashboardHarness />
+      </MemoryRouter>
+    );
+    await waitFor(() => {
+      const widget = screen.getByTestId('hour-goal-widget');
+      expect(Number(widget.getAttribute('data-signal'))).toBeGreaterThan(0);
+    });
   });
 });

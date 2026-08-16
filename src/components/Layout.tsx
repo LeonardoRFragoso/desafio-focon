@@ -303,6 +303,18 @@ export function Layout({ children }: LayoutProps) {
               >
                 Calendário Semanal
               </NavLink>
+              {/* Meta Semanal — deep-link action to /my-dashboard?action=define-goal.
+                  Uses a button + navigate instead of NavLink to avoid double-active
+                  state with "Meu Painel" (same pathname, different action param). */}
+              <button
+                onClick={() => {
+                  closeSidebar();
+                  navigate('/my-dashboard?action=define-goal');
+                }}
+                className="block w-full text-left px-4 py-3 rounded-lg font-medium transition text-slate-300 hover:bg-focon-800"
+              >
+                Meta Semanal
+              </button>
               <NavLink
                 to="/recurring"
                 onClick={closeSidebar}
