@@ -22,7 +22,7 @@ test.describe('E2E 4: Member delete pending time entry', () => {
     await page.waitForLoadState('networkidle');
 
     // --- Create a time entry to delete ---
-    const projectSelect = page.locator('#projectId');
+    const projectSelect = page.locator('#te-projectId');
     await projectSelect.waitFor({ state: 'visible', timeout: 10000 });
     const options = await projectSelect.locator('option').all();
     let selected = false;
@@ -37,10 +37,10 @@ test.describe('E2E 4: Member delete pending time entry', () => {
     expect(selected).toBe(true);
 
     const today = businessTodayStr();
-    await page.fill('#entryDate', today);
-    await page.fill('#durationMinutes', '30');
+    await page.fill('#te-entryDate', today);
+    await page.fill('#te-durationMinutes', '30');
     const uniqueDesc = `E2E delete test ${Date.now()}`;
-    await page.fill('#description', uniqueDesc);
+    await page.fill('#te-description', uniqueDesc);
     await page.click('button[type="submit"]');
 
     // Wait for the entry to appear

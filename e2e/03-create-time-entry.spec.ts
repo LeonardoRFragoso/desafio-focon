@@ -22,7 +22,7 @@ test.describe('E2E 3: Member create time entry', () => {
 
     // --- Fill the time entry form ---
     // Select a project (first option in the dropdown)
-    const projectSelect = page.locator('#projectId');
+    const projectSelect = page.locator('#te-projectId');
     await projectSelect.waitFor({ state: 'visible', timeout: 10000 });
     // Select the first non-empty option
     const options = await projectSelect.locator('option').all();
@@ -39,14 +39,14 @@ test.describe('E2E 3: Member create time entry', () => {
 
     // Set date to today (business timezone, not UTC — prevents CI failures)
     const today = businessTodayStr();
-    await page.fill('#entryDate', today);
+    await page.fill('#te-entryDate', today);
 
     // Set duration (60 minutes)
-    await page.fill('#durationMinutes', '60');
+    await page.fill('#te-durationMinutes', '60');
 
     // Set description with a unique marker for verification
     const uniqueDesc = `E2E test entry ${Date.now()}`;
-    await page.fill('#description', uniqueDesc);
+    await page.fill('#te-description', uniqueDesc);
 
     // --- Submit the form ---
     await page.click('button[type="submit"]');
