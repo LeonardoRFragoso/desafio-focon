@@ -55,20 +55,6 @@ export interface AdminCommandCenterSummary {
   }>;
 }
 
-export interface ProjectAttentionItem {
-  id: string;
-  name: string;
-  client: string;
-  status: string;
-  approved_minutes: number;
-  budget_value: number;
-  budget_utilization_percent: number;
-  overdue_tasks_count: number;
-  active_alerts_count: number;
-  team_size: number;
-  attention_state: 'critical' | 'warning' | 'normal';
-}
-
 export interface ProfessionalDashboardStats {
   stats: {
     pending_count: number;
@@ -139,10 +125,6 @@ export const commandCenterAPI = {
     if (startDate) params.p_start_date = startDate;
     if (endDate) params.p_end_date = endDate;
     return supabase.rpc('get_admin_command_center_summary', params);
-  },
-
-  getProjectsAttention: async () => {
-    return supabase.rpc('get_projects_attention_summary');
   },
 
   getProfessionalStats: async (userId?: string) => {

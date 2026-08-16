@@ -13,6 +13,7 @@ import { commandCenterAPI, capacityAPI } from '@/lib/supabase/api';
 import type { AdminCommandCenterSummary } from '@/lib/supabase/api';
 import type { CapacityOverview } from '@/types/database';
 import { mapDatabaseError } from '@/lib/errors';
+import { useProjectHealthSummary } from '@/hooks/useProjectHealthSummary';
 
 export function DashboardPage() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -24,6 +25,8 @@ export function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [refreshKey, setRefreshKey] = useState(0);
+  // Single canonical source for project health — shared by both dashboard widgets
+  const health = useProjectHealthSummary();
 
   // Sync period to URL
   useEffect(() => {
@@ -83,6 +86,12 @@ export function DashboardPage() {
     setRefreshKey(prev => prev + 1);
   }, []);
 
+  // Refresh canonical project health together with the rest of the dashboard
+  useEffect(() => {
+    if (refreshKey === 0) return; // initial fetch handled by the hook itself
+    health.refetch();
+  }, [refreshKey]); // eslint-disable-line react-hooks/exhaustive-deps
+
   return (
     <div className="space-y-8">
       {/* Header */}
@@ -131,11 +140,21 @@ export function DashboardPage() {
         onRetry={handleRefresh}
       />
 
-      {/* Projects that need attention — separate RPC (different data shape) */}
-      <ProjectsAttention />
+      {/* Projects that need attention — derives from canonical project health */}
+      <ProjectsAttention
+        items={health.items}
+        loading={health.loading}
+        error={health.error}
+        onRetry={handleRefresh}
+      />
 
-      {/* Canonical Project Health summary */}
-      <ProjectHealthSummary />
+      {/* Canonical Project Health summary — same source as above */}
+      <ProjectHealthSummary
+        items={health.items}
+        loading={health.loading}
+        error={health.error}
+        onRetry={handleRefresh}
+      />
 
       {/* Approval queue summary — from same summary */}
       <ApprovalQueueSummary summary={summary} loading={loading} error={error} onRetry={handleRefresh} />
