@@ -69,6 +69,16 @@ describe('Layout', () => {
     expect(screen.getByText('Meus Apontamentos')).toBeInTheDocument();
   });
 
+  it('renders Meta Semanal item in member sidebar', () => {
+    renderLayout({ isAdmin: false });
+    expect(screen.getByText('Meta Semanal')).toBeInTheDocument();
+  });
+
+  it('does NOT render Meta Semanal item in admin sidebar', () => {
+    renderLayout({ isAdmin: true });
+    expect(screen.queryByText('Meta Semanal')).not.toBeInTheDocument();
+  });
+
   it('shows the user email in the sidebar footer', () => {
     renderLayout();
     expect(screen.getByText('user@focon.com')).toBeInTheDocument();

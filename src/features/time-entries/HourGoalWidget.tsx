@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import type { ProfessionalDashboardStats } from '@/lib/supabase/api';
 import { useAuthContext } from '@/features/auth/useAuthContext';
 import { formatDuration, minutesToHoursInput } from '@/lib/duration';
@@ -23,6 +23,7 @@ export function HourGoalWidget({ weeklyGoal, openEditorSignal, onGoalChanged }: 
   const [inputHours, setInputHours] = useState('40');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const hoursInputRef = useRef<HTMLInputElement>(null);
 
   // The canonical numbers come from the RPC via the shared hook.
   // This widget does NOT replicate the aggregation math client-side.
@@ -47,11 +48,18 @@ export function HourGoalWidget({ weeklyGoal, openEditorSignal, onGoalChanged }: 
     /* eslint-enable react-hooks/set-state-in-effect */
   }, [weeklyGoal?.configured, weeklyGoal?.goal_minutes]);
 
-  // External trigger to open the goal editor (reused by Action Center CTA).
+  // External trigger to open the goal editor (reused by Action Center CTA
+  // and the ?action=define-goal deep link). Focuses the input so the user
+  // can immediately type — but only when triggered externally, not on
+  // normal page load or when the user clicks the widget's own buttons.
   useEffect(() => {
     if (openEditorSignal && openEditorSignal > 0) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setEditing(true);
+      // Defer focus until the input is rendered (editing=true → conditional render).
+      requestAnimationFrame(() => {
+        hoursInputRef.current?.focus();
+      });
     }
   }, [openEditorSignal]);
 
@@ -141,6 +149,7 @@ export function HourGoalWidget({ weeklyGoal, openEditorSignal, onGoalChanged }: 
             </label>
             <div className="flex items-center gap-2">
               <input
+                ref={hoursInputRef}
                 type="number"
                 min="0.5"
                 max={MAX_GOAL_HOURS}
