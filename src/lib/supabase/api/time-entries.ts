@@ -62,6 +62,7 @@ export const timeEntriesAPI = {
 
   /**
    * Create a new time entry. applied_hourly_rate is set by a DB trigger.
+   * Returns the created row (id) so callers can attach files to the new entry.
    */
   create: async (entry: {
     project_id: string;
@@ -75,20 +76,24 @@ export const timeEntriesAPI = {
     task_id?: string | null;
     late_submission_reason?: string | null;
   }) => {
-    return supabase.from('time_entries').insert([
-      {
-        project_id: entry.project_id,
-        professional_id: entry.professional_id,
-        entry_date: entry.entry_date,
-        duration_minutes: entry.duration_minutes,
-        description: entry.description,
-        approval_status: 'pending',
-        applied_hourly_rate: 0, // trigger overwrites with the real rate
-        phase_id: entry.phase_id || null,
-        task_id: entry.task_id || null,
-        late_submission_reason: entry.late_submission_reason || null,
-      },
-    ]);
+    return supabase
+      .from('time_entries')
+      .insert([
+        {
+          project_id: entry.project_id,
+          professional_id: entry.professional_id,
+          entry_date: entry.entry_date,
+          duration_minutes: entry.duration_minutes,
+          description: entry.description,
+          approval_status: 'pending',
+          applied_hourly_rate: 0, // trigger overwrites with the real rate
+          phase_id: entry.phase_id || null,
+          task_id: entry.task_id || null,
+          late_submission_reason: entry.late_submission_reason || null,
+        },
+      ])
+      .select('id')
+      .maybeSingle();
   },
 
   /**
