@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { projectHealthAPI } from '@/lib/supabase/api';
 import { mapDatabaseError } from '@/lib/errors';
 import type { ProjectHealthState, HealthStatus } from '@/types/database';
@@ -82,6 +82,8 @@ export function ProjectHealthCard({ projectId, isAdmin, onOpenDetails }: Project
   const [error, setError] = useState<string | null>(null);
   const [recalculating, setRecalculating] = useState(false);
 
+  const isMountedRef = useRef(true);
+
   const fetchHealth = useCallback(async () => {
     try {
       setLoading(true);
@@ -89,17 +91,21 @@ export function ProjectHealthCard({ projectId, isAdmin, onOpenDetails }: Project
       const { data, error: err } = await projectHealthAPI.get(projectId);
       if (err) throw err;
       // RPC returns JSONB; cast through unknown because Supabase types it as Json.
-      setHealth(data as unknown as ProjectHealthState | null);
+      if (isMountedRef.current) setHealth(data as unknown as ProjectHealthState | null);
     } catch (err) {
-      setError(err instanceof Error ? mapDatabaseError(err) : 'Erro ao carregar saúde do projeto');
+      if (isMountedRef.current) setError(err instanceof Error ? mapDatabaseError(err) : 'Erro ao carregar saúde do projeto');
     } finally {
-      setLoading(false);
+      if (isMountedRef.current) setLoading(false);
     }
   }, [projectId]);
 
   useEffect(() => {
+    isMountedRef.current = true;
     // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchHealth();
+    return () => {
+      isMountedRef.current = false;
+    };
   }, [fetchHealth]);
 
   const handleRecalculate = async () => {
