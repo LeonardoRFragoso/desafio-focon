@@ -12,6 +12,7 @@ import { TimeEntryDetailsModal, type TimeEntryDetail } from '@/features/time-ent
 import { TimeEntryFields } from '@/features/time-entries/TimeEntryFields';
 import { useTimeEntryForm } from '@/features/time-entries/useTimeEntryForm';
 import { AttachmentsPanel } from '@/features/time-entries/AttachmentsPanel';
+import { useToast } from '@/components/useToast';
 import { requiresLateReason } from '@/features/time-entries/temporalRules';
 import type { TimeEntryInput } from '@/schemas/time-entry';
 
@@ -44,6 +45,7 @@ type DialogState =
 export function TimeEntryList() {
   const { user, isAdmin } = useAuthContext();
   const [searchParams, setSearchParams] = useSearchParams();
+  const { showToast } = useToast();
   const [entries, setEntries] = useState<TimeEntry[]>([]);
   const [total, setTotal] = useState(0);
   const [projects, setProjects] = useState<Project[]>([]);
@@ -537,6 +539,7 @@ export function TimeEntryList() {
           onSaved={() => {
             setDialog(null);
             fetchEntries();
+            showToast('Apontamento atualizado com sucesso!', 'success');
           }}
           onError={(msg) => setActionError(msg)}
         />
@@ -550,6 +553,7 @@ export function TimeEntryList() {
           onSaved={() => {
             setDialog(null);
             fetchEntries();
+            showToast('Apontamento criado com sucesso!', 'success');
           }}
           onError={(msg) => setActionError(msg)}
         />
@@ -571,6 +575,7 @@ export function TimeEntryList() {
             }
             setDialog(null);
             fetchEntries();
+            showToast('Apontamento excluído com sucesso!', 'success');
           }}
           message={
             <>

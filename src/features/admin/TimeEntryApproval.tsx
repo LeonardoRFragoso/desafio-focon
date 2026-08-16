@@ -2,6 +2,8 @@ import { useState, useMemo } from 'react';
 import { usePendingTimeEntries } from '@/hooks/usePendingTimeEntries';
 import type { TimeEntryWithRelations, TimeEntryApprovalHistory } from '@/types/database';
 import { Modal } from '@/components/Modal';
+import { ConfirmDialog } from '@/components/ConfirmDialog';
+import { useToast } from '@/components/useToast';
 import { timeEntriesAPI } from '@/lib/supabase/api';
 import { useDebounce } from '@/hooks/usePagination';
 import { isFutureDate } from '@/features/time-entries/temporalRules';
@@ -22,6 +24,7 @@ export function TimeEntryApproval({ onStatusChanged }: TimeEntryApprovalProps) {
     batchApprove,
     batchReject,
   } = usePendingTimeEntries();
+  const { showToast } = useToast();
   const [selectedEntry, setSelectedEntry] = useState<TimeEntryWithRelations | null>(null);
   const [rejectTarget, setRejectTarget] = useState<TimeEntryWithRelations | null>(null);
   const [rejectReason, setRejectReason] = useState('');
@@ -32,6 +35,7 @@ export function TimeEntryApproval({ onStatusChanged }: TimeEntryApprovalProps) {
   const [batchError, setBatchError] = useState<string | null>(null);
   const [search, setSearch] = useState('');
   const [projectFilter, setProjectFilter] = useState('');
+  const [approveTarget, setApproveTarget] = useState<TimeEntryWithRelations | null>(null);
   const debouncedSearch = useDebounce(search, 300);
 
   const filteredEntries = useMemo(() => {
@@ -64,7 +68,20 @@ export function TimeEntryApproval({ onStatusChanged }: TimeEntryApprovalProps) {
 
   const approveEntry = async (entryId: string) => {
     const ok = await approve(entryId);
-    if (ok) onStatusChanged?.();
+    if (ok) {
+      showToast('Apontamento aprovado com sucesso!', 'success');
+      onStatusChanged?.();
+    }
+  };
+
+  const openApprove = (entry: TimeEntryWithRelations) => {
+    setApproveTarget(entry);
+  };
+
+  const confirmApprove = async () => {
+    if (!approveTarget) return;
+    await approveEntry(approveTarget.id);
+    setApproveTarget(null);
   };
 
   const openReject = (entry: TimeEntryWithRelations) => {
@@ -81,6 +98,7 @@ export function TimeEntryApproval({ onStatusChanged }: TimeEntryApprovalProps) {
     }
     const ok = await reject(rejectTarget.id, rejectReason.trim());
     if (ok) {
+      showToast('Apontamento rejeitado com sucesso!', 'success');
       setRejectTarget(null);
       onStatusChanged?.();
     }
@@ -121,6 +139,7 @@ export function TimeEntryApproval({ onStatusChanged }: TimeEntryApprovalProps) {
     }
     const results = await batchApprove(approvableIds);
     if (results) {
+      showToast(`${approvableIds.length} apontamento(s) aprovado(s) com sucesso!`, 'success');
       setSelectedIds(new Set());
       setBatchMode(null);
       onStatusChanged?.();
@@ -135,6 +154,7 @@ export function TimeEntryApproval({ onStatusChanged }: TimeEntryApprovalProps) {
     const ids = Array.from(selectedIds);
     const results = await batchReject(ids, batchReason.trim());
     if (results) {
+      showToast(`${ids.length} apontamento(s) rejeitado(s) com sucesso!`, 'success');
       setSelectedIds(new Set());
       setBatchMode(null);
       setBatchReason('');
@@ -324,7 +344,7 @@ export function TimeEntryApproval({ onStatusChanged }: TimeEntryApprovalProps) {
                     </td>
                     <td className="px-4 py-4 text-sm space-x-2 flex" onClick={(e) => e.stopPropagation()}>
                       <button
-                        onClick={() => approveEntry(entry.id)}
+                        onClick={() => openApprove(entry)}
                         disabled={actionLoading === entry.id || batchBusy || isFutureDate(entry.entry_date)}
                         title={isFutureDate(entry.entry_date) ? 'Apontamentos com data futura não podem ser aprovados.' : undefined}
                         className="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white rounded-lg text-xs font-medium transition disabled:opacity-50 disabled:cursor-not-allowed"
@@ -407,7 +427,7 @@ export function TimeEntryApproval({ onStatusChanged }: TimeEntryApprovalProps) {
               )}
               <button
                 onClick={() => {
-                  approveEntry(selectedEntry.id);
+                  openApprove(selectedEntry);
                   setSelectedEntry(null);
                 }}
                 disabled={actionLoading === selectedEntry.id || isFutureDate(selectedEntry.entry_date)}
@@ -562,6 +582,27 @@ export function TimeEntryApproval({ onStatusChanged }: TimeEntryApprovalProps) {
           </div>
         </Modal>
       )}
+
+      {/* Single approve confirmation */}
+      <ConfirmDialog
+        open={approveTarget !== null}
+        title="Aprovar Apontamento"
+        message={
+          approveTarget ? (
+            <>
+              Confirmar a aprovação do apontamento de{' '}
+              <strong>{approveTarget.professional?.full_name ?? 'profissional'}</strong> no projeto{' '}
+              <strong>{approveTarget.project?.name ?? 'projeto'}</strong> ({formatDate(approveTarget.entry_date)} —{' '}
+              {formatDuration(approveTarget.duration_minutes)})?
+              <br />
+              <span className="text-app-muted">Esta ação não pode ser desfeita.</span>
+            </>
+          ) : null
+        }
+        confirmLabel="Aprovar"
+        onConfirm={confirmApprove}
+        onClose={() => setApproveTarget(null)}
+      />
     </div>
   );
 }
