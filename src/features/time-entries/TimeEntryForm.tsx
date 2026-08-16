@@ -5,6 +5,8 @@ import { useAuthContext } from '@/features/auth/useAuthContext';
 import { mapDatabaseError } from '@/lib/errors';
 import { TimeEntryFields, type TimeEntryProject } from '@/features/time-entries/TimeEntryFields';
 import { useTimeEntryForm } from '@/features/time-entries/useTimeEntryForm';
+import { PendingAttachments } from '@/features/time-entries/PendingAttachments';
+import { uploadTimeEntryAttachments } from '@/features/time-entries/attachments';
 import type { TimeEntryInput } from '@/schemas/time-entry';
 
 interface TimeEntryFormProps {
@@ -19,6 +21,7 @@ export function TimeEntryForm({ onSuccess }: TimeEntryFormProps) {
   const [loading, setLoading] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [submitSuccess, setSubmitSuccess] = useState(false);
+  const [pendingFiles, setPendingFiles] = useState<File[]>([]);
 
   const form = useTimeEntryForm();
   const {
@@ -86,7 +89,7 @@ export function TimeEntryForm({ onSuccess }: TimeEntryFormProps) {
       setSubmitError(null);
       setSubmitSuccess(false);
 
-      const { error } = await timeEntriesAPI.create({
+      const { data: created, error } = await timeEntriesAPI.create({
         project_id: data.projectId,
         professional_id: user.id,
         entry_date: data.entryDate,
@@ -99,6 +102,30 @@ export function TimeEntryForm({ onSuccess }: TimeEntryFormProps) {
         throw error;
       }
 
+      // Entry created — upload pending attachments (if any) to the new entry.
+      // Partial failures are surfaced explicitly: the entry is kept, but the
+      // user is told which attachments failed and that they can retry via edit.
+      if (pendingFiles.length > 0 && created?.id) {
+        const { succeeded, failed } = await uploadTimeEntryAttachments(
+          created.id,
+          user.id,
+          pendingFiles
+        );
+        if (failed > 0) {
+          setSubmitError(
+            `Apontamento criado, mas ${failed} de ${pendingFiles.length} anexo(s) falhou/falharam. ` +
+              `${succeeded} enviado(s). Tente adicionar os pendentes na edição do apontamento.`
+          );
+          // Keep the entry; clear pending files only for the ones that succeeded is complex,
+          // so clear all and let the user re-add via edit. The entry itself is valid.
+          setPendingFiles([]);
+          reset();
+          onSuccess?.();
+          return;
+        }
+      }
+
+      setPendingFiles([]);
       setSubmitSuccess(true);
       reset();
       onSuccess?.();
@@ -149,6 +176,8 @@ export function TimeEntryForm({ onSuccess }: TimeEntryFormProps) {
         idPrefix="te"
         descriptionRows={5}
       />
+
+      <PendingAttachments files={pendingFiles} onChange={setPendingFiles} disabled={loading} />
 
       <button
         type="submit"

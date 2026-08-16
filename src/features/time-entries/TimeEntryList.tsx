@@ -11,6 +11,7 @@ import { useDebounce } from '@/hooks/usePagination';
 import { TimeEntryDetailsModal, type TimeEntryDetail } from '@/features/time-entries/TimeEntryDetailsModal';
 import { TimeEntryFields } from '@/features/time-entries/TimeEntryFields';
 import { useTimeEntryForm } from '@/features/time-entries/useTimeEntryForm';
+import { AttachmentsPanel } from '@/features/time-entries/AttachmentsPanel';
 import { requiresLateReason } from '@/features/time-entries/temporalRules';
 import type { TimeEntryInput } from '@/schemas/time-entry';
 
@@ -670,6 +671,7 @@ function EditEntryModal({ entry, projects, onClose, onSaved, onError }: EditEntr
           Apenas apontamentos pendentes podem ser editados. O valor/hora é recalculado
           automaticamente pelo sistema ao alterar a data.
         </p>
+        <AttachmentsPanel entryId={entry.id} />
       </form>
     </Modal>
   );
