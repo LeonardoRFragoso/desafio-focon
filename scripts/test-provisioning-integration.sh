@@ -28,12 +28,25 @@ echo "  Provisioning Integration Test (local Supabase)"
 echo "═══════════════════════════════════════════════════════════════"
 
 # Get local Supabase connection info
-DB_URL=$(supabase status --output json 2>/dev/null | jq -r '.dbUrl // empty')
-API_URL=$(supabase status --output json 2>/dev/null | jq -r '.apiUrl // empty')
-ANON_KEY=$(supabase status --output json 2>/dev/null | jq -r '.anonKey // empty')
-SERVICE_ROLE_KEY=$(supabase status --output json 2>/dev/null | jq -r '.serviceRoleKey // empty')
+# Try JSON output first, fall back to defaults if unavailable
+STATUS_JSON=$(supabase status --output json 2>/dev/null || echo '{}')
+DB_URL=$(echo "$STATUS_JSON" | jq -r '.dbUrl // empty' 2>/dev/null || echo '')
+API_URL=$(echo "$STATUS_JSON" | jq -r '.apiUrl // empty' 2>/dev/null || echo '')
+SERVICE_ROLE_KEY=$(echo "$STATUS_JSON" | jq -r '.serviceRoleKey // empty' 2>/dev/null || echo '')
 
-if [ -z "$DB_URL" ] || [ -z "$API_URL" ] || [ -z "$SERVICE_ROLE_KEY" ]; then
+# If JSON parsing failed, use defaults for local Supabase
+if [ -z "$DB_URL" ]; then
+  DB_URL="postgresql://postgres:postgres@localhost:54322/postgres"
+fi
+if [ -z "$API_URL" ]; then
+  API_URL="http://localhost:54321"
+fi
+if [ -z "$SERVICE_ROLE_KEY" ]; then
+  # Try to get from supabase status in text format
+  SERVICE_ROLE_KEY=$(supabase status 2>/dev/null | grep "service_role key" | awk '{print $NF}' || echo '')
+fi
+
+if [ -z "$SERVICE_ROLE_KEY" ]; then
   echo "❌ Failed to get local Supabase connection info."
   echo "   Make sure Supabase is running: supabase start"
   exit 1
