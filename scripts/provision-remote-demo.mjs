@@ -76,6 +76,8 @@ if (missingVars.length > 0) {
 const supabaseUrl = process.env.SUPABASE_URL;
 const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const demoPassword = process.env.DEMO_USER_PASSWORD;
+// Anon key for authenticated operations (e.g., admin auth for period close)
+const anonKey = process.env.SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZS1kZW1vIiwicm9sZSI6ImFub24iLCJleHAiOjE5ODM4MTI5OTZ9.CRXP1A7WOeoJeXxjNni43kdQwgnWNReilDMblYTn_I0';
 
 const supabase = createClient(supabaseUrl, serviceRoleKey);
 
@@ -706,13 +708,29 @@ async function apply() {
       console.log(`  ✓ Exists: ${period.periodKey} (status: ${existing.status})`);
     }
 
-    // Close via RPC if needed (uses official domain flow)
+    // Close via RPC if needed (uses official domain flow with admin auth)
     if (period.shouldClose) {
-      const { data: closeResult, error: closeErr } = await supabase
+      // Create a separate admin client for closing the period
+      const adminSupabase = createClient(supabaseUrl, anonKey);
+      
+      // Authenticate as admin to close the period
+      const { error: adminAuthErr } = await adminSupabase.auth.signInWithPassword({
+        email: 'admin@example.com',
+        password: 'password123',
+      });
+      if (adminAuthErr) {
+        throw new Error(`Failed to authenticate as admin for period close: ${adminAuthErr.message}`);
+      }
+
+      const { data: closeResult, error: closeErr } = await adminSupabase
         .rpc('close_accounting_period', { p_period_key: period.periodKey });
       if (closeErr) {
-        // Might already be closed — that's ok
-        console.log(`  ℹ Close RPC: ${closeErr.message} (may already be closed)`);
+        // If already closed, that's idempotent — not an error
+        if (closeErr.message.includes('already closed')) {
+          console.log(`  ℹ Already closed: ${period.periodKey}`);
+        } else {
+          throw new Error(`Failed to close period ${period.periodKey}: ${closeErr.message}`);
+        }
       } else {
         console.log(`  ✓ Closed via RPC: ${period.periodKey}`);
       }
