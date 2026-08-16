@@ -1,17 +1,11 @@
-import { test, expect } from '@playwright/test';
-import { seedDemoData, loginAs } from './fixtures';
+import { test, expect } from './fixtures';
 
 test.describe('P17 — E2E expansion: new features', () => {
-  test.beforeEach(async ({ page }) => {
-    await seedDemoData();
-    await page.goto('/');
-  });
-
   // ========================================================================
   // A. DASHBOARD — Project Health Consistency
   // ========================================================================
-  test('A) Dashboard shows consistent project health across widgets', async ({ page }) => {
-    await loginAs(page, 'admin@example.com');
+  test('A) Dashboard shows consistent project health across widgets', async ({ adminPage }) => {
+    const page = adminPage;
     await page.goto('/dashboard');
 
     // Wait for both widgets to load
@@ -40,8 +34,8 @@ test.describe('P17 — E2E expansion: new features', () => {
   // ========================================================================
   // B. CREATE + ATTACHMENT
   // ========================================================================
-  test('B) Create time entry with attachment, edit, verify attachment persists', async ({ page }) => {
-    await loginAs(page, 'ana@example.com');
+  test('B) Create time entry with attachment, edit, verify attachment persists', async ({ memberPage }) => {
+    const page = memberPage;
     await page.goto('/time-entries');
 
     // Click create button
@@ -86,8 +80,8 @@ test.describe('P17 — E2E expansion: new features', () => {
   // ========================================================================
   // C. RETROACTIVE REASON
   // ========================================================================
-  test('C) Create entry without reason when not required, with reason when required', async ({ page }) => {
-    await loginAs(page, 'ana@example.com');
+  test('C) Create entry without reason when not required, with reason when required', async ({ memberPage }) => {
+    const page = memberPage;
     await page.goto('/time-entries');
 
     // Create entry for today (no reason required)
@@ -131,8 +125,8 @@ test.describe('P17 — E2E expansion: new features', () => {
   // ========================================================================
   // D. APPROVE CONFIRMATION
   // ========================================================================
-  test('D) Approve confirmation dialog: cancel preserves pending, confirm approves', async ({ page }) => {
-    await loginAs(page, 'admin@example.com');
+  test('D) Approve confirmation dialog: cancel preserves pending, confirm approves', async ({ adminPage }) => {
+    const page = adminPage;
     await page.goto('/admin/time-entries');
 
     // Find a pending entry and click approve
@@ -164,8 +158,8 @@ test.describe('P17 — E2E expansion: new features', () => {
   // ========================================================================
   // E. REJECT WITH REASON
   // ========================================================================
-  test('E) Reject entry with reason required', async ({ page }) => {
-    await loginAs(page, 'admin@example.com');
+  test('E) Reject entry with reason required', async ({ adminPage }) => {
+    const page = adminPage;
     await page.goto('/admin/time-entries');
 
     // Find a pending entry and click reject
@@ -194,8 +188,8 @@ test.describe('P17 — E2E expansion: new features', () => {
   // ========================================================================
   // F. ACCOUNTING PERIODS
   // ========================================================================
-  test('F) Accounting periods: open and closed visible, close via dialog', async ({ page }) => {
-    await loginAs(page, 'admin@example.com');
+  test('F) Accounting periods: open and closed visible, close via dialog', async ({ adminPage }) => {
+    const page = adminPage;
     await page.goto('/admin/periods');
 
     // Wait for table
@@ -227,8 +221,8 @@ test.describe('P17 — E2E expansion: new features', () => {
   // ========================================================================
   // G. PROJECT BUDGETS
   // ========================================================================
-  test('G) Project budgets display with correct schema (budget_type, fiscal_year)', async ({ page }) => {
-    await loginAs(page, 'admin@example.com');
+  test('G) Project budgets display with correct schema (budget_type, fiscal_year)', async ({ adminPage }) => {
+    const page = adminPage;
     await page.goto('/admin/budget');
 
     // Wait for table
@@ -252,8 +246,8 @@ test.describe('P17 — E2E expansion: new features', () => {
   // ========================================================================
   // H. PROFITABILITY ALERTS
   // ========================================================================
-  test('H) Profitability alerts: config alerts visible, acknowledge works', async ({ page }) => {
-    await loginAs(page, 'admin@example.com');
+  test('H) Profitability alerts: config alerts visible, acknowledge works', async ({ adminPage }) => {
+    const page = adminPage;
     await page.goto('/admin/alerts');
 
     // Wait for table
@@ -284,8 +278,8 @@ test.describe('P17 — E2E expansion: new features', () => {
   // ========================================================================
   // I. AUDIT LOG UX
   // ========================================================================
-  test('I) Audit log: human-readable titles, technical section collapsed, no raw JSON', async ({ page }) => {
-    await loginAs(page, 'admin@example.com');
+  test('I) Audit log: human-readable titles, technical section collapsed, no raw JSON', async ({ adminPage }) => {
+    const page = adminPage;
     await page.goto('/admin/audit');
 
     // Wait for table
