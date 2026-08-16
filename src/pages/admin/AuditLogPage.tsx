@@ -9,6 +9,7 @@ import {
   getAuditActionLabel,
   getAuditEntityLabel,
   getAuditActionColor,
+  isKnownAction,
   AUDIT_COLOR_BADGE_CLASSES,
   formatAuditDateTime,
   diffAuditData,
@@ -48,11 +49,10 @@ export function AuditLogPage() {
 
   // Reset page when filters change
   useEffect(() => {
-
     resetPage();
   }, [debouncedSearch, actionFilter, resetPage]);
 
-  // Filter logs — search matches human-readable labels too, not just raw strings
+  // Filter logs — search matches human-readable labels too
   const filteredLogs = useMemo(() => {
     let result = logs;
     if (debouncedSearch) {
@@ -72,7 +72,6 @@ export function AuditLogPage() {
     return result;
   }, [logs, debouncedSearch, actionFilter]);
 
-  // Paginate
   const paginatedLogs = useMemo(() => {
     const start = (page - 1) * PAGE_SIZE;
     return filteredLogs.slice(start, start + PAGE_SIZE);
@@ -203,6 +202,19 @@ function AuditLogDetailModal({ log, onClose }: { log: AuditLog; onClose: () => v
   const color = getAuditActionColor(log.action);
   const fields = diffAuditData(log.before_data, log.after_data);
   const metadata = formatAuditMetadata(log.metadata);
+  const [showTechnical, setShowTechnical] = useState(false);
+  const [copiedField, setCopiedField] = useState<string | null>(null);
+  const knownAction = isKnownAction(log.action);
+
+  const copyToClipboard = async (text: string, fieldId: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedField(fieldId);
+      setTimeout(() => setCopiedField(null), 2000);
+    } catch {
+      // Clipboard API not available — silently fail
+    }
+  };
 
   return (
     <Modal
@@ -217,10 +229,6 @@ function AuditLogDetailModal({ log, onClose }: { log: AuditLog; onClose: () => v
           <div>
             <p className="text-app-muted">Entidade</p>
             <p className="font-medium text-app-primary">{getAuditEntityLabel(log.entity_type)}</p>
-          </div>
-          <div>
-            <p className="text-app-muted">ID da entidade</p>
-            <p className="font-mono text-xs text-app-primary break-all">{log.entity_id || '—'}</p>
           </div>
           <div>
             <p className="text-app-muted">Ator</p>
@@ -291,6 +299,64 @@ function AuditLogDetailModal({ log, onClose }: { log: AuditLog; onClose: () => v
             </div>
           </div>
         )}
+
+        {/* Technical section (collapsed by default) */}
+        <div className="border-t border-app-primary pt-4">
+          <button
+            type="button"
+            onClick={() => setShowTechnical((v) => !v)}
+            className="flex items-center gap-2 text-sm text-app-muted hover:text-app-secondary transition"
+            aria-expanded={showTechnical}
+          >
+            <span>{showTechnical ? '▼' : '▶'}</span>
+            <span>Informações técnicas</span>
+          </button>
+          {showTechnical && (
+            <div className="mt-3 space-y-3 text-xs">
+              {/* Entity ID with copy button */}
+              {log.entity_id && (
+                <div className="flex items-center gap-2">
+                  <span className="text-app-muted">ID da entidade:</span>
+                  <code className="font-mono text-app-secondary break-all">{log.entity_id}</code>
+                  <button
+                    type="button"
+                    onClick={() => copyToClipboard(log.entity_id!, 'entityId')}
+                    className="px-2 py-0.5 rounded border border-app-strong text-app-muted hover:bg-hover-surface transition text-xs"
+                  >
+                    {copiedField === 'entityId' ? 'Copiado!' : 'Copiar ID'}
+                  </button>
+                </div>
+              )}
+              {/* Action code */}
+              <div>
+                <span className="text-app-muted">Código da ação: </span>
+                <code className="font-mono text-app-secondary">{log.action}</code>
+                {!knownAction && (
+                  <span className="text-orange-600 dark:text-orange-400 ml-2">(não reconhecida)</span>
+                )}
+              </div>
+              {/* Entity type code */}
+              <div>
+                <span className="text-app-muted">Código da entidade: </span>
+                <code className="font-mono text-app-secondary">{log.entity_type}</code>
+              </div>
+              {/* Actor ID */}
+              {log.actor_id && (
+                <div className="flex items-center gap-2">
+                  <span className="text-app-muted">ID do ator:</span>
+                  <code className="font-mono text-app-secondary">{log.actor_id}</code>
+                  <button
+                    type="button"
+                    onClick={() => copyToClipboard(log.actor_id!, 'actorId')}
+                    className="px-2 py-0.5 rounded border border-app-strong text-app-muted hover:bg-hover-surface transition text-xs"
+                  >
+                    {copiedField === 'actorId' ? 'Copiado!' : 'Copiar ID'}
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
       </div>
     </Modal>
   );

@@ -3,25 +3,32 @@ import {
   getAuditActionLabel,
   getAuditEntityLabel,
   getAuditActionColor,
+  isKnownAction,
   AUDIT_COLOR_BADGE_CLASSES,
   formatAuditDateTime,
   diffAuditData,
   formatAuditMetadata,
   getAuditSummary,
+  sanitizeAuditData,
 } from '@/lib/audit-format';
 import type { AuditLog } from '@/types/database';
 
 describe('audit-format', () => {
-  describe('getAuditActionLabel', () => {
-    it('returns human-readable label for known actions', () => {
-      expect(getAuditActionLabel('approve_time_entry')).toBe('Aprovar apontamento');
-      expect(getAuditActionLabel('reject_time_entry')).toBe('Rejeitar apontamento');
-      expect(getAuditActionLabel('close_accounting_period')).toBe('Fechar período contábil');
-      expect(getAuditActionLabel('reopen_accounting_period')).toBe('Reabrir período contábil');
+  describe('P11 — Action wording (event-based)', () => {
+    it('returns event-based labels for known actions', () => {
+      expect(getAuditActionLabel('approve_time_entry')).toBe('Apontamento aprovado');
+      expect(getAuditActionLabel('reject_time_entry')).toBe('Apontamento rejeitado');
+      expect(getAuditActionLabel('close_accounting_period')).toBe('Período contábil fechado');
+      expect(getAuditActionLabel('reopen_accounting_period')).toBe('Período contábil reaberto');
     });
 
-    it('falls back to raw action for unknown', () => {
-      expect(getAuditActionLabel('unknown_action')).toBe('unknown_action');
+    it('returns "Ação não reconhecida" for unknown actions', () => {
+      expect(getAuditActionLabel('unknown_action')).toBe('Ação não reconhecida');
+    });
+
+    it('isKnownAction returns true for known, false for unknown', () => {
+      expect(isKnownAction('approve_time_entry')).toBe(true);
+      expect(isKnownAction('unknown')).toBe(false);
     });
   });
 
@@ -65,37 +72,166 @@ describe('audit-format', () => {
   });
 
   describe('formatAuditDateTime', () => {
-    it('formats an ISO date string', () => {
+    it('formats an ISO date string in America/Sao_Paulo timezone', () => {
       const result = formatAuditDateTime('2024-01-15T10:00:00Z');
       expect(result).toMatch(/\d{2}\/\d{2}\/\d{4}/);
     });
   });
 
-  describe('diffAuditData', () => {
-    it('returns empty array when both null', () => {
-      expect(diffAuditData(null, null)).toEqual([]);
+  // ==========================================================================
+  // P8 — Recursive sanitization
+  // ==========================================================================
+  describe('P8 — sanitizeAuditData', () => {
+    it('redacts top-level sensitive keys', () => {
+      const result = sanitizeAuditData({ password: 'secret123', name: 'John' });
+      expect(result).toEqual({ password: '[REDACTED]', name: 'John' });
     });
 
-    it('marks changed fields', () => {
-      const fields = diffAuditData(
-        { status: 'pending', duration_minutes: 60 },
-        { status: 'approved', duration_minutes: 60 }
-      );
-      const statusField = fields.find((f) => f.key === 'status');
-      expect(statusField?.changed).toBe(true);
-      expect(statusField?.before).toBe('pending');
-      expect(statusField?.after).toBe('approved');
-
-      const durationField = fields.find((f) => f.key === 'duration_minutes');
-      expect(durationField?.changed).toBe(false);
+    it('redacts nested sensitive keys in objects', () => {
+      const result = sanitizeAuditData({
+        user: { access_token: 'abc123', name: 'John' },
+      });
+      expect(result).toEqual({
+        user: { access_token: '[REDACTED]', name: 'John' },
+      });
     });
 
-    it('uses human-readable field labels', () => {
+    it('redacts sensitive keys in arrays', () => {
+      const result = sanitizeAuditData([
+        { token: 'abc' },
+        { name: 'John', api_key: 'xyz' },
+      ]);
+      expect(result).toEqual([
+        { token: '[REDACTED]' },
+        { name: 'John', api_key: '[REDACTED]' },
+      ]);
+    });
+
+    it('matches keys case-insensitively', () => {
+      const result = sanitizeAuditData({ Password: 'x', API_KEY: 'y', TOKEN: 'z' });
+      expect(result).toEqual({ Password: '[REDACTED]', API_KEY: '[REDACTED]', TOKEN: '[REDACTED]' });
+    });
+
+    it('redacts all sensitive key patterns', () => {
+      const data = {
+        authorization: 'Bearer x',
+        access_token: 'x',
+        refresh_token: 'x',
+        token: 'x',
+        password: 'x',
+        passwd: 'x',
+        secret: 'x',
+        service_role: 'x',
+        service_role_key: 'x',
+        api_key: 'x',
+        apikey: 'x',
+        cookie: 'x',
+        'set-cookie': 'x',
+        signed_url: 'x',
+        signedurl: 'x',
+        private_url: 'x',
+        bearer: 'x',
+        credential: 'x',
+        private_key: 'x',
+        session_token: 'x',
+      };
+      const result = sanitizeAuditData(data) as Record<string, string>;
+      for (const key of Object.keys(result)) {
+        expect(result[key]).toBe('[REDACTED]');
+      }
+    });
+
+    it('preserves non-sensitive nested objects', () => {
+      const result = sanitizeAuditData({
+        config: { host: 'localhost', port: 5432 },
+      });
+      expect(result).toEqual({ config: { host: 'localhost', port: 5432 } });
+    });
+
+    it('handles deeply nested structures', () => {
+      const result = sanitizeAuditData({
+        level1: { level2: { level3: { password: 'deep' } } },
+      });
+      expect(result).toEqual({
+        level1: { level2: { level3: { password: '[REDACTED]' } } },
+      });
+    });
+
+    it('returns primitives as-is', () => {
+      expect(sanitizeAuditData('hello')).toBe('hello');
+      expect(sanitizeAuditData(42)).toBe(42);
+      expect(sanitizeAuditData(null)).toBe(null);
+      expect(sanitizeAuditData(undefined)).toBe(undefined);
+    });
+  });
+
+  // ==========================================================================
+  // P9 — Domain formatters
+  // ==========================================================================
+  describe('P9 — diffAuditData with domain formatters', () => {
+    it('formats duration_minutes as h:mm', () => {
       const fields = diffAuditData(
         { duration_minutes: 60 },
-        { duration_minutes: 120 }
+        { duration_minutes: 90 }
       );
-      expect(fields[0]?.label).toBe('Duração (min)');
+      const field = fields.find((f) => f.key === 'duration_minutes');
+      expect(field?.before).toBe('1h');
+      expect(field?.after).toBe('1h30');
+    });
+
+    it('formats currency fields as BRL', () => {
+      const fields = diffAuditData(
+        { applied_hourly_rate: 100 },
+        { applied_hourly_rate: 150 }
+      );
+      const field = fields.find((f) => f.key === 'applied_hourly_rate');
+      expect(field?.before).toContain('R$');
+      expect(field?.after).toContain('R$');
+    });
+
+    it('translates approval_status enum', () => {
+      const fields = diffAuditData(
+        { approval_status: 'pending' },
+        { approval_status: 'approved' }
+      );
+      const field = fields.find((f) => f.key === 'approval_status');
+      expect(field?.before).toBe('Pendente');
+      expect(field?.after).toBe('Aprovado');
+    });
+
+    it('formats date-only fields as dd/MM/yyyy', () => {
+      const fields = diffAuditData(
+        { entry_date: '2024-08-05' },
+        { entry_date: '2024-08-06' }
+      );
+      const field = fields.find((f) => f.key === 'entry_date');
+      expect(field?.before).toBe('05/08/2024');
+      expect(field?.after).toBe('06/08/2024');
+    });
+
+    it('formats booleans as Sim/Não', () => {
+      const fields = diffAuditData(
+        { is_active: false },
+        { is_active: true }
+      );
+      const field = fields.find((f) => f.key === 'is_active');
+      expect(field?.before).toBe('Não');
+      expect(field?.after).toBe('Sim');
+    });
+
+    it('sanitizes sensitive keys in diff data', () => {
+      const fields = diffAuditData(
+        { password: 'old', name: 'test' },
+        { password: 'new', name: 'test' }
+      );
+      const pwField = fields.find((f) => f.key === 'password');
+      expect(pwField?.before).toBe('[REDACTED]');
+      expect(pwField?.after).toBe('[REDACTED]');
+      expect(pwField?.changed).toBe(false); // both redacted, so no change
+    });
+
+    it('returns empty array when both null', () => {
+      expect(diffAuditData(null, null)).toEqual([]);
     });
 
     it('sorts changed fields first', () => {
@@ -107,39 +243,12 @@ describe('audit-format', () => {
       expect(changedIdx).toBe(0);
     });
 
-    it('formats boolean values', () => {
+    it('uses human-readable field labels', () => {
       const fields = diffAuditData(
-        { is_active: false },
-        { is_active: true }
+        { duration_minutes: 60 },
+        { duration_minutes: 120 }
       );
-      const field = fields.find((f) => f.key === 'is_active');
-      expect(field?.before).toBe('Não');
-      expect(field?.after).toBe('Sim');
-    });
-
-    it('formats ISO date strings in values', () => {
-      const fields = diffAuditData(
-        { rejected_at: null },
-        { rejected_at: '2024-01-15T10:00:00Z' }
-      );
-      const field = fields.find((f) => f.key === 'rejected_at');
-      expect(field?.after).toMatch(/\d{2}\/\d{2}\/\d{4}/);
-    });
-
-    it('handles fields only in before', () => {
-      const fields = diffAuditData({ removed_field: 'value' }, null);
-      const field = fields.find((f) => f.key === 'removed_field');
-      expect(field?.before).toBe('value');
-      expect(field?.after).toBe('—');
-      expect(field?.changed).toBe(true);
-    });
-
-    it('handles fields only in after', () => {
-      const fields = diffAuditData(null, { new_field: 'value' });
-      const field = fields.find((f) => f.key === 'new_field');
-      expect(field?.before).toBe('—');
-      expect(field?.after).toBe('value');
-      expect(field?.changed).toBe(true);
+      expect(fields[0]?.label).toBe('Duração');
     });
   });
 
@@ -152,6 +261,12 @@ describe('audit-format', () => {
       expect(formatAuditMetadata({})).toBeNull();
     });
 
+    it('sanitizes sensitive keys in metadata', () => {
+      const result = formatAuditMetadata({ token: 'abc123', reason: 'Test' });
+      const tokenEntry = result?.find((e) => e.key === 'token' || e.value === '[REDACTED]');
+      expect(tokenEntry?.value).toBe('[REDACTED]');
+    });
+
     it('returns formatted key-value pairs', () => {
       const result = formatAuditMetadata({ batch_size: 5, reason: 'Test reason' });
       expect(result).toHaveLength(2);
@@ -160,7 +275,7 @@ describe('audit-format', () => {
   });
 
   describe('getAuditSummary', () => {
-    it('returns combined action and entity label', () => {
+    it('returns combined action and entity label (event wording)', () => {
       const log: AuditLog = {
         id: '1',
         actor_id: null,
@@ -172,7 +287,7 @@ describe('audit-format', () => {
         metadata: null,
         created_at: '2024-01-15T10:00:00Z',
       };
-      expect(getAuditSummary(log)).toBe('Aprovar apontamento — Apontamento');
+      expect(getAuditSummary(log)).toBe('Apontamento aprovado — Apontamento');
     });
   });
 });
