@@ -59,7 +59,7 @@ describe('ProjectsAttention', () => {
 
   it('shows empty state when no projects exist', () => {
     renderProjects({ items: [] });
-    expect(screen.getByText('Nenhum projeto cadastrado')).toBeInTheDocument();
+    expect(screen.getByText(/Nenhum projeto ativo ou planejado/)).toBeInTheDocument();
   });
 
   // PHASE 1.4 A) 2 healthy, attention 0, health healthy=2
@@ -129,9 +129,9 @@ describe('ProjectsAttention', () => {
   });
 
   // PHASE 1.4 F) empty states consistent
-  it('F) empty items → Nenhum projeto cadastrado', () => {
+  it('F) empty items → Nenhum projeto ativo ou planejado', () => {
     renderProjects({ items: [] });
-    expect(screen.getByText('Nenhum projeto cadastrado')).toBeInTheDocument();
+    expect(screen.getByText(/Nenhum projeto ativo ou planejado/)).toBeInTheDocument();
   });
 
   it('shows overdue task count in red', () => {

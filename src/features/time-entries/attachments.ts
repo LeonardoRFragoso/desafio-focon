@@ -73,6 +73,7 @@ export async function uploadTimeEntryAttachment(
     const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, '_');
     const storagePath = `${userId}/${entryId}/${Date.now()}-${safeName}`;
 
+    // Step 1: Upload to Storage
     const { error: uploadErr } = await supabase.storage
       .from(ATTACHMENT_BUCKET)
       .upload(storagePath, file, {
@@ -81,6 +82,7 @@ export async function uploadTimeEntryAttachment(
       });
     if (uploadErr) throw uploadErr;
 
+    // Step 2: Insert metadata row
     const { error: metaErr } = await supabase.from('time_entry_attachments').insert([
       {
         time_entry_id: entryId,
@@ -91,11 +93,32 @@ export async function uploadTimeEntryAttachment(
         storage_path: storagePath,
       },
     ]);
-    if (metaErr) throw metaErr;
+
+    if (metaErr) {
+      // Compensation: the file was uploaded to Storage but the metadata
+      // insert failed. The file is now an orphan in the bucket. Attempt
+      // to remove it so we don't leave untracked objects.
+      const { error: cleanupErr } = await supabase.storage
+        .from(ATTACHMENT_BUCKET)
+        .remove([storagePath]);
+
+      if (cleanupErr) {
+        // Cleanup also failed — the orphan remains. Return an explicit
+        // error that mentions both failures so the caller can log/alert.
+        // Do NOT include sensitive paths or tokens in the message.
+        return {
+          success: false,
+          error: `Falha ao registrar metadados do anexo e também ao limpar o arquivo órfão do storage. Erro de metadados: ${metaErr.message}. Erro de limpeza: ${cleanupErr.message}.`,
+        };
+      }
+
+      // Cleanup succeeded — no orphan, but the upload itself failed.
+      throw metaErr;
+    }
 
     return { success: true };
   } catch (err) {
-    const message = err instanceof Error ? err.message : 'Erro ao enviar arquivo';
+    const message = err instanceof Error ? err.message : (err as { message?: string })?.message ?? 'Erro ao enviar arquivo';
     return { success: false, error: message };
   }
 }

@@ -1,13 +1,83 @@
 import { useState, useCallback, useEffect } from 'react';
 import { projectHealthAPI } from '@/lib/supabase/api';
 import { mapDatabaseError, logError } from '@/lib/errors';
-import type { ProjectHealthSummaryItem } from '@/types/database';
+import type { ProjectHealthSummaryItem, HealthStatus } from '@/types/database';
 
 interface UseProjectHealthSummaryReturn {
   items: ProjectHealthSummaryItem[];
   loading: boolean;
   error: string | null;
   refetch: () => Promise<void>;
+}
+
+const VALID_HEALTH_STATUSES: readonly HealthStatus[] = [
+  'healthy',
+  'attention',
+  'at_risk',
+  'not_applicable',
+];
+
+/**
+ * Type guard: validate that an unknown value is a HealthStatus.
+ */
+function isHealthStatus(value: unknown): value is HealthStatus {
+  return typeof value === 'string' && (VALID_HEALTH_STATUSES as readonly string[]).includes(value);
+}
+
+/**
+ * Safely parse the JSONB result of `get_projects_health_summary` RPC into
+ * `ProjectHealthSummaryItem[]`. Each row is validated field-by-field;
+ * invalid rows are filtered out rather than crashing the UI.
+ *
+ * This replaces the previous unsafe `as unknown as ProjectHealthSummaryItem[]`
+ * cast with a proper runtime parser.
+ */
+function parseHealthSummary(data: unknown): ProjectHealthSummaryItem[] {
+  if (!Array.isArray(data)) return [];
+
+  return data
+    .map((row): ProjectHealthSummaryItem | null => {
+      if (typeof row !== 'object' || row === null) return null;
+
+      const r = row as Record<string, unknown>;
+
+      // Required string fields
+      if (typeof r['id'] !== 'string' || typeof r['name'] !== 'string') return null;
+
+      // health_status can be null (not_calculated) or a valid status string
+      const healthStatus = r['health_status'];
+      if (healthStatus !== null && !isHealthStatus(healthStatus)) return null;
+
+      return {
+        id: r['id'] as string,
+        name: r['name'] as string,
+        client: typeof r['client'] === 'string' ? r['client'] : '',
+        project_status: typeof r['project_status'] === 'string' ? r['project_status'] : '',
+        start_date: typeof r['start_date'] === 'string' ? r['start_date'] : '',
+        end_date: typeof r['end_date'] === 'string' ? r['end_date'] : '',
+        health_score:
+          typeof r['health_score'] === 'number' ? r['health_score'] : null,
+        health_status: healthStatus as HealthStatus | null,
+        has_calculated_state: typeof r['has_calculated_state'] === 'boolean' ? r['has_calculated_state'] : false,
+        progress_percent:
+          typeof r['progress_percent'] === 'number' ? r['progress_percent'] : null,
+        budget_utilization:
+          typeof r['budget_utilization'] === 'number' ? r['budget_utilization'] : null,
+        forecast_completion_date:
+          typeof r['forecast_completion_date'] === 'string' ? r['forecast_completion_date'] : null,
+        forecast_labor_cost:
+          typeof r['forecast_labor_cost'] === 'number' ? r['forecast_labor_cost'] : null,
+        calculated_at:
+          typeof r['calculated_at'] === 'string' ? r['calculated_at'] : null,
+        overdue_milestones_count:
+          typeof r['overdue_milestones_count'] === 'number' ? r['overdue_milestones_count'] : 0,
+        overdue_tasks_count:
+          typeof r['overdue_tasks_count'] === 'number' ? r['overdue_tasks_count'] : 0,
+        total_milestones:
+          typeof r['total_milestones'] === 'number' ? r['total_milestones'] : 0,
+      };
+    })
+    .filter((item): item is ProjectHealthSummaryItem => item !== null);
 }
 
 /**
@@ -37,8 +107,9 @@ export function useProjectHealthSummary(): UseProjectHealthSummaryReturn {
       setLoading(true);
       const { data, error: rpcError } = await projectHealthAPI.getSummary();
       if (rpcError) throw rpcError;
-      // RPC returns JSONB; cast through unknown because Supabase types it as Json.
-      setItems((data as unknown as ProjectHealthSummaryItem[]) ?? []);
+      // RPC returns JSONB; parse and validate each row at runtime instead
+      // of using an unsafe `as unknown as` cast.
+      setItems(parseHealthSummary(data));
     } catch (err) {
       const message = err instanceof Error ? mapDatabaseError(err) : 'Erro ao carregar saúde dos projetos';
       setError(message);

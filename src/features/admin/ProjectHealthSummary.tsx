@@ -59,7 +59,7 @@ export function ProjectHealthSummary({ items, loading, error, onRetry }: Project
       <section aria-label="Saúde dos projetos" className="space-y-3">
         <h2 className="text-2xl font-semibold text-app-primary">Saúde dos Projetos</h2>
         <div className="rounded-xl border border-app-primary bg-surface-primary p-6 text-center">
-          <p className="text-sm text-app-muted">Nenhum projeto cadastrado</p>
+          <p className="text-sm text-app-muted">Nenhum projeto ativo ou planejado para cálculo de saúde.</p>
         </div>
       </section>
     );

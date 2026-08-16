@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { recurringRulesAPI, projectsAPI } from '@/lib/supabase/api';
 import { useAuthContext } from '@/features/auth/useAuthContext';
 import { mapDatabaseError } from '@/lib/errors';
+import { businessTodayStr, formatBusinessDate } from '@/lib/businessDate';
 import { Modal } from '@/components/Modal';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
 import { maxEntryDate } from '@/features/time-entries/temporalRules';
@@ -209,7 +210,7 @@ function RuleFormModal({ userId, projects, onClose, onSaved, onError }: RuleForm
   const [duration, setDuration] = useState('60');
   const [frequency, setFrequency] = useState<RecurringFrequency>('weekly');
   const [dayOfWeek, setDayOfWeek] = useState('1');
-  const [startDate, setStartDate] = useState(new Date().toISOString().slice(0, 10));
+  const [startDate, setStartDate] = useState(businessTodayStr());
   const [endDate, setEndDate] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
@@ -254,7 +255,7 @@ function RuleFormModal({ userId, projects, onClose, onSaved, onError }: RuleForm
         day_of_month: frequency === 'monthly' ? start.getDate() : null,
         start_date: startDate,
         end_date: endDate || null,
-        next_run_date: nextRun.toISOString().slice(0, 10),
+        next_run_date: formatBusinessDate(nextRun),
       });
       if (err) throw err;
       onSaved();

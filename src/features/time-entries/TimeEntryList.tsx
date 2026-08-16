@@ -14,6 +14,7 @@ import { useTimeEntryForm } from '@/features/time-entries/useTimeEntryForm';
 import { AttachmentsPanel } from '@/features/time-entries/AttachmentsPanel';
 import { useToast } from '@/components/useToast';
 import { requiresLateReason } from '@/features/time-entries/temporalRules';
+import { businessTodayStr } from '@/lib/businessDate';
 import type { TimeEntryInput } from '@/schemas/time-entry';
 
 const PAGE_SIZE = 20;
@@ -693,7 +694,7 @@ interface DuplicateEntryModalProps {
 function DuplicateEntryModal({ entry, projects, onClose, onSaved, onError }: DuplicateEntryModalProps) {
   const { user } = useAuthContext();
   const [submitting, setSubmitting] = useState(false);
-  const today = new Date().toISOString().slice(0, 10);
+  const today = businessTodayStr();
   const form = useTimeEntryForm({
     defaultValues: {
       projectId: entry.project_id,

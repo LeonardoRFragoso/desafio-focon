@@ -86,7 +86,7 @@ export function ProjectsAttention({ items, loading, error, onRetry }: ProjectsAt
           Projetos que exigem atenção
         </h2>
         <div className="rounded-xl border border-app-primary bg-surface-primary p-6 text-center">
-          <p className="text-sm text-app-muted">Nenhum projeto cadastrado</p>
+          <p className="text-sm text-app-muted">Nenhum projeto ativo ou planejado para monitoramento.</p>
         </div>
       </section>
     );

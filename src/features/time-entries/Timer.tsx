@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/lib/supabase/client';
 import { timeEntriesAPI, projectPhasesAPI, projectTasksAPI } from '@/lib/supabase/api';
 import { mapDatabaseError } from '@/lib/errors';
+import { businessTodayStr } from '@/lib/businessDate';
 import { Modal } from '@/components/Modal';
 
 interface TimerState {
@@ -223,7 +224,7 @@ export function Timer({ userId, onEntryCreated, isAdmin = false }: TimerProps) {
       const { error: err } = await timeEntriesAPI.create({
         project_id: timerState.project_id,
         professional_id: userId,
-        entry_date: new Date().toISOString().slice(0, 10),
+        entry_date: businessTodayStr(),
         duration_minutes: durationMinutes,
         description: description.trim(),
         phase_id: timerState.phase_id,

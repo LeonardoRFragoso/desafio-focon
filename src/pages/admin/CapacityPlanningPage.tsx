@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { capacityAPI, profilesAPI, projectsAPI } from '@/lib/supabase/api';
 import { mapDatabaseError } from '@/lib/errors';
+import { businessTodayStr, formatBusinessDate } from '@/lib/businessDate';
 import { Modal } from '@/components/Modal';
 import type {
   Profile,
@@ -88,7 +89,7 @@ export function CapacityPlanningPage() {
   const [ruleForm, setRuleForm] = useState({
     professional_id: '',
     weekly_capacity_minutes: 2400,
-    valid_from: new Date().toISOString().slice(0, 10),
+    valid_from: businessTodayStr(),
     valid_until: '',
   });
 
@@ -96,8 +97,8 @@ export function CapacityPlanningPage() {
   const [allocForm, setAllocForm] = useState({
     project_id: '',
     professional_id: '',
-    start_date: new Date().toISOString().slice(0, 10),
-    end_date: new Date().toISOString().slice(0, 10),
+    start_date: businessTodayStr(),
+    end_date: businessTodayStr(),
     allocated_minutes: 600,
     allocation_type: 'planned' as AllocationType,
     notes: '',
@@ -113,8 +114,8 @@ export function CapacityPlanningPage() {
     const end = new Date(base);
     end.setDate(end.getDate() + preset.duration - 1);
     return {
-      startDate: base.toISOString().slice(0, 10),
-      endDate: end.toISOString().slice(0, 10),
+      startDate: formatBusinessDate(base),
+      endDate: formatBusinessDate(end),
     };
   }, [selectedPreset, customStart, customEnd]);
 
@@ -261,7 +262,7 @@ export function CapacityPlanningPage() {
     setRuleForm({
       professional_id: '',
       weekly_capacity_minutes: 2400,
-      valid_from: new Date().toISOString().slice(0, 10),
+      valid_from: businessTodayStr(),
       valid_until: '',
     });
     setActionError(null);

@@ -59,7 +59,7 @@ describe('ProjectHealthSummary', () => {
 
   it('renders empty state when no projects', () => {
     renderSummary({ items: [] });
-    expect(screen.getByText('Nenhum projeto cadastrado')).toBeInTheDocument();
+    expect(screen.getByText(/Nenhum projeto ativo ou planejado/)).toBeInTheDocument();
   });
 
   it('renders counts: 1 at_risk, 1 attention, 1 healthy', () => {
