@@ -2,6 +2,8 @@
 
 Controle de Produção e Rentabilidade por Projeto - MVP Completo
 
+> **Contexto:** Este projeto foi desenvolvido como **desafio técnico de engenharia**. Não é um produto oficial da Fócon Engenharia e não há vínculo empregatício ou comercial. Os dados de demonstração são fictícios. Os ativos de marca da Fócon são utilizados apenas no contexto do desafio técnico submetido.
+
 ## Objetivo
 
 Implementar o MVP funcional do FoconFlow com autenticação real, fluxos de usuário comum e administrativo, aprovação de apontamentos, dashboard financeiro e relatório para impressão/PDF.
@@ -321,6 +323,13 @@ Os arquivos `supabase/seed-auth.sql` e `supabase/seed.sql` contêm dados de demo
 Os dados são idempotentes e executados automaticamente via `supabase db reset`.
 
 ## Testes
+
+### Status
+
+- **CI:** GitHub Actions — passando (3 runs consecutivas)
+- **Testes unitários:** Vitest
+- **E2E:** 7 specs Playwright (autenticação, rotas protegidas, CRUD de apontamentos, aprovação admin, lifecycle de projetos, navegação de meta semanal)
+- **Testes de banco/RLS:** SQL suites via `supabase test db`
 
 ### Executar testes
 
